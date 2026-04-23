@@ -4,37 +4,17 @@ import streamlit as st
 from pathlib import Path
 from typing import Optional
 import sys
+import os
+from datetime import datetime
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from core.database import init_db
+from core.database import init_db, get_connection
 from core.crud import create_block, get_block, list_blocks, update_block, delete_block
 from core.models import (
     HeroContent, BannerContent, HeadingTextContent, CardContent, FooterContent
 )
-
-st.subheader("📝 Content Management")
-
-# Initialize database
-init_db()
-
-# Sidebar: Block type selector
-st.sidebar.header("Block Type")
-block_types = ["hero", "banner", "heading_text", "card", "footer"]
-selected_type = st.sidebar.radio("Select block type", block_types)
-
-st.sidebar.markdown("---")
-st.sidebar.markdown("### Create New")
-if st.sidebar.button(f"➕ New {selected_type.replace('_', ' ').title()} Block"):
-    st.session_state.editing_block = None
-    st.session_state.creating_type = selected_type
-    st.rerun()
-
-# Main area: List or Edit form
-if "creating_type" in st.session_state or "editing_block" in st.session_state:
-    show_edit_form()
-else:
-    show_block_list(selected_type)
+from core.image_processor import process_image
 
 
 def show_block_list(block_type: str):
@@ -254,3 +234,28 @@ def get_content_form(block_type: str, block: Optional) -> dict:
                 links.append({"label": label, "url": url})
 
         return FooterContent(copyright_text=copyright_text, links=links)
+
+
+# Main page content
+st.subheader("📝 Content Management")
+
+# Initialize database
+init_db()
+
+# Sidebar: Block type selector
+st.sidebar.header("Block Type")
+block_types = ["hero", "banner", "heading_text", "card", "footer"]
+selected_type = st.sidebar.radio("Select block type", block_types)
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("### Create New")
+if st.sidebar.button(f"➕ New {selected_type.replace('_', ' ').title()} Block"):
+    st.session_state.editing_block = None
+    st.session_state.creating_type = selected_type
+    st.rerun()
+
+# Main area: List or Edit form
+if "creating_type" in st.session_state or "editing_block" in st.session_state:
+    show_edit_form()
+else:
+    show_block_list(selected_type)
