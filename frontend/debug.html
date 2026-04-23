@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Debug Content Loading</title>
+</head>
+<body>
+  <h1>Debug: Content Loading Test</h1>
+
+  <div id="hero-title" class="hero-title">Original Title</div>
+  <div id="hero-description" class="hero-description">Original Description</div>
+  <div id="banner-date" class="banner-date">Original Date</div>
+
+  <h2>Test Results:</h2>
+  <div id="test-results"></div>
+
+  <script>
+    async function testContentLoading() {
+      const results = document.getElementById('test-results');
+
+      try {
+        // Test 1: Can we fetch content.json?
+        results.innerHTML += '<p>✓ Fetching content.json...</p>';
+        const response = await fetch('/data/content.json');
+        const data = await response.json();
+        results.innerHTML += `<p>✓ Loaded! Found ${data.blocks.length} blocks</p>`;
+
+        // Test 2: Is there a hero block?
+        const heroBlock = data.blocks.find(b => b.type === 'hero' && b.is_active);
+        if (heroBlock) {
+          results.innerHTML += `<p>✓ Found hero block with slogan: "${heroBlock.content.slogan}"</p>`;
+
+          // Test 3: Can we update the DOM?
+          const titleEl = document.querySelector('.hero-title');
+          const descEl = document.querySelector('.hero-description');
+
+          if (titleEl) {
+            titleEl.textContent = heroBlock.content.slogan;
+            results.innerHTML += `<p>✓ Updated hero title to: "${heroBlock.content.slogan}"</p>`;
+          } else {
+            results.innerHTML += `<p>✗ ERROR: .hero-title element not found!</p>`;
+          }
+
+          if (descEl) {
+            descEl.textContent = heroBlock.content.description;
+            results.innerHTML += `<p>✓ Updated hero description to: "${heroBlock.content.description}"</p>`;
+          } else {
+            results.innerHTML += `<p>✗ ERROR: .hero-description element not found!</p>`;
+          }
+        } else {
+          results.innerHTML += '<p>✗ ERROR: No active hero block found!</p>';
+        }
+
+        // Test 4: Banner block
+        const bannerBlock = data.blocks.find(b => b.type === 'banner' && b.is_active);
+        if (bannerBlock) {
+          const dateEl = document.querySelector('.banner-date');
+          if (dateEl) {
+            dateEl.textContent = bannerBlock.content.exam_date;
+            results.innerHTML += `<p>✓ Updated banner date to: "${bannerBlock.content.exam_date}"</p>`;
+          } else {
+            results.innerHTML += '<p>✗ ERROR: .banner-date element not found!</p>';
+          }
+        }
+
+      } catch (error) {
+        results.innerHTML += `<p>✗ ERROR: ${error.message}</p>`;
+        console.error('Full error:', error);
+      }
+    }
+
+    // Run test
+    testContentLoading();
+  </script>
+</body>
+</html>
