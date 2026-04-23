@@ -2,7 +2,25 @@
 
 Local-only Streamlit admin interface for managing NAT-TEST Centre website content.
 
-## Setup
+## Quick Start
+
+The easiest way to get started:
+
+```bash
+./start_admin.sh
+```
+
+This script will:
+- Create `.env` from template if needed
+- Install dependencies automatically
+- Initialize database with seed content
+- Start the admin interface
+
+The app will be available at http://127.0.0.1:8501
+
+## Manual Setup
+
+If you prefer to set up manually:
 
 1. Install dependencies:
 ```bash
@@ -24,8 +42,6 @@ python scripts/seed_content.py
 ```bash
 streamlit run main.py
 ```
-
-The app will be available at http://127.0.0.1:8501
 
 ## Pages
 
