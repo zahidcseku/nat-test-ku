@@ -15,6 +15,7 @@ st.set_page_config(
 pg = st.navigation([
     st.Page("main.py", title="Home", icon="🏠"),
     st.Page("pages/content.py", title="Content", icon="📝"),
+    st.Page("pages/image_manager.py", title="Images", icon="🖼️"),
 ])
 
 st.sidebar.success("Navigate using the menu above")
