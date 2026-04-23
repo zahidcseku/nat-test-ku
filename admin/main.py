@@ -11,17 +11,29 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Page navigation
-pg = st.navigation([
-    st.Page("main.py", title="Home", icon="🏠"),
-    st.Page("pages/content.py", title="Content", icon="📝"),
-    st.Page("pages/image_manager.py", title="Images", icon="🖼️"),
-    st.Page("pages/publish.py", title="Publish", icon="🚀"),
-])
+# Home page
+st.title("🎓 NAT-TEST Centre Admin")
 
 st.sidebar.success("Navigate using the menu above")
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🎓 NAT-TEST Admin")
 st.sidebar.caption("Local-only administration interface")
 
-pg.run()
+st.markdown("""
+## Welcome to the NAT-TEST Centre administration interface.
+
+Use the pages in the sidebar to:
+- **Content**: Manage home page content blocks
+- **Images**: Upload and manage images
+- **Publish**: Export content to frontend and sync to production
+
+## Getting Started
+
+1. Navigate to **Content** to create and edit content blocks
+2. Use **Images** to upload and optimize images
+3. Go to **Publish** to export changes to the frontend
+
+## Security Note
+
+⚠️ This admin interface is for **local use only** and should never be exposed to the network.
+""")
