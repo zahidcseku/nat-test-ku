@@ -161,9 +161,18 @@ def get_content_form(block_type: str, block: Optional) -> dict:
         )
 
     elif block_type == "banner":
+        # Convert string date to date object for Streamlit
+        exam_date_value = None
+        if content and content.exam_date:
+            from datetime import date
+            try:
+                exam_date_value = date.fromisoformat(content.exam_date)
+            except ValueError:
+                pass  # If date is invalid, leave as None
+
         exam_date = st.date_input(
             "Exam Date",
-            value=content.exam_date if content else None
+            value=exam_date_value
         )
         exam_info_url = st.text_input(
             "Exam Info URL",
