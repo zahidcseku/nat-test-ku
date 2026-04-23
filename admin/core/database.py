@@ -4,10 +4,10 @@ from pathlib import Path
 from typing import Optional
 from contextlib import contextmanager
 
-DATABASE_PATH = os.getenv("DATABASE_PATH", "./data/admin.db")
 
 def get_db_path() -> Path:
     """Get the database file path, ensuring directory exists."""
+    DATABASE_PATH = os.getenv("DATABASE_PATH", "./data/admin.db")
     db_path = Path(DATABASE_PATH)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     return db_path
