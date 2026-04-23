@@ -68,7 +68,7 @@ async function loadContent() {
 function renderHero(content) {
   console.log('Rendering hero:', content);
 
-  // Update hero section - using textContent for security
+  // Update hero section
   const heroTitle = document.querySelector('.hero-title');
   const heroDescription = document.querySelector('.hero-description');
   const heroCtaPrimary = document.querySelector('.hero-cta-primary');
@@ -89,15 +89,30 @@ function renderHero(content) {
     heroDescription.textContent = content.description;
     console.log('✓ Updated description to:', content.description);
   }
+
+  // Update links while preserving HTML structure (spans, icons)
   if (heroCtaPrimary) {
-    heroCtaPrimary.textContent = content.primary_link.label;
     heroCtaPrimary.href = content.primary_link.url;
-    console.log('✓ Updated primary CTA');
+    // Find the first span and update its text
+    const span = heroCtaPrimary.querySelector('span');
+    if (span) {
+      span.textContent = content.primary_link.label;
+    } else {
+      // Fallback: replace entire content if no span found
+      heroCtaPrimary.innerHTML = `<span>${content.primary_link.label}</span>`;
+    }
+    console.log('✓ Updated primary CTA to:', content.primary_link.label);
   }
+
   if (heroCtaSecondary) {
-    heroCtaSecondary.textContent = content.secondary_link.label;
     heroCtaSecondary.href = content.secondary_link.url;
-    console.log('✓ Updated secondary CTA');
+    const span = heroCtaSecondary.querySelector('span');
+    if (span) {
+      span.textContent = content.secondary_link.label;
+    } else {
+      heroCtaSecondary.innerHTML = `<span>${content.secondary_link.label}</span>`;
+    }
+    console.log('✓ Updated secondary CTA to:', content.secondary_link.label);
   }
 }
 
@@ -148,50 +163,52 @@ function renderHeadingText(content) {
 function renderCards(cardBlocks) {
   console.log('Rendering', cardBlocks.length, 'cards');
 
-  // Render cards using safe DOM methods
-  const cardsContainer = document.querySelector('.cards-container');
-  if (!cardsContainer) {
-    console.warn('⚠️ .cards-container not found!');
+  // Get existing cards from the DOM
+  const existingCards = document.querySelectorAll('.content-card');
+  console.log('Found', existingCards.length, 'existing cards in HTML');
+
+  if (existingCards.length === 0) {
+    console.warn('⚠️ No existing cards found in HTML!');
     return;
   }
 
-  cardsContainer.innerHTML = '';
-
-  cardBlocks.forEach(block => {
+  // Update each existing card with data from JSON
+  cardBlocks.forEach((block, index) => {
     const content = block.content;
-    const card = document.createElement('div');
-    card.className = 'content-card';
+    const card = existingCards[index];
 
-    // Create icon element
-    const icon = document.createElement('div');
-    icon.className = 'card-icon';
-    icon.textContent = content.icon_name || 'info';
+    if (!card) {
+      console.warn('⚠️ No card found for index', index);
+      return;
+    }
 
-    // Create title
-    const title = document.createElement('h3');
-    title.className = 'card-title';
-    title.textContent = content.title;
+    // Update link href
+    card.href = content.link_url;
 
-    // Create description
-    const desc = document.createElement('p');
-    desc.className = 'card-description';
-    desc.textContent = content.description;
+    // Update title
+    const titleEl = card.querySelector('.card-title');
+    if (titleEl) {
+      titleEl.textContent = content.title;
+    }
 
-    // Create link
-    const link = document.createElement('a');
-    link.href = content.link_url;
-    link.className = 'card-link';
-    link.textContent = 'Learn More →';
+    // Update description
+    const descEl = card.querySelector('p:not(.card-title)');
+    if (descEl) {
+      descEl.textContent = content.description;
+    }
 
-    card.appendChild(icon);
-    card.appendChild(title);
-    card.appendChild(desc);
-    card.appendChild(link);
+    // Update icon if icon_name is provided
+    if (content.icon_name) {
+      const iconEl = card.querySelector('.material-symbols-outlined');
+      if (iconEl) {
+        iconEl.textContent = content.icon_name;
+      }
+    }
 
-    cardsContainer.appendChild(card);
+    console.log('✓ Updated card', index, ':', content.title);
   });
 
-  console.log('✓ Rendered', cardBlocks.length, 'cards');
+  console.log('✓ Updated', Math.min(cardBlocks.length, existingCards.length), 'cards');
 }
 
 function renderFooter(content) {
