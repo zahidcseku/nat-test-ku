@@ -15,19 +15,13 @@ from .database import backup_database
 
 
 def export_to_json(output_path: str) -> str:
-    """Export all active blocks to JSON file."""
+    """Export all active blocks to JSON file matching content.json structure."""
     blocks = list_blocks(active_only=True)
 
     export_data = {
         "last_updated": datetime.now().isoformat(),
         "blocks": [
-            {
-                "id": block.id,
-                "type": block.block_type,
-                "display_order": block.display_order,
-                "is_active": block.is_active,
-                "content": block.content.model_dump()
-            }
+            block.to_content_json()
             for block in blocks
         ]
     }

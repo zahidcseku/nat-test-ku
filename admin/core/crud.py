@@ -16,7 +16,6 @@ from .models import ContentBlock, BlockType, ContentData
 
 def create_block(
     block_type: BlockType,
-    title: Optional[str],
     content: ContentData,
     display_order: Optional[int] = None
 ) -> ContentBlock:
@@ -34,18 +33,17 @@ def create_block(
             ).fetchone()["max_order"]
             display_order = max_order + 1
 
-    content_json = content.model_dump_json()
+    content_json = json.dumps(content.model_dump())
 
     with get_connection() as conn:
         conn.execute("""
-            INSERT INTO content_blocks (id, block_type, title, content, display_order, is_active, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, 1, ?, ?)
-        """, (block_id, block_type, title, content_json, display_order, now, now))
+            INSERT INTO content_blocks (id, block_type, content, display_order, is_active, created_at, updated_at)
+            VALUES (?, ?, ?, ?, 1, ?, ?)
+        """, (block_id, block_type, content_json, display_order, now, now))
 
     return ContentBlock(
         id=block_id,
-        block_type=block_type,
-        title=title,
+        type=block_type,
         content=content,
         display_order=display_order,
         is_active=True,
@@ -93,7 +91,6 @@ def list_blocks(
 
 def update_block(
     block_id: str,
-    title: Optional[str] = None,
     content: Optional[ContentData] = None,
     display_order: Optional[int] = None,
     is_active: Optional[bool] = None
@@ -108,13 +105,9 @@ def update_block(
     updates = []
     params = []
 
-    if title is not None:
-        updates.append("title = ?")
-        params.append(title)
-
     if content is not None:
         updates.append("content = ?")
-        params.append(content.model_dump_json())
+        params.append(json.dumps(content.model_dump()))
 
     if display_order is not None:
         updates.append("display_order = ?")
@@ -157,3 +150,27 @@ def delete_block(block_id: str, hard_delete: bool = False) -> bool:
             )
 
     return True
+
+
+def get_blocks_by_section(section: str) -> List[ContentBlock]:
+    """Get all blocks for a specific section (hero, benefits, resources, etc.)."""
+    section_types = {
+        "hero": ["hero_badge", "hero_headline", "hero_description", "hero_cta_primary", "hero_cta_secondary"],
+        "exam": ["exam_ribbon"],
+        "benefits": ["benefits_heading", "benefits_description"],
+        "resources": ["resources_heading", "resource_card"],
+        "support": ["support_heading", "support_description", "support_contact"],
+        "footer": ["footer_copyright", "footer_links"]
+    }
+
+    types = section_types.get(section, [])
+    if not types:
+        return []
+
+    placeholders = ",".join("?" * len(types))
+    query = f"SELECT * FROM content_blocks WHERE block_type IN ({placeholders}) AND is_active = 1 ORDER BY display_order"
+
+    with get_connection() as conn:
+        rows = conn.execute(query, types).fetchall()
+
+    return [ContentBlock.from_db_row(row) for row in rows]

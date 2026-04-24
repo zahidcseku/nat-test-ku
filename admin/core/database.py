@@ -27,19 +27,18 @@ def get_connection():
         conn.close()
 
 def init_db() -> None:
-    """Initialize database schema."""
+    """Initialize database schema matching content.json structure."""
     with get_connection() as conn:
-        # Content blocks table
+        # Content blocks table - matches content.json structure
         conn.execute("""
             CREATE TABLE IF NOT EXISTS content_blocks (
                 id TEXT PRIMARY KEY,
                 block_type TEXT NOT NULL,
-                title TEXT,
                 content TEXT NOT NULL,
                 display_order INTEGER NOT NULL DEFAULT 0,
                 is_active BOOLEAN NOT NULL DEFAULT 1,
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at TEXT NOT NULL DEFAULT (datetime('now'))
             )
         """)
 
