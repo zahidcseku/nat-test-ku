@@ -212,7 +212,7 @@ with tab1:
 
         if description_block:
             # Get initial HTML content if it exists, otherwise use text
-            initial_html = description_block.content.html if description_block.content.html else description_block.content.text
+            initial_html = getattr(description_block.content, 'html', None) or description_block.content.text
 
             # Rich text editor
             html_content = rich_text_editor(
@@ -365,7 +365,7 @@ with tab3:
 
         if description_block:
             # Get initial HTML content if it exists, otherwise use text
-            initial_html = description_block.content.html if description_block.content.html else description_block.content.text
+            initial_html = getattr(description_block.content, 'html', None) or description_block.content.text
 
             # Rich text editor
             html_content = rich_text_editor(
@@ -500,7 +500,7 @@ with tab5:
 
         if description_block:
             # Get initial HTML content if it exists, otherwise use text
-            initial_html = description_block.content.html if description_block.content.html else description_block.content.text
+            initial_html = getattr(description_block.content, 'html', None) or description_block.content.text
 
             # Rich text editor
             html_content = rich_text_editor(
