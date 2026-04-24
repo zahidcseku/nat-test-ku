@@ -46,87 +46,87 @@ def rich_text_editor(key: str, initial_content: str = "", height: int = 200) -> 
     hidden_id = f"quill-hidden-{key}"
 
     # Escape initial content for JavaScript
-    initial_escaped = initial_content.replace("`", "\\`").replace('"', '\\"')
+    initial_escaped = initial_content.replace("`", "\\`").replace('"', '\\"').replace('\n', '\\n')
 
     # Create editor
     editor_html = f"""
-    <style>
-    #{editor_id} {{
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        background: white;
-    }}
-    .ql-toolbar {{
-        border-top-left-radius: 4px !important;
-        border-top-right-radius: 4px !important;
-        border: 1px solid #ccc !important;
-        border-bottom: none !important;
-    }}
-    .ql-container {{
-        border: none !important;
-        border-bottom-left-radius: 4px !important;
-        border-bottom-right-radius: 4px !important;
-        font-size: 16px !important;
-    }}
-    </style>
-    <div id="{editor_id}"></div>
-    <input type="hidden" id="{hidden_id}" value="">
-    <script>
-    (function() {{
-        var quill = new Quill('#{editor_id}', {{
-            modules: {{
-                toolbar: [
-                    ['bold', 'italic', 'underline'],
-                    ['link'],
-                    [{{ 'list': 'ordered'}}, {{ 'list': 'bullet' }}]
-                ]
-            }},
-            theme: 'snow',
-            placeholder: 'Start typing your description here...'
-        }});
-
-        // Set initial content
-        quill.root.innerHTML = `{initial_escaped}`;
-
-        // Save to hidden input on change
-        quill.on('text-change', function() {{
-            document.getElementById('{hidden_id}').value = quill.root.innerHTML;
-            // Trigger change event on input
-            document.getElementById('{hidden_id}').dispatchEvent(new Event('input', {{ bubbles: true }}));
-        }});
-
-        // Initial save
-        document.getElementById('{hidden_id}').value = quill.root.innerHTML;
-    }})();
-    </script>
-    """
-
-    # Render the editor
-    st.components.v1.html(editor_html, height=280)
-
-    # Hidden input to capture the value
-    # We use a session state to store the editor content
-    if f"{key}_content" not in st.session_state:
-        st.session_state[f"{key}_content"] = initial_content
-
-    # JavaScript to sync editor content with Streamlit
-    sync_script = f"""
-    <script>
-    // Sync editor content with Streamlit session state
-    setInterval(function() {{
-        var content = document.getElementById('{hidden_id}').value;
-        if (content) {{
-            // Update Streamlit text area
-            var textarea = document.querySelector('[data-testid="stTextArea"] textarea');
-            if (textarea && textarea.value !== content) {{
-                textarea.value = content;
-                textarea.dispatchEvent(new Event('input', {{ bubbles: true }}));
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{
+                margin: 0;
+                padding: 10px;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             }}
-        }}
-    }}, 500);
-    </script>
+            #{editor_id} {{
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                background: white;
+            }}
+            .ql-toolbar {{
+                border-top-left-radius: 4px !important;
+                border-top-right-radius: 4px !important;
+                border: 1px solid #ccc !important;
+                border-bottom: none !important;
+            }}
+            .ql-container {{
+                border: none !important;
+                border-bottom-left-radius: 4px !important;
+                border-bottom-right-radius: 4px !important;
+                font-size: 16px !important;
+                min-height: {height}px;
+            }}
+        </style>
+        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    </head>
+    <body>
+        <div id="{editor_id}"></div>
+        <input type="hidden" id="{hidden_id}" value="">
+        <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+        <script>
+        (function() {{
+            var quill = new Quill('#{editor_id}', {{
+                modules: {{
+                    toolbar: [
+                        ['bold', 'italic', 'underline'],
+                        ['link'],
+                        [{{ 'list': 'ordered'}}, {{ 'list': 'bullet' }}]
+                    ]
+                }},
+                theme: 'snow',
+                placeholder: 'Start typing your description here...'
+            }});
+
+            // Set initial content
+            quill.root.innerHTML = `{initial_escaped}`;
+
+            // Save to hidden input on change
+            quill.on('text-change', function() {{
+                document.getElementById('{hidden_id}').value = quill.root.innerHTML;
+            }});
+
+            // Initial save
+            document.getElementById('{hidden_id}').value = quill.root.innerHTML;
+
+            // Function to get content (called from parent window)
+            window.getQuillContent = function() {{
+                return quill.root.innerHTML;
+            }};
+
+            // Function to set content (called from parent window)
+            window.setQuillContent = function(html) {{
+                quill.root.innerHTML = html;
+                document.getElementById('{hidden_id}').value = html;
+            }};
+        }})();
+        </script>
+    </body>
+    </html>
     """
-    st.components.v1.html(sync_script)
+
+    # Render the editor using iframe
+    st.iframe(editor_html, height=height + 100, scrolling=False)
 
     # Text area to capture and display the output
     html_content = st.text_area(
