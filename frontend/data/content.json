@@ -1,89 +1,213 @@
 {
-  "last_updated": "2026-04-24T05:55:34.348758",
+  "last_updated": "2026-04-24T06:00:00.000000",
   "blocks": [
     {
-      "id": "701186fe-4b4b-4aa0-8734-7391e1ec65c2",
-      "type": "hero",
+      "id": "hero-badge-001",
+      "type": "hero_badge",
       "display_order": 1,
       "is_active": true,
       "content": {
-        "slogan": "Start your journey today.",
-        "description": "The Global Standard for Japanese Language Achievement Since 1988.\n\nThe NAT-TEST is more than just an exam; it is a bridge to your future in Japan. Join thousands of successful candidates who have used this certification to unlock new opportunities and achieve their dreams.\n\nFor more information, please visit the official website of <a href=\"http://www.nat-test.com/index.html\">Senmon Kyouiku Publishing Co., Ltd.</a>",
-        "image_url": "/media/images/optimized/hero-home.webp",
-        "primary_link": {
-          "label": "Register Now",
-          "url": "/registration.html"
-        },
-        "secondary_link": {
-          "label": "Learn More",
-          "url": "/resources.html"
-        }
+        "text": "Official Assessment Partner"
       }
     },
     {
-      "id": "68d51b60-dda5-4fa3-b622-cecf0da57844",
-      "type": "banner",
+      "id": "hero-headline-001",
+      "type": "hero_headline",
       "display_order": 2,
       "is_active": true,
       "content": {
-        "exam_date": "2026-06-15",
-        "exam_info_url": "/resources/exam-info.html",
-        "registration_url": "/registration.html"
+        "line1": "The Standard of",
+        "line2_italic": "Academic Excellence.",
+        "line2_text": "",
+        "full_html": "The Standard of<br><span class=\"italic font-normal text-secondary\">Academic Excellence.</span>"
       }
     },
     {
-      "id": "bbf12295-159e-405e-a1cd-0eeeb4756272",
-      "type": "heading_text",
+      "id": "hero-description-001",
+      "type": "hero_description",
       "display_order": 3,
       "is_active": true,
       "content": {
-        "heading": "About NAT-TEST",
-        "body_text": "The National Assessment Test Centre promotes academic excellence through standardized testing."
+        "text": "Experience a testing environment designed for absolute focus. The National Assessment Test Centre provides rigorous, high-stakes examination facilities for the leaders of tomorrow."
       }
     },
     {
-      "id": "7ac14cb8-47f5-48cf-ab1d-17b720adff6d",
-      "type": "card",
+      "id": "hero-cta-primary-001",
+      "type": "hero_cta_primary",
       "display_order": 4,
       "is_active": true,
       "content": {
-        "title": "Resources",
-        "description": "Access study materials, practice tests, and preparation guides",
-        "link_url": "/resources.html",
-        "icon_name": "library_books"
+        "label": "Begin Registration",
+        "url": "registration.html",
+        "icon": "arrow_forward"
       }
     },
     {
-      "id": "fdb6e857-5a29-49a6-a12f-7788f47a1e76",
-      "type": "card",
+      "id": "hero-cta-secondary-001",
+      "type": "hero_cta_secondary",
       "display_order": 5,
       "is_active": true,
       "content": {
-        "title": "Get Assistance",
-        "description": "Contact our support team for help with registration and exams",
-        "link_url": "/contact.html",
-        "icon_name": "support_agent"
+        "label": "Download Prospectus",
+        "url": "#",
+        "icon": "download"
       }
     },
     {
-      "id": "c0e84370-353a-41d4-9ae7-48b5bf25c99a",
-      "type": "footer",
+      "id": "exam-ribbon-001",
+      "type": "exam_ribbon",
       "display_order": 6,
       "is_active": true,
       "content": {
-        "copyright_text": "\u00a9 2026 NAT-TEST Centre. All rights reserved.",
+        "exam_date": "October 14, 2024",
+        "registration_status": "Registration closes in 12 days",
+        "exam_info_url": "resources.html",
+        "registration_url": "registration.html"
+      }
+    },
+    {
+      "id": "benefits-heading-001",
+      "type": "benefits_heading",
+      "display_order": 7,
+      "is_active": true,
+      "content": {
+        "line1": "Why Candidates",
+        "line2_italic": "Choose NAT",
+        "line2_text": "",
+        "full_html": "Why Candidates<br><span class=\"italic text-secondary\">Choose NAT</span>"
+      }
+    },
+    {
+      "id": "benefits-description-001",
+      "type": "benefits_description",
+      "display_order": 8,
+      "is_active": true,
+      "content": {
+        "text": "We provide more than just a seat; we offer an ecosystem designed to minimize distractions and maximize performance."
+      }
+    },
+    {
+      "id": "resources-heading-001",
+      "type": "resources_heading",
+      "display_order": 9,
+      "is_active": true,
+      "content": {
+        "line1": "Preparation",
+        "line2_italic": "Resources",
+        "line2_text": "",
+        "full_html": "Preparation<br><span class=\"italic text-secondary\">Resources</span>"
+      }
+    },
+    {
+      "id": "resource-card-001",
+      "type": "resource_card",
+      "display_order": 10,
+      "is_active": true,
+      "content": {
+        "badge_type": "PDF",
+        "title": "2024 Candidate Handbook",
+        "url": "resources.html",
+        "icon": "download"
+      }
+    },
+    {
+      "id": "resource-card-002",
+      "type": "resource_card",
+      "display_order": 11,
+      "is_active": true,
+      "content": {
+        "badge_type": "CHECKLIST",
+        "title": "Examination Day Checklist",
+        "url": "resources.html",
+        "icon": "download"
+      }
+    },
+    {
+      "id": "resource-card-003",
+      "type": "resource_card",
+      "display_order": 12,
+      "is_active": true,
+      "content": {
+        "badge_type": "PROTOCOL",
+        "title": "Security & Privacy Protocols",
+        "url": "resources.html",
+        "icon": "description"
+      }
+    },
+    {
+      "id": "support-heading-001",
+      "type": "support_heading",
+      "display_order": 13,
+      "is_active": true,
+      "content": {
+        "line1": "Need",
+        "line2_italic": "Assistance?",
+        "line2_text": "",
+        "full_html": "Need<br><span class=\"italic font-normal\">Assistance?</span>"
+      }
+    },
+    {
+      "id": "support-description-001",
+      "type": "support_description",
+      "display_order": 14,
+      "is_active": true,
+      "content": {
+        "text": "Our support team is available Monday through Friday, 8:00 AM to 6:00 PM, to answer any questions regarding registration, accessibility accommodations, or result interpretation."
+      }
+    },
+    {
+      "id": "support-phone-001",
+      "type": "support_contact",
+      "display_order": 15,
+      "is_active": true,
+      "content": {
+        "label": "Call us",
+        "value": "+1 (800) NAT-CORE",
+        "icon": "call"
+      }
+    },
+    {
+      "id": "support-email-001",
+      "type": "support_contact",
+      "display_order": 16,
+      "is_active": true,
+      "content": {
+        "label": "Email us",
+        "value": "registrar@natcentre.edu",
+        "icon": "mail"
+      }
+    },
+    {
+      "id": "footer-copyright-001",
+      "type": "footer_copyright",
+      "display_order": 17,
+      "is_active": true,
+      "content": {
+        "text": "© 2024 National Assessment Test Centre.\nPursuing Academic Excellence."
+      }
+    },
+    {
+      "id": "footer-links-001",
+      "type": "footer_links",
+      "display_order": 18,
+      "is_active": true,
+      "content": {
         "links": [
           {
             "label": "Privacy Policy",
-            "url": "/privacy.html"
+            "url": "#"
           },
           {
             "label": "Terms of Service",
-            "url": "/terms.html"
+            "url": "#"
           },
           {
-            "label": "Contact",
-            "url": "/contact.html"
+            "label": "Accessibility",
+            "url": "#"
+          },
+          {
+            "label": "Staff Portal",
+            "url": "#"
           }
         ]
       }

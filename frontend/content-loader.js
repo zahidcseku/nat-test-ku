@@ -17,41 +17,61 @@ async function loadContent() {
 
     // Find blocks by type
     const blocks = data.blocks || [];
-    const heroBlock = blocks.find(b => b.type === 'hero' && b.is_active);
-    const bannerBlock = blocks.find(b => b.type === 'banner' && b.is_active);
-    const headingBlock = blocks.find(b => b.type === 'heading_text' && b.is_active);
-    const cardBlocks = blocks.filter(b => b.type === 'card' && b.is_active);
-    const footerBlock = blocks.find(b => b.type === 'footer' && b.is_active);
 
-    console.log('Found blocks:', {
-      hero: !!heroBlock,
-      banner: !!bannerBlock,
-      heading: !!headingBlock,
-      cards: cardBlocks.length,
-      footer: !!footerBlock
+    console.log('Processing blocks...');
+
+    // Render each block type
+    blocks.forEach(block => {
+      if (!block.is_active) return;
+
+      switch (block.type) {
+        case 'hero_badge':
+          renderHeroBadge(block.content);
+          break;
+        case 'hero_headline':
+          renderHeroHeadline(block.content);
+          break;
+        case 'hero_description':
+          renderHeroDescription(block.content);
+          break;
+        case 'hero_cta_primary':
+          renderHeroCtaPrimary(block.content);
+          break;
+        case 'hero_cta_secondary':
+          renderHeroCtaSecondary(block.content);
+          break;
+        case 'exam_ribbon':
+          renderExamRibbon(block.content);
+          break;
+        case 'benefits_heading':
+          renderBenefitsHeading(block.content);
+          break;
+        case 'benefits_description':
+          renderBenefitsDescription(block.content);
+          break;
+        case 'resources_heading':
+          renderResourcesHeading(block.content);
+          break;
+        case 'resource_card':
+          renderResourceCard(block.content);
+          break;
+        case 'support_heading':
+          renderSupportHeading(block.content);
+          break;
+        case 'support_description':
+          renderSupportDescription(block.content);
+          break;
+        case 'support_contact':
+          renderSupportContact(block.content);
+          break;
+        case 'footer_copyright':
+          renderFooterCopyright(block.content);
+          break;
+        case 'footer_links':
+          renderFooterLinks(block.content);
+          break;
+      }
     });
-
-    // Render each section if the block exists
-    if (heroBlock) {
-      console.log('Updating hero section...');
-      renderHero(heroBlock.content);
-    }
-    if (bannerBlock) {
-      console.log('Updating banner section...');
-      renderBanner(bannerBlock.content);
-    }
-    if (headingBlock) {
-      console.log('Updating heading section...');
-      renderHeadingText(headingBlock.content);
-    }
-    if (cardBlocks.length > 0) {
-      console.log('Updating cards section...');
-      renderCards(cardBlocks);
-    }
-    if (footerBlock) {
-      console.log('Updating footer section...');
-      renderFooter(footerBlock.content);
-    }
 
     console.log('✅ All content rendered successfully!');
 
@@ -65,179 +85,201 @@ async function loadContent() {
   }
 }
 
-function renderHero(content) {
-  console.log('Rendering hero:', content);
-
-  // Update hero section
-  const heroTitle = document.querySelector('.hero-title');
-  const heroDescription = document.querySelector('.hero-description');
-  const heroCtaPrimary = document.querySelector('.hero-cta-primary');
-  const heroCtaSecondary = document.querySelector('.hero-cta-secondary');
-
-  console.log('Elements found:', {
-    title: !!heroTitle,
-    description: !!heroDescription,
-    ctaPrimary: !!heroCtaPrimary,
-    ctaSecondary: !!heroCtaSecondary
-  });
-
-  if (heroTitle) {
-    heroTitle.textContent = content.slogan;
-    console.log('✓ Updated title to:', content.slogan);
-  }
-  if (heroDescription) {
-    heroDescription.innerHTML = content.description;
-    console.log('✓ Updated description to:', content.description);
-  }
-
-  // Update links while preserving HTML structure (spans, icons)
-  if (heroCtaPrimary) {
-    heroCtaPrimary.href = content.primary_link.url;
-    // Find the first span and update its text
-    const span = heroCtaPrimary.querySelector('span');
-    if (span) {
-      span.textContent = content.primary_link.label;
-    } else {
-      // Fallback: replace entire content if no span found
-      heroCtaPrimary.innerHTML = `<span>${content.primary_link.label}</span>`;
-    }
-    console.log('✓ Updated primary CTA to:', content.primary_link.label);
-  }
-
-  if (heroCtaSecondary) {
-    heroCtaSecondary.href = content.secondary_link.url;
-    const span = heroCtaSecondary.querySelector('span');
-    if (span) {
-      span.textContent = content.secondary_link.label;
-    } else {
-      heroCtaSecondary.innerHTML = `<span>${content.secondary_link.label}</span>`;
-    }
-    console.log('✓ Updated secondary CTA to:', content.secondary_link.label);
+// Hero badge
+function renderHeroBadge(content) {
+  const badge = document.querySelector('.animate-fade-in-up.opacity-0.delay-100 span.text-primary\\/80.text-\\[10px\\]');
+  if (badge) {
+    badge.textContent = content.text;
+    console.log('✓ Updated hero badge');
   }
 }
 
-function renderBanner(content) {
-  console.log('Rendering banner:', content);
-
-  // Update banner section
-  const bannerDate = document.querySelector('.banner-date');
-  const bannerInfoLink = document.querySelector('.banner-info-link');
-  const bannerRegisterLink = document.querySelector('.banner-register-link');
-
-  console.log('Banner elements found:', {
-    date: !!bannerDate,
-    infoLink: !!bannerInfoLink,
-    registerLink: !!bannerRegisterLink
-  });
-
-  if (bannerDate) {
-    bannerDate.textContent = content.exam_date;
-    console.log('✓ Updated date to:', content.exam_date);
-  }
-  if (bannerInfoLink) {
-    bannerInfoLink.href = content.exam_info_url;
-    console.log('✓ Updated info link');
-  }
-  if (bannerRegisterLink) {
-    bannerRegisterLink.href = content.registration_url;
-    console.log('✓ Updated registration link');
+// Hero headline - preserve HTML structure for styling
+function renderHeroHeadline(content) {
+  const headline = document.querySelector('.animate-fade-in-up.opacity-0.delay-200.font-serif.text-6xl');
+  if (headline && content.full_html) {
+    headline.innerHTML = content.full_html;
+    console.log('✓ Updated hero headline');
   }
 }
 
-function renderHeadingText(content) {
-  console.log('Rendering heading text:', content);
-
-  // Update heading section
-  const headingTitle = document.querySelector('.section-heading');
-  const headingText = document.querySelector('.section-text');
-
-  console.log('Heading elements found:', {
-    heading: !!headingTitle,
-    text: !!headingText
-  });
-
-  if (headingTitle) headingTitle.textContent = content.heading;
-  if (headingText) headingText.textContent = content.body_text;
+// Hero description
+function renderHeroDescription(content) {
+  const description = document.querySelector('.animate-fade-in-up.opacity-0.delay-300.text-base');
+  if (description) {
+    description.textContent = content.text;
+    console.log('✓ Updated hero description');
+  }
 }
 
-function renderCards(cardBlocks) {
-  console.log('Rendering', cardBlocks.length, 'cards');
+// Hero primary CTA
+function renderHeroCtaPrimary(content) {
+  const cta = document.querySelector('.animate-fade-in-up.opacity-0.delay-400 .btn-magnetic.bg-primary');
+  if (cta) {
+    cta.href = content.url;
+    const span = cta.querySelector('span');
+    if (span) span.textContent = content.label;
 
-  // Get existing cards from the DOM
-  const existingCards = document.querySelectorAll('.content-card');
-  console.log('Found', existingCards.length, 'existing cards in HTML');
+    const icon = cta.querySelector('.material-symbols-outlined');
+    if (icon && content.icon) icon.textContent = content.icon;
 
-  if (existingCards.length === 0) {
-    console.warn('⚠️ No existing cards found in HTML!');
-    return;
+    console.log('✓ Updated hero primary CTA');
+  }
+}
+
+// Hero secondary CTA
+function renderHeroCtaSecondary(content) {
+  const ctas = document.querySelectorAll('.animate-fade-in-up.opacity-0.delay-400 .btn-magnetic');
+  if (ctas.length > 1) {
+    const cta = ctas[1]; // Second button
+    cta.href = content.url;
+    const span = cta.querySelector('span');
+    if (span) span.textContent = content.label;
+
+    const icon = cta.querySelector('.material-symbols-outlined');
+    if (icon && content.icon) icon.textContent = content.icon;
+
+    console.log('✓ Updated hero secondary CTA');
+  }
+}
+
+// Exam ribbon
+function renderExamRibbon(content) {
+  const dateEl = document.querySelector('.bg-primary .font-serif.text-3xl span.font-semibold');
+  if (dateEl) {
+    dateEl.textContent = content.exam_date;
+    console.log('✓ Updated exam date');
   }
 
-  // Update each existing card with data from JSON
-  cardBlocks.forEach((block, index) => {
-    const content = block.content;
-    const card = existingCards[index];
+  const statusEl = document.querySelector('.bg-primary .text-white\\/50.text-sm');
+  if (statusEl) {
+    statusEl.textContent = content.registration_status;
+  }
 
-    if (!card) {
-      console.warn('⚠️ No card found for index', index);
-      return;
-    }
+  const infoLink = document.querySelector('.bg-primary a[href*="resources"]');
+  if (infoLink) {
+    infoLink.href = content.exam_info_url;
+  }
 
-    // Update link href
-    card.href = content.link_url;
+  const registerLink = document.querySelector('.bg-primary a.bg-accent');
+  if (registerLink) {
+    registerLink.href = content.registration_url;
+  }
 
-    // Update title
-    const titleEl = card.querySelector('.card-title');
-    if (titleEl) {
+  console.log('✓ Updated exam ribbon');
+}
+
+// Benefits heading - preserve HTML structure
+function renderBenefitsHeading(content) {
+  const heading = document.querySelector('.reveal.mb-20 .font-serif.text-5xl');
+  if (heading && content.full_html) {
+    heading.innerHTML = content.full_html;
+    console.log('✓ Updated benefits heading');
+  }
+}
+
+// Benefits description
+function renderBenefitsDescription(content) {
+  const desc = document.querySelector('.reveal.mb-20 p.text-secondary');
+  if (desc) {
+    desc.textContent = content.text;
+    console.log('✓ Updated benefits description');
+  }
+}
+
+// Resources heading - preserve HTML structure
+function renderResourcesHeading(content) {
+  const heading = document.querySelector('.py-32.bg-surface-container-low .font-serif.text-5xl');
+  if (heading && content.full_html) {
+    heading.innerHTML = content.full_html;
+    console.log('✓ Updated resources heading');
+  }
+}
+
+// Resource cards - needs to match by title
+function renderResourceCard(content) {
+  const cards = document.querySelectorAll('.py-32.bg-surface-container-low .group.block.p-8');
+  cards.forEach(card => {
+    const titleEl = card.querySelector('.font-serif.text-xl');
+    if (titleEl && titleEl.textContent === content.title) {
+      // Update badge
+      const badgeEl = card.querySelector('.text-\\[10px\\]');
+      if (badgeEl) badgeEl.textContent = content.badge_type;
+
+      // Update title
       titleEl.textContent = content.title;
-    }
 
-    // Update description
-    const descEl = card.querySelector('p:not(.card-title)');
-    if (descEl) {
-      descEl.textContent = content.description;
-    }
+      // Update link
+      card.href = content.url;
 
-    // Update icon if icon_name is provided
-    if (content.icon_name) {
+      // Update icon
       const iconEl = card.querySelector('.material-symbols-outlined');
-      if (iconEl) {
-        iconEl.textContent = content.icon_name;
-      }
+      if (iconEl && content.icon) iconEl.textContent = content.icon;
+
+      console.log('✓ Updated resource card:', content.title);
     }
-
-    console.log('✓ Updated card', index, ':', content.title);
   });
-
-  console.log('✓ Updated', Math.min(cardBlocks.length, existingCards.length), 'cards');
 }
 
-function renderFooter(content) {
-  console.log('Rendering footer:', content);
-
-  // Update footer
-  const footerCopyright = document.querySelector('.footer-copyright');
-  const footerLinks = document.querySelector('.footer-links');
-
-  console.log('Footer elements found:', {
-    copyright: !!footerCopyright,
-    links: !!footerLinks
-  });
-
-  if (footerCopyright) {
-    footerCopyright.textContent = content.copyright_text;
-    console.log('✓ Updated copyright');
+// Support heading - preserve HTML structure
+function renderSupportHeading(content) {
+  const heading = document.querySelector('.bg-primary .font-serif.text-4xl');
+  if (heading && content.full_html) {
+    heading.innerHTML = content.full_html;
+    console.log('✓ Updated support heading');
   }
+}
 
-  if (footerLinks && content.links) {
-    footerLinks.innerHTML = '';
+// Support description
+function renderSupportDescription(content) {
+  const desc = document.querySelector('.bg-primary .text-white\\/60');
+  if (desc) {
+    desc.textContent = content.text;
+    console.log('✓ Updated support description');
+  }
+}
+
+// Support contact (phone and email)
+function renderSupportContact(content) {
+  const contactGroups = document.querySelectorAll('.bg-primary .space-y-6 .flex');
+  contactGroups.forEach(group => {
+    const labelEl = group.querySelector('.text-white\\/60.text-xs');
+    if (labelEl && labelEl.textContent === content.label) {
+      const valueEl = group.querySelector('.text-white.font-medium');
+      if (valueEl) {
+        valueEl.textContent = content.value;
+      }
+
+      const iconEl = group.querySelector('.material-symbols-outlined');
+      if (iconEl && content.icon) iconEl.textContent = content.icon;
+
+      console.log('✓ Updated support contact:', content.label);
+    }
+  });
+}
+
+// Footer copyright
+function renderFooterCopyright(content) {
+  const copyright = document.querySelector('footer .text-white\\/50.text-sm');
+  if (copyright) {
+    copyright.innerHTML = content.text.replace('\n', '<br>');
+    console.log('✓ Updated footer copyright');
+  }
+}
+
+// Footer links
+function renderFooterLinks(content) {
+  const linksContainer = document.querySelector('footer .flex.flex-wrap.md\\:justify-end');
+  if (linksContainer && content.links) {
+    linksContainer.innerHTML = '';
     content.links.forEach(linkData => {
       const link = document.createElement('a');
       link.href = linkData.url;
-      link.className = 'footer-link';
+      link.className = 'text-white/50 hover:text-accent transition-colors text-sm tracking-wide';
       link.textContent = linkData.label;
-      footerLinks.appendChild(link);
+      linksContainer.appendChild(link);
     });
-    console.log('✓ Updated', content.links.length, 'footer links');
+    console.log('✓ Updated footer links');
   }
 }
 
