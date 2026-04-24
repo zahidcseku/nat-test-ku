@@ -215,6 +215,13 @@
       padding: 1rem;
     }
 
+    /* Constrain logo sizes to prevent layout issues */
+    .logo-constrained {
+      max-width: 180px;
+      height: auto;
+      width: auto;
+    }
+
     @keyframes imgReveal {
       0% { transform: scaleX(1); }
       100% { transform: scaleX(0); }
@@ -304,7 +311,7 @@
       <!-- Logo -->
       <a href="#" class="group flex flex-col items-center">
         <div class="bg-primary p-2 rounded-sm">
-          <img src="logo1.png" alt="NAT-TEST Centre" class="h-10 w-auto group-hover:scale-105 transition-transform duration-300">
+          <img src="logo1.png" alt="NAT-TEST Centre" class="logo-constrained h-10 w-auto group-hover:scale-105 transition-transform duration-300">
         </div>
         <span class="text-sm font-sans font-bold text-white/60 tracking-[0.15em] uppercase mt-1.5 block">Khulna University</span>
       </a>
@@ -591,7 +598,7 @@
         <div>
           <div class="mb-6 flex flex-col items-start">
             <div class="bg-primary p-2.5 rounded-sm mb-2">
-              <img src="logo1.png" alt="NAT-TEST Centre" class="h-12 w-auto">
+              <img src="logo1.png" alt="NAT-TEST Centre" class="logo-constrained h-12 w-auto">
             </div>
             <span class="text-sm font-sans font-bold text-white/50 tracking-[0.15em] uppercase block">Khulna University</span>
           </div>

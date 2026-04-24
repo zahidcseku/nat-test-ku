@@ -86,7 +86,7 @@ function renderHero(content) {
     console.log('✓ Updated title to:', content.slogan);
   }
   if (heroDescription) {
-    heroDescription.textContent = content.description;
+    heroDescription.innerHTML = content.description;
     console.log('✓ Updated description to:', content.description);
   }
 
