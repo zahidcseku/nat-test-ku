@@ -98,15 +98,53 @@ with tab1:
 
     with st.expander("Description", expanded=True):
         if description_block:
-            text = st.text_area("Description", value=description_block.content.text, height=100)
+            text = st.text_area("Description Text", value=description_block.content.text, height=100, key="hero_desc_text")
+
+            # Link helper section
+            with st.expander("➕ Insert Link", expanded=False):
+                st.markdown("**Add links to your description:**")
+                link_text = st.text_input("Link Text", key="hero_link_text")
+                link_url = st.text_input("Link URL", key="hero_link_url", placeholder="/page.html or https://example.com")
+
+                if st.button("Add Link", key="hero_add_link"):
+                    if link_text and link_url:
+                        # Insert link at cursor position or append
+                        link_html = f'<a href="{link_url}">{link_text}</a>'
+                        current_pos = text.rfind(" ")
+                        if current_pos >= 0:
+                            text = text[:current_pos + 1] + link_html + " " + text[current_pos + 1:]
+                        else:
+                            text = link_html + " " + text
+                        st.success("Link added! Review the text below and adjust if needed.")
+                        st.rerun()
+
             if st.button("Update Description", key="update_hero_desc"):
-                update_block(description_block.id, content=HeroDescriptionContent(text=text))
+                # Store both text and html (same if no links, different if links added)
+                update_block(description_block.id, content=HeroDescriptionContent(text=text, html=text))
                 st.success("Description updated!")
                 st.rerun()
         else:
-            text = st.text_area("Description", value="Experience a testing environment designed for absolute focus.", height=100)
+            text = st.text_area("Description Text", value="Experience a testing environment designed for absolute focus.", height=100, key="hero_desc_text_new")
+
+            # Link helper section
+            with st.expander("➕ Insert Link", expanded=False):
+                st.markdown("**Add links to your description:**")
+                link_text = st.text_input("Link Text", key="hero_link_text_new")
+                link_url = st.text_input("Link URL", key="hero_link_url_new", placeholder="/page.html or https://example.com")
+
+                if st.button("Add Link", key="hero_add_link_new"):
+                    if link_text and link_url:
+                        link_html = f'<a href="{link_url}">{link_text}</a>'
+                        current_pos = text.rfind(" ")
+                        if current_pos >= 0:
+                            text = text[:current_pos + 1] + link_html + " " + text[current_pos + 1:]
+                        else:
+                            text = link_html + " " + text
+                        st.success("Link added! Review the text below and adjust if needed.")
+                        st.rerun()
+
             if st.button("Create Description", key="create_hero_desc"):
-                create_block("hero_description", HeroDescriptionContent(text=text))
+                create_block("hero_description", HeroDescriptionContent(text=text, html=text))
                 st.success("Description created!")
                 st.rerun()
 
@@ -220,15 +258,51 @@ with tab3:
 
     with st.expander("Description", expanded=True):
         if description_block:
-            text = st.text_area("Description", value=description_block.content.text, height=100)
+            text = st.text_area("Description Text", value=description_block.content.text, height=100, key="benefits_desc_text")
+
+            # Link helper section
+            with st.expander("➕ Insert Link", expanded=False):
+                st.markdown("**Add links to your description:**")
+                link_text = st.text_input("Link Text", key="benefits_link_text")
+                link_url = st.text_input("Link URL", key="benefits_link_url", placeholder="/page.html or https://example.com")
+
+                if st.button("Add Link", key="benefits_add_link"):
+                    if link_text and link_url:
+                        link_html = f'<a href="{link_url}">{link_text}</a>'
+                        current_pos = text.rfind(" ")
+                        if current_pos >= 0:
+                            text = text[:current_pos + 1] + link_html + " " + text[current_pos + 1:]
+                        else:
+                            text = link_html + " " + text
+                        st.success("Link added! Review the text below and adjust if needed.")
+                        st.rerun()
+
             if st.button("Update Benefits Description", key="update_benefits_desc"):
-                update_block(description_block.id, content=DescriptionContent(text=text))
+                update_block(description_block.id, content=DescriptionContent(text=text, html=text))
                 st.success("Benefits description updated!")
                 st.rerun()
         else:
-            text = st.text_area("Description", value="We provide more than just a seat; we offer an ecosystem designed to minimize distractions and maximize performance.", height=100)
+            text = st.text_area("Description Text", value="We provide more than just a seat; we offer an ecosystem designed to minimize distractions and maximize performance.", height=100, key="benefits_desc_text_new")
+
+            # Link helper section
+            with st.expander("➕ Insert Link", expanded=False):
+                st.markdown("**Add links to your description:**")
+                link_text = st.text_input("Link Text", key="benefits_link_text_new")
+                link_url = st.text_input("Link URL", key="benefits_link_url_new", placeholder="/page.html or https://example.com")
+
+                if st.button("Add Link", key="benefits_add_link_new"):
+                    if link_text and link_url:
+                        link_html = f'<a href="{link_url}">{link_text}</a>'
+                        current_pos = text.rfind(" ")
+                        if current_pos >= 0:
+                            text = text[:current_pos + 1] + link_html + " " + text[current_pos + 1:]
+                        else:
+                            text = link_html + " " + text
+                        st.success("Link added! Review the text below and adjust if needed.")
+                        st.rerun()
+
             if st.button("Create Benefits Description", key="create_benefits_desc"):
-                create_block("benefits_description", DescriptionContent(text=text))
+                create_block("benefits_description", DescriptionContent(text=text, html=text))
                 st.success("Benefits description created!")
                 st.rerun()
 
@@ -325,9 +399,27 @@ with tab5:
 
     with st.expander("Description", expanded=True):
         if description_block:
-            text = st.text_area("Description", value=description_block.content.text, height=100)
+            text = st.text_area("Description Text", value=description_block.content.text, height=100, key="support_desc_text")
+
+            # Link helper section
+            with st.expander("➕ Insert Link", expanded=False):
+                st.markdown("**Add links to your description:**")
+                link_text = st.text_input("Link Text", key="support_link_text")
+                link_url = st.text_input("Link URL", key="support_link_url", placeholder="/page.html or https://example.com")
+
+                if st.button("Add Link", key="support_add_link"):
+                    if link_text and link_url:
+                        link_html = f'<a href="{link_url}">{link_text}</a>'
+                        current_pos = text.rfind(" ")
+                        if current_pos >= 0:
+                            text = text[:current_pos + 1] + link_html + " " + text[current_pos + 1:]
+                        else:
+                            text = link_html + " " + text
+                        st.success("Link added! Review the text below and adjust if needed.")
+                        st.rerun()
+
             if st.button("Update Support Description", key="update_support_desc"):
-                update_block(description_block.id, content=DescriptionContent(text=text))
+                update_block(description_block.id, content=DescriptionContent(text=text, html=text))
                 st.success("Support description updated!")
                 st.rerun()
 

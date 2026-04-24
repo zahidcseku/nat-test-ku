@@ -44,7 +44,8 @@ def seed_database():
     print("✓ Created hero headline")
 
     create_block("hero_description", HeroDescriptionContent(
-        text="Experience a testing environment designed for absolute focus. The National Assessment Test Centre provides rigorous, high-stakes examination facilities for the leaders of tomorrow."
+        text="Experience a testing environment designed for absolute focus. The National Assessment Test Centre provides rigorous, high-stakes examination facilities for the leaders of tomorrow.",
+        html=""
     ))
     print("✓ Created hero description")
 
@@ -81,7 +82,8 @@ def seed_database():
     print("✓ Created benefits heading")
 
     create_block("benefits_description", DescriptionContent(
-        text="We provide more than just a seat; we offer an ecosystem designed to minimize distractions and maximize performance."
+        text="We provide more than just a seat; we offer an ecosystem designed to minimize distractions and maximize performance.",
+        html=""
     ))
     print("✓ Created benefits description")
 
@@ -128,7 +130,8 @@ def seed_database():
     print("✓ Created support heading")
 
     create_block("support_description", DescriptionContent(
-        text="Our support team is available Monday through Friday, 8:00 AM to 6:00 PM, to answer any questions regarding registration, accessibility accommodations, or result interpretation."
+        text="Our support team is available Monday through Friday, 8:00 AM to 6:00 PM, to answer any questions regarding registration, accessibility accommodations, or result interpretation.",
+        html=""
     ))
     print("✓ Created support description")
 

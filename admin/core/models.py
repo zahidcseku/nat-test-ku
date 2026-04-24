@@ -90,8 +90,9 @@ class HeadingContent(BaseModel):
 
 
 class DescriptionContent(BaseModel):
-    """Generic description text."""
+    """Generic description text with optional HTML links."""
     text: str = Field(..., max_length=1000)
+    html: str = ""  # HTML version with links, if different from text
 
 
 class ResourceCardContent(BaseModel):

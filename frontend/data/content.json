@@ -1,8 +1,8 @@
 {
-  "last_updated": "2026-04-24T10:20:00.552991",
+  "last_updated": "2026-04-24T10:31:24.363195",
   "blocks": [
     {
-      "id": "168da421-aabe-45da-8976-28e80226754e",
+      "id": "ef8f578b-714a-44aa-991b-123dee30063e",
       "type": "hero_badge",
       "display_order": 1,
       "is_active": true,
@@ -11,7 +11,7 @@
       }
     },
     {
-      "id": "61693667-c5ef-4330-a799-694b2466161d",
+      "id": "07abce00-5d96-47b3-aa56-a4a230203238",
       "type": "hero_headline",
       "display_order": 2,
       "is_active": true,
@@ -23,7 +23,7 @@
       }
     },
     {
-      "id": "ca35308e-c694-473d-9845-61f8f558751d",
+      "id": "21e9bbdb-a5fe-4c78-85d4-b9e7c527315c",
       "type": "hero_description",
       "display_order": 3,
       "is_active": true,
@@ -32,7 +32,7 @@
       }
     },
     {
-      "id": "2108dd2d-8ba9-422f-b4c7-b8903eaa33e0",
+      "id": "74246868-f126-426a-b7dc-51484c58acd4",
       "type": "hero_cta_primary",
       "display_order": 4,
       "is_active": true,
@@ -43,7 +43,7 @@
       }
     },
     {
-      "id": "4ccbc830-96ac-4aad-8901-e2b25227bc6a",
+      "id": "abec8197-2111-464c-9f2d-6dbab37e097e",
       "type": "hero_cta_secondary",
       "display_order": 5,
       "is_active": true,
@@ -54,7 +54,7 @@
       }
     },
     {
-      "id": "10c4108f-1cea-4ffe-a88e-abd975337b68",
+      "id": "3e6740d6-6242-4b57-a766-f29c02e55067",
       "type": "exam_ribbon",
       "display_order": 6,
       "is_active": true,
@@ -66,7 +66,7 @@
       }
     },
     {
-      "id": "d3f83e1a-b96a-49d3-b377-5c4203c8e419",
+      "id": "4e083033-eed9-4b5e-b4ab-edac4c81ce4f",
       "type": "benefits_heading",
       "display_order": 7,
       "is_active": true,
@@ -78,16 +78,17 @@
       }
     },
     {
-      "id": "a25f5a07-988c-4466-a63f-cfbbde3ad980",
+      "id": "ae0f5ae3-36f1-47de-9656-cb54447386db",
       "type": "benefits_description",
       "display_order": 8,
       "is_active": true,
       "content": {
-        "text": "We provide more than just a seat; we offer an ecosystem designed to minimize distractions and maximize performance."
+        "text": "We provide more than just a seat; we offer an ecosystem designed to minimize distractions and maximize performance.",
+        "html": ""
       }
     },
     {
-      "id": "4ed305a8-84f8-4ead-b62d-e01f8467c88e",
+      "id": "0c80568c-4bc8-44c8-9104-1e121ff4d318",
       "type": "resources_heading",
       "display_order": 9,
       "is_active": true,
@@ -99,7 +100,7 @@
       }
     },
     {
-      "id": "46706c87-4916-4ea6-8445-7df97b16c638",
+      "id": "b6811689-3b47-41fd-8890-4357122e2c1d",
       "type": "resource_card",
       "display_order": 10,
       "is_active": true,
@@ -111,7 +112,7 @@
       }
     },
     {
-      "id": "5a061a1c-8d81-46c8-b507-a6c604d26821",
+      "id": "9e2fbb86-fe5b-428b-9e6c-703aae78a9ed",
       "type": "resource_card",
       "display_order": 11,
       "is_active": true,
@@ -123,7 +124,7 @@
       }
     },
     {
-      "id": "dffd9696-364a-44a8-a6da-9dcc98f11578",
+      "id": "7cd12264-d6be-42dd-af7f-74aef4b021ce",
       "type": "resource_card",
       "display_order": 12,
       "is_active": true,
@@ -135,7 +136,7 @@
       }
     },
     {
-      "id": "fdd31c10-8c7a-4d3f-be51-f515d8defb26",
+      "id": "4d8c0b94-7b5f-44bd-9255-a7569b55705f",
       "type": "support_heading",
       "display_order": 13,
       "is_active": true,
@@ -147,16 +148,17 @@
       }
     },
     {
-      "id": "de8850c4-4113-4886-9531-680a68dac184",
+      "id": "002fe535-17b5-429d-8df7-2ec4f33eb1d8",
       "type": "support_description",
       "display_order": 14,
       "is_active": true,
       "content": {
-        "text": "Our support team is available Monday through Friday, 8:00 AM to 6:00 PM, to answer any questions regarding registration, accessibility accommodations, or result interpretation."
+        "text": "Our support team is available Monday through Friday, 8:00 AM to 6:00 PM, to answer any questions regarding registration, accessibility accommodations, or result interpretation.",
+        "html": ""
       }
     },
     {
-      "id": "51759a09-9a0e-4669-b623-7def41d3cef9",
+      "id": "1102d2f1-5176-4cda-9c84-08db4f6ec11b",
       "type": "support_contact",
       "display_order": 15,
       "is_active": true,
@@ -167,7 +169,7 @@
       }
     },
     {
-      "id": "611c90f4-4a17-4c6d-9c09-8dd5f18c1ec8",
+      "id": "0260897e-fc94-4ad6-a925-03d36b64d2c3",
       "type": "support_contact",
       "display_order": 16,
       "is_active": true,
@@ -178,7 +180,7 @@
       }
     },
     {
-      "id": "bcc20d18-17df-4ec5-aa6f-ef742f69e4f3",
+      "id": "82ce2f32-8436-4d57-8f7e-810a6550b126",
       "type": "footer_copyright",
       "display_order": 17,
       "is_active": true,
@@ -187,7 +189,7 @@
       }
     },
     {
-      "id": "8b74bf8c-0286-49f1-88d2-4702e0567466",
+      "id": "601ea5bc-4421-45c0-b6eb-331a7d21d4e6",
       "type": "footer_links",
       "display_order": 18,
       "is_active": true,

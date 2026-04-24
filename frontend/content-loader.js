@@ -107,7 +107,12 @@ function renderHeroHeadline(content) {
 function renderHeroDescription(content) {
   const description = document.querySelector('.min-h-\\[100vh\\] .animate-fade-in-up.opacity-0.delay-300.text-base');
   if (description) {
-    description.textContent = content.text;
+    // Use HTML if available (for links), otherwise use plain text
+    if (content.html) {
+      description.innerHTML = content.html;
+    } else {
+      description.textContent = content.text;
+    }
     console.log('✓ Updated hero description');
   }
 }
@@ -182,7 +187,12 @@ function renderBenefitsHeading(content) {
 function renderBenefitsDescription(content) {
   const desc = document.querySelector('.py-32.bg-surface .reveal.mb-20 p.text-secondary');
   if (desc) {
-    desc.textContent = content.text;
+    // Use HTML if available (for links), otherwise use plain text
+    if (content.html) {
+      desc.innerHTML = content.html;
+    } else {
+      desc.textContent = content.text;
+    }
     console.log('✓ Updated benefits description');
   }
 }
@@ -234,7 +244,12 @@ function renderSupportHeading(content) {
 function renderSupportDescription(content) {
   const desc = document.querySelector('.bg-primary.p-14 .text-white\\/60');
   if (desc) {
-    desc.textContent = content.text;
+    // Use HTML if available (for links), otherwise use plain text
+    if (content.html) {
+      desc.innerHTML = content.html;
+    } else {
+      desc.textContent = content.text;
+    }
     console.log('✓ Updated support description');
   }
 }
