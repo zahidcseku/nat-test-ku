@@ -126,7 +126,7 @@ def rich_text_editor(key: str, initial_content: str = "", height: int = 200) -> 
     """
 
     # Render the editor using iframe
-    st.iframe(editor_html, height=height + 100, scrolling=False)
+    st.iframe(editor_html, height=height + 100)
 
     # Text area to capture and display the output
     html_content = st.text_area(
