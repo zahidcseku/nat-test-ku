@@ -35,15 +35,8 @@ def rich_text_editor(key: str, initial_content: str = "", height: int = 200) -> 
     NOTE: This is for local-only admin use by trusted administrators.
     The HTML is rendered on the frontend which already supports HTML content.
     """
-    # Import Quill CSS and JS
-    st.markdown("""
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-    """, unsafe_allow_html=True)
-
     # Generate unique IDs
     editor_id = f"quill-editor-{key}"
-    hidden_id = f"quill-hidden-{key}"
 
     # Escape initial content for JavaScript
     initial_escaped = initial_content.replace("`", "\\`").replace('"', '\\"').replace('\n', '\\n')
@@ -82,7 +75,6 @@ def rich_text_editor(key: str, initial_content: str = "", height: int = 200) -> 
     </head>
     <body>
         <div id="{editor_id}"></div>
-        <input type="hidden" id="{hidden_id}" value="">
         <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
         <script>
         (function() {{
@@ -101,13 +93,16 @@ def rich_text_editor(key: str, initial_content: str = "", height: int = 200) -> 
             // Set initial content
             quill.root.innerHTML = `{initial_escaped}`;
 
-            // Save to hidden input on change
+            // Save content on change and notify parent
             quill.on('text-change', function() {{
-                document.getElementById('{hidden_id}').value = quill.root.innerHTML;
+                var content = quill.root.innerHTML;
+                // Notify parent window
+                window.parent.postMessage({{
+                    type: 'quill-change',
+                    key: '{key}',
+                    content: content
+                }}, '*');
             }});
-
-            // Initial save
-            document.getElementById('{hidden_id}').value = quill.root.innerHTML;
 
             // Function to get content (called from parent window)
             window.getQuillContent = function() {{
@@ -117,7 +112,93 @@ def rich_text_editor(key: str, initial_content: str = "", height: int = 200) -> 
             // Function to set content (called from parent window)
             window.setQuillContent = function(html) {{
                 quill.root.innerHTML = html;
-                document.getElementById('{hidden_id}').value = html;
+            }};
+
+            // Notify parent that editor is ready
+            window.parent.postMessage({{
+                type: 'quill-ready',
+                key: '{key}',
+                initialContent: `{initial_escaped}`
+            }}, '*');
+        }})();
+        </script>
+    </body>
+    </html>
+    """
+
+def rich_text_editor(key: str, initial_content: str = "", height: int = 200) -> str:
+    """Embed a Quill.js rich text editor in Streamlit.
+
+    NOTE: This is for local-only admin use by trusted administrators.
+    The HTML is rendered on the frontend which already supports HTML content.
+    """
+    # Generate unique IDs
+    editor_id = f"quill-editor-{key}"
+    unique_id = f"quill-{key.replace('-', '_')}"
+
+    # Escape initial content for JavaScript
+    initial_escaped = initial_content.replace("`", "\\`").replace('"', '\\"').replace('\n', '\\n')
+
+    # Create editor
+    editor_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{
+                margin: 0;
+                padding: 10px;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            }}
+            #{editor_id} {{
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                background: white;
+            }}
+            .ql-toolbar {{
+                border-top-left-radius: 4px !important;
+                border-top-right-radius: 4px !important;
+                border: 1px solid #ccc !important;
+                border-bottom: none !important;
+            }}
+            .ql-container {{
+                border: none !important;
+                border-bottom-left-radius: 4px !important;
+                border-bottom-right-radius: 4px !important;
+                font-size: 16px !important;
+                min-height: {height}px;
+            }}
+        </style>
+        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    </head>
+    <body>
+        <div id="{editor_id}"></div>
+        <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+        <script>
+        (function() {{
+            var quill = new Quill('#{editor_id}', {{
+                modules: {{
+                    toolbar: [
+                        ['bold', 'italic', 'underline'],
+                        ['link'],
+                        [{{ 'list': 'ordered'}}, {{ 'list': 'bullet' }}]
+                    ]
+                }},
+                theme: 'snow',
+                placeholder: 'Start typing your description here...'
+            }});
+
+            // Set initial content
+            quill.root.innerHTML = `{initial_escaped}`;
+
+            // Function to get content (called from parent window)
+            window.getQuillContent = function() {{
+                return quill.root.innerHTML;
+            }};
+
+            // Function to set content (called from parent window)
+            window.setQuillContent = function(html) {{
+                quill.root.innerHTML = html;
             }};
         }})();
         </script>
@@ -128,13 +209,55 @@ def rich_text_editor(key: str, initial_content: str = "", height: int = 200) -> 
     # Render the editor using iframe
     st.iframe(editor_html, height=height + 100)
 
+    # Add usage instructions and sync button
+    st.markdown("**📖 How to use:**</br>1. Edit content in the rich text editor above</br>2. Click **'Sync Editor → Text Area'** button</br>3. Click **'Update/Create Description'** to save", unsafe_allow_html=True)
+
+    if st.button("🔄 Sync Editor → Text Area", key=f"sync_{key}"):
+        sync_script = f"""
+        <script>
+        (function() {{
+            var iframes = document.querySelectorAll('iframe');
+            var targetIframe = null;
+            for (var i = 0; i < iframes.length; i++) {{
+                if (iframes[i].src && iframes[i].src.includes('data:text/html')) {{
+                    targetIframe = iframes[i];
+                    break;
+                }}
+            }}
+            if (targetIframe && targetIframe.contentWindow) {{
+                var content = targetIframe.contentWindow.getQuillContent();
+                if (content && content !== '<p><br></p>') {{
+                    var textareas = document.querySelectorAll('textarea[data-testid="stTextArea"]');
+                    for (var i = 0; i < textareas.length; i++) {{
+                        var container = textareas[i].closest('.stVerticalBlock');
+                        if (container) {{
+                            var label = container.querySelector('label');
+                            if (label && label.textContent.includes('{key}_html')) {{
+                                textareas[i].value = content;
+                                textareas[i].dispatchEvent(new Event('input', {{ bubbles: true }}));
+                                alert('Content synced successfully! Click Update/Create Description to save.');
+                                break;
+                            }}
+                        }}
+                    }}
+                }} else {{
+                    alert('No content found in editor. Please type something first.');
+                }}
+            }} else {{
+                alert('Could not find editor iframe.');
+            }}
+        }})();
+        </script>
+        """
+        st.markdown(sync_script, unsafe_allow_html=True)
+
     # Text area to capture and display the output
     html_content = st.text_area(
-        "Description HTML (auto-synced from editor above)",
+        "Description HTML (edit this directly or sync from editor above)",
         value=initial_content,
         key=f"{key}_html",
         height=150,
-        help="The HTML from the rich text editor will appear here. You can also edit it directly."
+        help="Edit HTML directly or use the rich text editor above and click 'Sync Editor → Text Area'"
     )
 
     return html_content
