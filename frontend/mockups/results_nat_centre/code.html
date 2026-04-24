@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Public+Sans:wght@300;400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline": "#74777f",
+                    "on-secondary-container": "#57657a",
+                    "surface-container": "#eceef0",
+                    "secondary-fixed": "#d5e3fc",
+                    "on-error": "#ffffff",
+                    "inverse-primary": "#aec7f6",
+                    "background": "#f7f9fb",
+                    "tertiary-fixed-dim": "#bcc7de",
+                    "tertiary-container": "#172234",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "secondary": "#515f74",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "primary-container": "#002147",
+                    "on-tertiary": "#ffffff",
+                    "on-surface": "#191c1e",
+                    "on-tertiary-container": "#7e899f",
+                    "surface-dim": "#d8dadc",
+                    "on-tertiary-fixed-variant": "#3c475a",
+                    "surface-tint": "#465f88",
+                    "error": "#ba1a1a",
+                    "on-primary-container": "#708ab5",
+                    "primary": "#000a1e",
+                    "surface": "#f7f9fb",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "on-primary-fixed-variant": "#2d476f",
+                    "tertiary-fixed": "#d8e3fb",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary-fixed": "#111c2d",
+                    "on-secondary": "#ffffff",
+                    "on-background": "#191c1e",
+                    "primary-fixed": "#d6e3ff",
+                    "surface-bright": "#f7f9fb",
+                    "surface-container-low": "#f2f4f6",
+                    "primary-fixed-dim": "#aec7f6",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed": "#001b3d",
+                    "on-primary": "#ffffff",
+                    "surface-container-highest": "#e0e3e5",
+                    "tertiary": "#020b1c",
+                    "surface-variant": "#e0e3e5",
+                    "secondary-container": "#d5e3fc",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#2d3133",
+                    "on-surface-variant": "#44474e",
+                    "outline-variant": "#c4c6cf"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "body": ["Public Sans"],
+                    "label": ["Public Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .academic-gradient {
+            background: linear-gradient(135deg, #000a1e 0%, #002147 100%);
+        }
+        .glass-nav {
+            background-color: rgba(247, 249, 251, 0.8);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body min-h-screen selection:bg-primary-fixed selection:text-on-primary-fixed"><div class="fixed top-0 w-full z-[60] bg-surface-container-low border-b border-outline-variant/10 px-8 py-2">
+<div class="max-w-7xl mx-auto flex justify-end gap-6 text-[11px] font-bold uppercase tracking-widest">
+<a class="text-primary" href="#">English</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Bangla</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Japanese</a>
+</div>
+</div>
+<!-- TopNavBar -->
+<nav class="fixed w-full z-50 glass-nav top-[35px]">
+<div class="max-w-7xl mx-auto flex justify-between items-center px-8 py-4">
+<div class="text-2xl font-bold font-headline text-primary">NAT Centre</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-slate-500 hover:text-primary transition-colors font-label text-lg tracking-tight" href="#">Home</a>
+<a class="text-slate-500 hover:text-primary transition-colors font-label text-lg tracking-tight" href="#">News</a>
+<a class="text-primary font-semibold border-b-2 border-primary pb-1 font-label text-lg tracking-tight" href="#">Results</a>
+<a class="text-slate-500 hover:text-primary transition-colors font-label text-lg tracking-tight" href="#">Resources</a>
+<a class="text-slate-500 hover:text-primary transition-colors font-label text-lg tracking-tight" href="#">Contact</a>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-xl font-semibold hover:opacity-90 transition-all scale-95 duration-200 ease-in-out">
+                Register Now
+            </button>
+</div>
+<div class="bg-surface-container-highest h-[1px] opacity-20"></div>
+</nav>
+<main class="pb-20 px-8 max-w-7xl mx-auto pt-40">
+<!-- Hero Section Asymmetry -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+<div class="lg:col-span-7">
+<h1 class="font-headline text-5xl lg:text-6xl text-primary leading-tight mb-6">
+                    Access Your National Assessment Performance
+                </h1>
+<p class="text-lg text-secondary leading-relaxed max-w-xl">
+                    Welcome to the secure NAT results portal. Enter your academic credentials below to view your detailed performance metrics and download your official score report.
+                </p>
+<!-- Login/ID Entry Section (Elevated UI) -->
+<div class="mt-12 bg-surface-container-lowest p-10 rounded-xl shadow-[0_12px_40px_rgba(25,28,30,0.06)] max-w-md">
+<form class="space-y-8" onsubmit="return false;">
+<div>
+<label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-2">Examination ID</label>
+<input class="w-full border-0 border-b border-outline-variant/40 bg-transparent py-3 px-0 focus:ring-0 focus:border-primary focus:border-b-2 transition-all font-body text-lg outline-none" placeholder="e.g. NAT-2024-8832" type="text"/>
+</div>
+<div>
+<label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-2">Date of Birth</label>
+<input class="w-full border-0 border-b border-outline-variant/40 bg-transparent py-3 px-0 focus:ring-0 focus:border-primary focus:border-b-2 transition-all font-body text-lg outline-none" type="date"/>
+</div>
+<button class="w-full academic-gradient text-on-primary py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition-all flex items-center justify-center gap-2 group" type="submit">
+                            Retrieve Results
+                            <span class="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</form>
+<div class="mt-6 flex items-center gap-2 text-on-secondary-container text-sm">
+<span class="material-symbols-outlined text-sm" data-icon="lock" style="font-variation-settings: 'FILL' 1;">lock</span>
+                        Secure academic gateway with 256-bit encryption
+                    </div>
+</div>
+</div>
+<!-- Side Bento Info Section -->
+<div class="lg:col-span-5 grid grid-cols-1 gap-6">
+<!-- Image Card -->
+<div class="h-64 rounded-xl overflow-hidden relative group">
+<img alt="Library interior" class="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" data-alt="Stately historic library interior with dark wood bookshelves and soft atmospheric lighting from high windows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCliRw9XONgY9MXmC_jsBLDZhWyeHiFvao-lPL3ITGlkHmjrOwf5lI7H__zpkoe2VLHalHqAxjSbxsG9OIXtEFNyPOL0C6L4qndsy29-OT-dmin5_LJqdaSG8-2uQJ6uoUKRCMuC2yK9dypj3ju8ywOwFYPOuU0TIIHZE_2JiArfaned77ju2j_zrADociljZhUPDtCojl3XfWxTpOJkilzgNIWHjWkR_5kwKSJrZioShdetAXmcbVQRXKdc6F9YHZcwC6FVwokDLvE"/>
+<div class="absolute inset-0 bg-primary/20"></div>
+</div>
+<!-- Interpretation Guide -->
+<div class="bg-surface-container-low p-8 rounded-xl">
+<h3 class="font-headline text-2xl text-primary mb-4">Understanding Your Scores</h3>
+<div class="space-y-6">
+<div class="flex gap-4">
+<div class="text-primary mt-1"><span class="material-symbols-outlined" data-icon="analytics">analytics</span></div>
+<div>
+<h4 class="font-semibold text-on-surface mb-1">Standardized Index</h4>
+<p class="text-sm text-secondary leading-relaxed">Your raw score is mapped against national averages to provide a percentile ranking within your peer group.</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="text-primary mt-1"><span class="material-symbols-outlined" data-icon="history_edu">history_edu</span></div>
+<div>
+<h4 class="font-semibold text-on-surface mb-1">Competency Levels</h4>
+<p class="text-sm text-secondary leading-relaxed">Scores are categorized into Foundation, Proficient, and Advanced tiers based on curriculum mastery.</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="text-primary mt-1"><span class="material-symbols-outlined" data-icon="verified">verified</span></div>
+<div>
+<h4 class="font-semibold text-on-surface mb-1">Institutional Validity</h4>
+<p class="text-sm text-secondary leading-relaxed">NAT certificates are recognized by all federal higher-education institutions for admissions credit.</p>
+</div>
+</div>
+</div>
+<button class="mt-8 text-primary font-semibold border-b border-primary/20 hover:border-primary transition-all text-sm uppercase tracking-widest inline-flex items-center gap-2">
+                        Download Full Scoring Manual
+                        <span class="material-symbols-outlined text-sm" data-icon="download">download</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Secondary Information Row (Asymmetric Spacing) -->
+<div class="mt-24 grid grid-cols-1 md:grid-cols-3 gap-12 border-t border-outline-variant/15 pt-16">
+<div class="md:col-start-1">
+<h2 class="font-headline text-3xl text-primary mb-4">Need Assistance?</h2>
+<p class="text-secondary leading-relaxed">Our help desk is available Monday through Friday for issues regarding missing results or data corrections.</p>
+</div>
+<div class="md:col-start-2 space-y-4">
+<div class="p-4 bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-all cursor-pointer">
+<span class="block font-bold text-primary">Student Support Line</span>
+<span class="text-sm text-secondary">+1 (800) 555-0199</span>
+</div>
+<div class="p-4 bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-all cursor-pointer">
+<span class="block font-bold text-primary">Email Inquiries</span>
+<span class="text-sm text-secondary">support@natcentre.edu</span>
+</div>
+</div>
+<div class="md:col-start-3">
+<div class="bg-primary-container p-8 rounded-xl text-on-primary">
+<span class="material-symbols-outlined text-4xl mb-4" data-icon="description">description</span>
+<h4 class="text-xl font-headline mb-2">Verify Certificate</h4>
+<p class="text-on-primary-container text-sm mb-6">Third-party institutions can verify student credentials using the unique secure key found on the score sheet.</p>
+<a class="text-on-primary font-semibold underline decoration-on-primary-container hover:decoration-on-primary transition-all text-sm" href="#">Open Verification Tool</a>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-low w-full py-12 px-8">
+<div class="grid grid-cols-1 md:grid-cols-2 items-center max-w-7xl mx-auto">
+<div class="mb-8 md:mb-0">
+<div class="font-headline font-bold text-primary text-xl mb-2">NAT Centre</div>
+<p class="font-body text-sm leading-relaxed text-slate-500 max-w-sm">© 2024 National Assessment Test Centre. Pursuing Academic Excellence through rigorous evaluation standards.</p>
+</div>
+<div class="flex flex-wrap md:justify-end gap-x-8 gap-y-4">
+<a class="font-body text-sm text-slate-500 hover:text-primary underline decoration-dotted transition-all opacity-80 hover:opacity-100" href="#">Privacy Policy</a>
+<a class="font-body text-sm text-slate-500 hover:text-primary underline decoration-dotted transition-all opacity-80 hover:opacity-100" href="#">Terms of Service</a>
+<a class="font-body text-sm text-slate-500 hover:text-primary underline decoration-dotted transition-all opacity-80 hover:opacity-100" href="#">Accessibility</a>
+<a class="font-body text-sm text-slate-500 hover:text-primary underline decoration-dotted transition-all opacity-80 hover:opacity-100" href="#">Staff Portal</a>
+</div>
+</div>
+</footer>
+</body></html>

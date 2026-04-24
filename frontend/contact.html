@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact | NAT-TEST Centre</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#002147",
+            "on-primary": "#FFFFFF",
+            surface: "#F8FAFC",
+            "surface-container-low": "#F2F4F6",
+            "surface-container-lowest": "#FFFFFF",
+            "surface-container-high": "#E0E3E5",
+            outline: "#74777f",
+            "outline-variant": "#C4C6CF",
+            secondary: "#515f74",
+            "primary-container": "#002147",
+            "on-primary-container": "#708ab5",
+          },
+          fontFamily: {
+            sans: ["Public Sans", "sans-serif"],
+          },
+        },
+      },
+    }
+  </script>
+
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+</head>
+<body class="bg-surface font-sans text-[#191c1e] antialiased">
+
+  <!-- Language Selector Bar -->
+  <div class="fixed top-0 w-full z-[60] bg-surface-container-low border-b border-outline-variant/30">
+    <div class="max-w-7xl mx-auto px-8 py-1.5 flex justify-end items-center gap-6">
+      <div class="flex items-center gap-4">
+        <a href="#" class="text-[11px] uppercase tracking-widest font-bold text-primary">English</a>
+        <span class="w-px h-2.5 bg-outline-variant/60"></span>
+        <a href="#" class="text-[11px] uppercase tracking-widest font-medium text-secondary hover:text-primary transition-colors">বাংলা</a>
+        <span class="w-px h-2.5 bg-outline-variant/60"></span>
+        <a href="#" class="text-[11px] uppercase tracking-widest font-medium text-secondary hover:text-primary transition-colors">日本語</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Navigation -->
+  <nav class="fixed w-full z-50 bg-surface/80 backdrop-blur-xl top-[33px]">
+    <div class="max-w-7xl mx-auto flex justify-between items-center px-8 py-4">
+      <a href="index.html" class="text-2xl font-bold text-primary tracking-tight">NAT-TEST Centre</a>
+
+      <div class="hidden md:flex items-center gap-8">
+        <a href="index.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">Home</a>
+        <a href="news.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">News</a>
+        <a href="results.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">Results</a>
+        <a href="resources.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">Resources</a>
+        <a href="contact.html" class="text-base font-semibold text-primary border-b-2 border-primary pb-1">Contact</a>
+      </div>
+
+      <a href="registration.html" class="bg-primary text-on-primary px-6 py-2 rounded-lg font-medium transition-transform active:scale-95">
+        Register Now
+      </a>
+    </div>
+    <div class="bg-surface-container-high h-[1px] opacity-20"></div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="pb-24 px-8 max-w-7xl mx-auto pt-40">
+
+    <!-- Header -->
+    <header class="mb-20 max-w-3xl">
+      <h1 class="text-5xl md:text-6xl text-primary font-bold tracking-tight mb-6">Connect with the<br>Academic Authority.</h1>
+      <p class="text-secondary text-lg leading-relaxed max-w-2xl font-light">
+        Our support team is dedicated to providing clarity and guidance for all NAT candidates and partner institutions. Reach out for technical assistance, registration inquiries, or institutional collaboration.
+      </p>
+    </header>
+
+    <!-- Contact Info Cards & Form -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <!-- Contact Info Cards -->
+      <div class="lg:col-span-5 space-y-8">
+        <div class="bg-surface-container-low p-10 rounded-lg space-y-12">
+          <!-- Phone -->
+          <div class="flex items-start gap-6">
+            <div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-on-primary-container">call</span>
+            </div>
+            <div>
+              <h3 class="text-xl text-primary font-semibold mb-2">Technical Support</h3>
+              <p class="text-secondary mb-1">+1 (800) 555-0192</p>
+              <p class="text-sm text-secondary italic">Mon — Fri, 8:00 AM to 6:00 PM EST</p>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="flex items-start gap-6">
+            <div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-on-primary-container">mail</span>
+            </div>
+            <div>
+              <h3 class="text-xl text-primary font-semibold mb-2">General Inquiries</h3>
+              <p class="text-secondary">registrar@nat-centre.edu</p>
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div class="flex items-start gap-6">
+            <div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-on-primary-container">location_on</span>
+            </div>
+            <div>
+              <h3 class="text-xl text-primary font-semibold mb-2">Main Registry</h3>
+              <p class="text-secondary leading-relaxed">
+                Suite 400, Academic Row<br>
+                University Heights, MA 02138
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Map -->
+        <div class="relative h-[340px] rounded-lg overflow-hidden bg-surface-container-high">
+          <img
+            class="w-full h-full object-cover grayscale opacity-80"
+            src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=2073&auto=format&fit=crop"
+            alt=""
+          />
+          <div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+          <div class="absolute bottom-6 left-6 right-6 bg-surface/90 backdrop-blur-md p-4 rounded-lg flex items-center justify-between">
+            <span class="text-sm font-medium">Open in Navigation</span>
+            <span class="material-symbols-outlined text-primary">open_in_new</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inquiry Form -->
+      <div class="lg:col-span-7">
+        <div class="bg-white p-10 md:p-12 rounded-lg h-full">
+          <h2 class="text-3xl text-primary font-bold mb-8">Direct Inquiry</h2>
+          <form class="space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="space-y-2">
+                <label class="text-xs uppercase tracking-widest text-secondary font-semibold">Full Name</label>
+                <input
+                  class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:ring-0 focus:border-primary px-0 py-2 transition-all placeholder:text-outline-variant/40"
+                  placeholder="e.g. Julian Sterling"
+                  type="text"
+                />
+              </div>
+              <div class="space-y-2">
+                <label class="text-xs uppercase tracking-widest text-secondary font-semibold">Email Address</label>
+                <input
+                  class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:ring-0 focus:border-primary px-0 py-2 transition-all placeholder:text-outline-variant/40"
+                  placeholder="j.sterling@university.edu"
+                  type="email"
+                />
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label class="text-xs uppercase tracking-widest text-secondary font-semibold">Subject of Inquiry</label>
+              <select class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:ring-0 focus:border-primary px-0 py-2 transition-all appearance-none cursor-pointer">
+                <option>Candidate Registration</option>
+                <option>Result Verification</option>
+                <option>Technical Portal Support</option>
+                <option>Institutional Partnership</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            <div class="space-y-2 pt-4">
+              <label class="text-xs uppercase tracking-widest text-secondary font-semibold">Detailed Message</label>
+              <textarea
+                class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:ring-0 focus:border-primary px-0 py-2 transition-all resize-none placeholder:text-outline-variant/40"
+                placeholder="Please describe your query with relevant reference numbers if applicable..."
+                rows="5"
+              ></textarea>
+            </div>
+
+            <div class="pt-6 flex justify-end">
+              <button
+                class="bg-primary text-white px-10 py-4 rounded-lg font-semibold flex items-center gap-3 transition-all hover:gap-5 group"
+                type="submit"
+              >
+                Submit Inquiry
+                <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-surface-container-low w-full py-12 px-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 items-center max-w-7xl mx-auto">
+      <div class="mb-8 md:mb-0">
+        <span class="font-bold text-primary text-xl">NAT-TEST Centre</span>
+        <p class="text-sm leading-relaxed text-secondary mt-2">© 2024 National Assessment Test Centre. Pursuing Academic Excellence.</p>
+      </div>
+      <div class="flex flex-wrap md:justify-end gap-6">
+        <a href="#" class="text-sm text-secondary hover:text-primary underline decoration-dotted transition-all">Privacy Policy</a>
+        <a href="#" class="text-sm text-secondary hover:text-primary underline decoration-dotted transition-all">Terms of Service</a>
+        <a href="#" class="text-sm text-secondary hover:text-primary underline decoration-dotted transition-all">Accessibility</a>
+        <a href="#" class="text-sm text-secondary hover:text-primary underline decoration-dotted transition-all">Staff Portal</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

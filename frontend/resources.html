@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resources Library | NAT-TEST Centre</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#002147",
+            "on-primary": "#FFFFFF",
+            surface: "#F8FAFC",
+            "surface-container-low": "#F2F4F6",
+            "surface-container-lowest": "#FFFFFF",
+            "surface-container-high": "#E0E3E5",
+            "surface-container-highest": "#E0E3E5",
+            outline: "#74777f",
+            "outline-variant": "#C4C6CF",
+            secondary: "#515f74",
+            tertiary: "#020b1c",
+            "tertiary-container": "#172234",
+            "on-tertiary-container": "#7e899f",
+          },
+          fontFamily: {
+            sans: ["Public Sans", "sans-serif"],
+          },
+        },
+      },
+    }
+  </script>
+
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+</head>
+<body class="bg-surface font-sans text-[#191c1e] antialiased">
+
+  <!-- Language & Region Selector Bar -->
+  <div class="w-full bg-surface-container-low border-b border-outline-variant/20">
+    <div class="max-w-7xl mx-auto px-8 py-2 flex justify-end items-center gap-6">
+      <div class="flex items-center gap-4 text-[11px] font-medium tracking-widest uppercase">
+        <a href="#" class="text-primary font-bold border-b border-primary">English</a>
+        <a href="#" class="text-secondary hover:text-primary transition-colors">বাংলা</a>
+        <a href="#" class="text-secondary hover:text-primary transition-colors">日本語</a>
+      </div>
+      <div class="h-3 w-px bg-outline-variant/30 ml-2"></div>
+      <div class="flex items-center gap-2 text-secondary hover:text-primary cursor-pointer transition-colors">
+        <span class="material-symbols-outlined text-[14px]">public</span>
+        <span class="text-[11px] font-medium tracking-widest uppercase">Region</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Navigation -->
+  <nav class="fixed w-full z-50 bg-surface/80 backdrop-blur-xl top-[37px]">
+    <div class="max-w-7xl mx-auto flex justify-between items-center px-8 py-4">
+      <a href="index.html" class="text-2xl font-bold text-primary tracking-tight">NAT-TEST Centre</a>
+
+      <div class="hidden md:flex gap-8 items-center">
+        <a href="index.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">Home</a>
+        <a href="news.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">News</a>
+        <a href="results.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">Results</a>
+        <a href="resources.html" class="text-base font-semibold text-primary border-b-2 border-primary pb-1">Resources</a>
+        <a href="contact.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">Contact</a>
+      </div>
+
+      <a href="registration.html" class="bg-primary text-on-primary px-6 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-all">
+        Register Now
+      </a>
+    </div>
+    <div class="bg-surface-container-low h-[1px] opacity-20"></div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="pt-24 pb-20">
+
+    <!-- Hero & Search -->
+    <header class="max-w-7xl mx-auto px-8 py-16 md:py-24">
+      <div class="max-w-3xl">
+        <h1 class="text-5xl md:text-6xl text-primary leading-tight mb-6">
+          Academic Resources <br><span class="italic text-secondary">Library</span>
+        </h1>
+        <p class="text-lg text-secondary leading-relaxed mb-10 max-w-2xl">
+          Access our curated collection of study materials, previous years' examination papers, and strategic guides designed by the National Assessment Test Centre board.
+        </p>
+
+        <!-- Search -->
+        <div class="relative group max-w-2xl">
+          <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-secondary">
+            <span class="material-symbols-outlined">search</span>
+          </div>
+          <input
+            class="w-full py-5 pl-14 pr-6 bg-white border-0 border-b border-outline-variant/40 focus:border-primary focus:ring-0 transition-all text-lg"
+            placeholder="Search guides, papers, or subjects..."
+            type="text"
+          />
+          <div class="absolute inset-y-0 right-4 flex items-center">
+            <span class="text-xs uppercase tracking-widest text-secondary font-semibold">Press Enter</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Category Bento Grid -->
+    <section class="max-w-7xl mx-auto px-8 pb-20">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <!-- Large Featured Category -->
+        <div class="md:col-span-8 bg-surface-container-low p-10 flex flex-col justify-between min-h-[400px] relative overflow-hidden group">
+          <div class="relative z-10">
+            <span class="inline-block px-3 py-1 bg-primary text-white text-xs font-semibold tracking-widest mb-4">ESSENTIAL</span>
+            <h2 class="text-3xl text-primary font-bold mb-4">Official Study Guides</h2>
+            <p class="text-secondary max-w-md leading-relaxed">The authoritative source for NAT syllabus mastery. Comprehensive modules updated for the 2024-2025 academic cycle.</p>
+          </div>
+          <div class="relative z-10 flex items-center gap-4 mt-8">
+            <button class="bg-primary text-white px-8 py-3 rounded-lg flex items-center gap-2 hover:opacity-90 transition-all">
+              Browse Collection <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </button>
+          </div>
+          <img
+            class="absolute right-[-10%] bottom-[-10%] w-2/3 h-full object-cover mix-blend-multiply opacity-20 grayscale transition-transform duration-700 group-hover:scale-105"
+            src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2070&auto=format&fit=crop"
+            alt=""
+          />
+        </div>
+
+        <!-- Small Category 1 -->
+        <div class="md:col-span-4 bg-tertiary-container p-8 flex flex-col justify-end text-white">
+          <span class="material-symbols-outlined text-4xl mb-6 text-on-tertiary-container">description</span>
+          <h3 class="text-2xl font-bold mb-2">Sample Papers</h3>
+          <p class="text-on-tertiary-container text-sm leading-relaxed mb-6">Simulate the examination environment with timed mock assessments.</p>
+          <a href="#" class="text-white flex items-center gap-2 text-sm font-semibold hover:underline">
+            Download Now <span class="material-symbols-outlined text-xs">open_in_new</span>
+          </a>
+        </div>
+
+        <!-- Small Category 2 -->
+        <div class="md:col-span-4 bg-surface-container-highest p-8 flex flex-col justify-between">
+          <div class="flex justify-between items-start">
+            <span class="material-symbols-outlined text-primary text-3xl">play_circle</span>
+            <span class="text-[10px] font-bold text-secondary border border-outline-variant/20 px-2 py-0.5 rounded">NEW</span>
+          </div>
+          <div>
+            <h3 class="text-2xl text-primary font-bold mb-2">Video Seminars</h3>
+            <p class="text-secondary text-sm">Expert walkthroughs of complex quantitative and analytical reasoning sections.</p>
+          </div>
+        </div>
+
+        <!-- Medium Category 3 -->
+        <div class="md:col-span-8 bg-surface-container-low p-8 flex items-center gap-10">
+          <div class="flex-1">
+            <h3 class="text-2xl text-primary font-bold mb-3">Academic Vocabulary Pack</h3>
+            <p class="text-secondary text-sm mb-6">A list of 500+ critical terms frequently encountered in the Verbal Reasoning module.</p>
+            <div class="flex gap-4">
+              <span class="bg-white px-4 py-2 text-xs font-medium text-primary rounded">PDF (2.4MB)</span>
+              <span class="bg-white px-4 py-2 text-xs font-medium text-primary rounded">Audio Guide</span>
+            </div>
+          </div>
+          <div class="hidden md:block w-32 h-32 rounded-full overflow-hidden">
+            <img
+              class="w-full h-full object-cover grayscale"
+              src="https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=2070&auto=format&fit=crop"
+              alt=""
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Resource Listing -->
+    <section class="max-w-7xl mx-auto px-8 py-20">
+      <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+        <div>
+          <h2 class="text-4xl text-primary font-bold mb-4">Latest Archives</h2>
+          <p class="text-secondary">Recently uploaded documents for the upcoming test cycle.</p>
+        </div>
+        <div class="flex gap-4">
+          <button class="bg-surface-container-high text-primary px-5 py-2 rounded-lg text-sm font-medium hover:bg-surface-container-highest transition-colors">Most Recent</button>
+          <button class="text-secondary px-5 py-2 text-sm font-medium hover:text-primary transition-colors">Popular</button>
+          <button class="text-secondary px-5 py-2 text-sm font-medium hover:text-primary transition-colors">By Subject</button>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <!-- Resource Item 1 -->
+        <div class="group flex flex-col md:flex-row items-start md:items-center justify-between p-8 bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer">
+          <div class="flex items-start gap-6">
+            <div class="w-12 h-12 flex items-center justify-center bg-white text-primary">
+              <span class="material-symbols-outlined text-3xl">picture_as_pdf</span>
+            </div>
+            <div>
+              <h4 class="text-xl text-primary font-semibold group-hover:underline">Quantitative Methods: Advanced Workbook</h4>
+              <p class="text-sm text-secondary mt-1">Updated May 12, 2024 • 128 Pages • Level: Intermediate</p>
+            </div>
+          </div>
+          <div class="mt-4 md:mt-0 flex items-center gap-8">
+            <div class="flex -space-x-2">
+              <div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container-highest flex items-center justify-center text-[10px] font-bold text-primary">+12</div>
+            </div>
+            <span class="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform">download</span>
+          </div>
+        </div>
+
+        <!-- Resource Item 2 -->
+        <div class="group flex flex-col md:flex-row items-start md:items-center justify-between p-8 bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer">
+          <div class="flex items-start gap-6">
+            <div class="w-12 h-12 flex items-center justify-center bg-white text-primary">
+              <span class="material-symbols-outlined text-3xl">article</span>
+            </div>
+            <div>
+              <h4 class="text-xl text-primary font-semibold group-hover:underline">NAT 2023 Fall Examination: Complete Paper</h4>
+              <p class="text-sm text-secondary mt-1">Updated April 20, 2024 • Includes Answer Key & Rationales</p>
+            </div>
+          </div>
+          <div class="mt-4 md:mt-0 flex items-center gap-8">
+            <span class="text-xs font-bold text-secondary">VERIFIED</span>
+            <span class="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform">download</span>
+          </div>
+        </div>
+
+        <!-- Resource Item 3 -->
+        <div class="group flex flex-col md:flex-row items-start md:items-center justify-between p-8 bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer">
+          <div class="flex items-start gap-6">
+            <div class="w-12 h-12 flex items-center justify-center bg-white text-primary">
+              <span class="material-symbols-outlined text-3xl">link</span>
+            </div>
+            <div>
+              <h4 class="text-xl text-primary font-semibold group-hover:underline">Interactive Reasoning Dashboard</h4>
+              <p class="text-sm text-secondary mt-1">External Link • Managed by NAT Academic Research Unit</p>
+            </div>
+          </div>
+          <div class="mt-4 md:mt-0 flex items-center gap-8">
+            <span class="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform">open_in_new</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-16 text-center">
+        <button class="text-lg border-b border-primary text-primary pb-1 hover:text-secondary hover:border-secondary transition-all font-semibold">
+          Load Archive 2020—2023
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-surface-container-low w-full py-12 px-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 items-center max-w-7xl mx-auto gap-8">
+      <div class="space-y-4">
+        <div class="font-bold text-primary text-2xl">NAT-TEST Centre</div>
+        <p class="text-secondary text-sm leading-relaxed max-w-sm">
+          © 2024 National Assessment Test Centre. Pursuing Academic Excellence.
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-x-8 gap-y-4 md:justify-end">
+        <a href="#" class="text-secondary hover:text-primary underline decoration-dotted transition-all text-sm">Privacy Policy</a>
+        <a href="#" class="text-secondary hover:text-primary underline decoration-dotted transition-all text-sm">Terms of Service</a>
+        <a href="#" class="text-secondary hover:text-primary underline decoration-dotted transition-all text-sm">Accessibility</a>
+        <a href="#" class="text-secondary hover:text-primary underline decoration-dotted transition-all text-sm">Staff Portal</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

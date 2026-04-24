@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Eb+Garamond:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {outline: "#74777f", "on-secondary-container": "#57657a", "surface-container": "#eceef0", "secondary-fixed": "#d5e3fc", "on-error": "#ffffff", "inverse-primary": "#aec7f6", background: "#f7f9fb", "tertiary-fixed-dim": "#bcc7de", "tertiary-container": "#172234", "error-container": "#ffdad6", "secondary-fixed-dim": "#b9c7df", secondary: "#515f74", "on-secondary-fixed-variant": "#3a485b", "primary-container": "#002147", "on-tertiary": "#ffffff", "on-surface": "#191c1e", "on-tertiary-container": "#7e899f", "surface-dim": "#d8dadc", "on-tertiary-fixed-variant": "#3c475a", "surface-tint": "#465f88", error: "#ba1a1a", "on-primary-container": "#708ab5", primary: "#000a1e", surface: "#f7f9fb", "on-secondary-fixed": "#0d1c2e", "on-primary-fixed-variant": "#2d476f", "tertiary-fixed": "#d8e3fb", "surface-container-high": "#e6e8ea", "on-tertiary-fixed": "#111c2d", "on-secondary": "#ffffff", "on-background": "#191c1e", "primary-fixed": "#d6e3ff", "surface-bright": "#f7f9fb", "surface-container-low": "#f2f4f6", "primary-fixed-dim": "#aec7f6", "inverse-on-surface": "#eff1f3", "on-error-container": "#93000a", "on-primary-fixed": "#001b3d", "on-primary": "#ffffff", "surface-container-highest": "#e0e3e5", tertiary: "#020b1c", "surface-variant": "#e0e3e5", "secondary-container": "#d5e3fc", "surface-container-lowest": "#ffffff", "inverse-surface": "#2d3133", "on-surface-variant": "#44474e", "outline-variant": "#c4c6cf"}, borderRadius: {DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem"}, fontFamily: {headline: ["Eb Garamond"], body: ["Eb Garamond"], label: ["Eb Garamond"], display: "Eb Garamond"}}}};</script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-nav {
+            background: rgba(247, 249, 251, 0.8);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container"><div class="fixed top-0 w-full z-[60] bg-surface-container-low border-b border-outline-variant/30">
+<div class="max-w-7xl mx-auto px-8 py-1.5 flex justify-end items-center gap-6">
+<div class="flex items-center gap-4">
+<a class="text-[11px] uppercase tracking-widest font-bold text-primary" href="#">English</a>
+<span class="w-px h-2.5 bg-outline-variant/60"></span>
+<a class="text-[11px] uppercase tracking-widest font-medium text-slate-500 hover:text-primary transition-colors" href="#">বাংলা</a>
+<span class="w-px h-2.5 bg-outline-variant/60"></span>
+<a class="text-[11px] uppercase tracking-widest font-medium text-slate-500 hover:text-primary transition-colors" href="#">日本語</a>
+</div>
+</div>
+</div>
+<!-- TopNavBar -->
+<nav class="fixed w-full z-50 glass-nav top-[33px]">
+<div class="max-w-7xl mx-auto flex justify-between items-center px-8 py-4">
+<div class="text-2xl font-bold font-headline text-primary">NAT Centre</div>
+<div class="hidden md:flex items-center space-x-8">
+<a class="text-slate-500 hover:text-primary transition-colors font-body text-lg tracking-tight" href="#">Home</a>
+<a class="text-slate-500 hover:text-primary transition-colors font-body text-lg tracking-tight" href="#">News</a>
+<a class="text-slate-500 hover:text-primary transition-colors font-body text-lg tracking-tight" href="#">Results</a>
+<a class="text-slate-500 hover:text-primary transition-colors font-body text-lg tracking-tight" href="#">Resources</a>
+<a class="text-primary font-semibold border-b-2 border-primary pb-1 font-body text-lg tracking-tight" href="#">Contact</a>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-xl font-medium transition-transform active:scale-95 duration-200">
+                Register Now
+            </button>
+</div>
+<div class="bg-surface-container-highest h-[1px] opacity-20"></div>
+</nav>
+<main class="pb-24 px-8 max-w-7xl mx-auto pt-40">
+<!-- Hero Section -->
+<header class="mb-20 max-w-3xl">
+<h1 class="font-headline text-5xl md:text-6xl text-primary font-bold tracking-tight mb-6">Connect with the <br/>Academic Authority.</h1>
+<p class="text-on-surface-variant text-lg leading-relaxed max-w-2xl font-light">
+                Our support team is dedicated to providing clarity and guidance for all NAT candidates and partner institutions. Reach out for technical assistance, registration inquiries, or institutional collaboration.
+            </p>
+</header>
+<!-- Bento Layout for Content -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Contact Info Cards -->
+<div class="lg:col-span-5 space-y-8">
+<div class="bg-surface-container-low p-10 rounded-xl space-y-12">
+<!-- Phone -->
+<div class="flex items-start gap-6">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="call">call</span>
+</div>
+<div>
+<h3 class="font-headline text-xl text-primary font-semibold mb-2">Technical Support</h3>
+<p class="text-on-surface-variant mb-1">+1 (800) 555-0192</p>
+<p class="text-sm text-slate-500 italic">Mon — Fri, 8:00 AM to 6:00 PM EST</p>
+</div>
+</div>
+<!-- Email -->
+<div class="flex items-start gap-6">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="mail">mail</span>
+</div>
+<div>
+<h3 class="font-headline text-xl text-primary font-semibold mb-2">General Inquiries</h3>
+<p class="text-on-surface-variant">registrar@nat-centre.edu</p>
+</div>
+</div>
+<!-- Location -->
+<div class="flex items-start gap-6">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="location_on">location_on</span>
+</div>
+<div>
+<h3 class="font-headline text-xl text-primary font-semibold mb-2">Main Registry</h3>
+<p class="text-on-surface-variant leading-relaxed">
+                                Suite 400, Academic Row<br/>
+                                University Heights, MA 02138
+                            </p>
+</div>
+</div>
+</div>
+<!-- Map Integration -->
+<div class="relative h-[340px] rounded-xl overflow-hidden bg-surface-container-highest">
+<img class="w-full h-full object-cover grayscale opacity-80" data-alt="Minimalist grayscale map view of a university campus district with clean geometric lines and soft blue accents" data-location="Cambridge, Massachusetts" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBunG9sgEoD5rFJdEWtWD_MR1U9s1mVk1sdwQNawOtFU2iYmS8zhNv00U_O029_Qu49nXCD1Qva8sb_mPWEj4m_NFKO69hkAAoxkSFQ2AcaRHY3YgShItxN3o01MNHGk65JpzHbVEyxBDLDiEqLEOStOcu36dQFCzRhL6lt81KojIMJa4QlyhkWQ_aiUZrnPMAsc5axEuVNQ1m1RQ58fF9AIzkbCRwBr2pe9Fv1FAXdYeoPOEMAJ4hlB0PkBXoPQnHsL0L58UQS1NkE"/>
+<div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+<div class="absolute bottom-6 left-6 right-6 bg-surface/90 backdrop-blur-md p-4 rounded-lg flex items-center justify-between">
+<span class="text-sm font-medium">Open in Navigation</span>
+<span class="material-symbols-outlined text-primary" data-icon="open_in_new">open_in_new</span>
+</div>
+</div>
+</div>
+<!-- Inquiry Form -->
+<div class="lg:col-span-7">
+<div class="bg-surface-container-lowest p-10 md:p-12 rounded-xl shadow-[0_12px_40px_rgba(25,28,30,0.06)] h-full">
+<h2 class="font-headline text-3xl text-primary font-bold mb-8">Direct Inquiry</h2>
+<form class="space-y-8">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-2">
+<label class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Full Name</label>
+<input class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:ring-0 focus:border-primary px-0 py-2 transition-all placeholder:text-slate-300" placeholder="e.g. Julian Sterling" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Email Address</label>
+<input class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:ring-0 focus:border-primary px-0 py-2 transition-all placeholder:text-slate-300" placeholder="j.sterling@university.edu" type="email"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Subject of Inquiry</label>
+<select class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:ring-0 focus:border-primary px-0 py-2 transition-all appearance-none cursor-pointer">
+<option>Candidate Registration</option>
+<option>Result Verification</option>
+<option>Technical Portal Support</option>
+<option>Institutional Partnership</option>
+<option>Other</option>
+</select>
+</div>
+<div class="space-y-2 pt-4">
+<label class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Detailed Message</label>
+<textarea class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:ring-0 focus:border-primary px-0 py-2 transition-all resize-none placeholder:text-slate-300" placeholder="Please describe your query with relevant reference numbers if applicable..." rows="5"></textarea>
+</div>
+<div class="pt-6 flex justify-end">
+<button class="bg-primary text-on-primary px-10 py-4 rounded-xl font-semibold flex items-center gap-3 transition-all hover:gap-5 group" type="submit">
+                                Submit Inquiry
+                                <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-low w-full py-12 px-8">
+<div class="grid grid-cols-1 md:grid-cols-2 items-center max-w-7xl mx-auto">
+<div class="mb-8 md:mb-0">
+<span class="font-headline font-bold text-primary text-xl">NAT Centre</span>
+<p class="font-body text-sm leading-relaxed text-slate-500 mt-2">© 2024 National Assessment Test Centre. Pursuing Academic Excellence.</p>
+</div>
+<div class="flex flex-wrap md:justify-end gap-6 md:gap-10">
+<a class="font-body text-sm text-slate-500 hover:text-primary underline decoration-dotted transition-all opacity-80 hover:opacity-100" href="#">Privacy Policy</a>
+<a class="font-body text-sm text-slate-500 hover:text-primary underline decoration-dotted transition-all opacity-80 hover:opacity-100" href="#">Terms of Service</a>
+<a class="font-body text-sm text-slate-500 hover:text-primary underline decoration-dotted transition-all opacity-80 hover:opacity-100" href="#">Accessibility</a>
+<a class="font-body text-sm text-slate-500 hover:text-primary underline decoration-dotted transition-all opacity-80 hover:opacity-100" href="#">Staff Portal</a>
+</div>
+</div>
+</footer>
+</body></html>

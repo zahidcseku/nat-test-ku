@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>News & Updates | NAT-TEST Centre</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#002147",
+            "on-primary": "#FFFFFF",
+            surface: "#F8FAFC",
+            "surface-container-low": "#F2F4F6",
+            "surface-container-lowest": "#FFFFFF",
+            "surface-container-high": "#E0E3E5",
+            outline: "#74777f",
+            "outline-variant": "#C4C6CF",
+            secondary: "#515f74",
+          },
+          fontFamily: {
+            sans: ["Public Sans", "sans-serif"],
+          },
+        },
+      },
+    }
+  </script>
+
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+</head>
+<body class="bg-surface font-sans text-[#191c1e] antialiased">
+
+  <!-- Language Selector Bar -->
+  <div class="bg-surface-container-low border-b border-outline-variant/30">
+    <div class="max-w-7xl mx-auto px-8 py-1.5 flex justify-end gap-6">
+      <a href="#" class="text-[10px] font-bold uppercase tracking-widest text-primary">English</a>
+      <a href="#" class="text-[10px] font-medium uppercase tracking-widest text-secondary hover:text-primary transition-colors">Bangla</a>
+      <a href="#" class="text-[10px] font-medium uppercase tracking-widest text-secondary hover:text-primary transition-colors">Japanese</a>
+    </div>
+  </div>
+
+  <!-- Main Navigation -->
+  <nav class="w-full z-50 bg-surface/80 backdrop-blur-xl relative">
+    <div class="max-w-7xl mx-auto flex justify-between items-center px-8 py-4">
+      <a href="index.html" class="text-2xl font-bold text-primary tracking-tight">NAT-TEST Centre</a>
+
+      <div class="hidden md:flex gap-8 items-center">
+        <a href="index.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">Home</a>
+        <a href="news.html" class="text-base font-semibold text-primary border-b-2 border-primary pb-1">News</a>
+        <a href="results.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">Results</a>
+        <a href="resources.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">Resources</a>
+        <a href="contact.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">Contact</a>
+      </div>
+
+      <a href="registration.html" class="bg-primary text-on-primary px-6 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-all">
+        Register Now
+      </a>
+    </div>
+    <div class="bg-surface-container-low h-[1px] opacity-20"></div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="pb-24 px-8 max-w-7xl mx-auto pt-12">
+
+    <!-- Header -->
+    <header class="mb-20 grid grid-cols-1 md:grid-cols-12 gap-8 items-end">
+      <div class="md:col-span-8">
+        <span class="text-secondary tracking-widest text-xs font-bold uppercase mb-4 block">Official Communiqué</span>
+        <h1 class="text-5xl md:text-6xl font-bold text-primary leading-tight mb-6">News & Academic Updates</h1>
+        <p class="text-lg text-secondary leading-relaxed max-w-2xl">
+          Stay informed with the latest announcements, curriculum adjustments, and critical examination schedules directly from the National Assessment Test Centre.
+        </p>
+      </div>
+      <div class="md:col-span-4 flex justify-end">
+        <div class="bg-surface-container-low p-6 rounded-lg w-full max-w-xs">
+          <p class="text-xs font-bold text-secondary uppercase tracking-wider mb-2">Next Test Cycle</p>
+          <p class="text-2xl font-bold text-primary mb-1">Oct 14, 2024</p>
+          <p class="text-sm text-secondary">Registrations close in 12 days</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- News Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Featured Article -->
+      <article class="md:col-span-2 bg-white rounded-lg overflow-hidden group">
+        <div class="relative h-96 w-full">
+          <img
+            alt="Academic Building"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            src="https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=2070&auto=format&fit=crop"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent"></div>
+          <div class="absolute bottom-0 p-10 text-white">
+            <span class="bg-white/20 text-white px-3 py-1 rounded text-[10px] font-bold tracking-widest uppercase mb-4 inline-block backdrop-blur-sm">Institutional News</span>
+            <h2 class="text-3xl font-bold mb-4">Strategic Enhancements to the 2025 National Assessment Framework</h2>
+            <div class="flex items-center gap-6 text-sm opacity-90">
+              <span class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">calendar_today</span> September 28, 2024
+              </span>
+              <a class="flex items-center gap-2 group-hover:underline" href="#">
+                Read More <span class="material-symbols-outlined text-sm">arrow_forward</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Schedule Change Card -->
+      <article class="bg-primary p-8 rounded-lg flex flex-col justify-between text-white border-t-4 border-white/20">
+        <div>
+          <span class="material-symbols-outlined text-white/70 text-4xl mb-6">schedule</span>
+          <h3 class="text-2xl font-bold mb-4">Schedule Adjustment: Western Region</h3>
+          <p class="text-white/70 mb-6 text-sm leading-relaxed">
+            Due to scheduled maintenance in regional digital hubs, the October 5th assessment window has been moved.
+          </p>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-widest text-white/70 mb-2">New Date</p>
+          <p class="text-xl font-bold mb-6">October 12, 2024</p>
+          <a href="#" class="text-white font-bold text-sm underline hover:text-white/80 transition-colors">Download Revised Timetable</a>
+        </div>
+      </article>
+
+      <!-- Regular News Card 1 -->
+      <article class="bg-surface-container-low p-8 rounded-lg hover:bg-surface-container-high transition-colors">
+        <p class="text-xs text-secondary font-bold tracking-widest uppercase mb-3">Resources</p>
+        <h3 class="text-xl font-bold text-primary mb-4 leading-snug">New Digital Study Guides for Advanced Mathematics Modules</h3>
+        <p class="text-secondary text-sm mb-6 line-clamp-3">Comprehensive study materials are now available for all registered candidates in the resources portal.</p>
+        <div class="flex items-center justify-between mt-auto">
+          <span class="text-xs text-secondary">Sept 25, 2024</span>
+          <a href="#" class="text-primary font-bold text-sm flex items-center gap-1 group">
+            Read More <span class="material-symbols-outlined text-sm">chevron_right</span>
+          </a>
+        </div>
+      </article>
+
+      <!-- Regular News Card 2 -->
+      <article class="bg-surface-container-low p-8 rounded-lg hover:bg-surface-container-high transition-colors">
+        <p class="text-xs text-secondary font-bold tracking-widest uppercase mb-3">Announcements</p>
+        <h3 class="text-xl font-bold text-primary mb-4 leading-snug">Proctoring Protocols: Updated Security Guidelines</h3>
+        <p class="text-secondary text-sm mb-6 line-clamp-3">Refinement of digital proctoring standards to ensure equitable testing environments across all centres.</p>
+        <div class="flex items-center justify-between mt-auto">
+          <span class="text-xs text-secondary">Sept 22, 2024</span>
+          <a href="#" class="text-primary font-bold text-sm flex items-center gap-1">
+            Read More <span class="material-symbols-outlined text-sm">chevron_right</span>
+          </a>
+        </div>
+      </article>
+
+      <!-- Educational Article Card -->
+      <article class="bg-white p-8 rounded-lg group relative">
+        <div class="mb-6 overflow-hidden rounded-lg">
+          <img
+            alt="Library Books"
+            class="w-full h-40 object-cover transition-transform duration-500 group-hover:scale-110"
+            src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2070&auto=format&fit=crop"
+          />
+        </div>
+        <p class="text-xs text-secondary font-bold tracking-widest uppercase mb-3">Educational Insight</p>
+        <h3 class="text-xl font-bold text-primary mb-4 leading-snug">Cognitive Load Theory in Standardized Testing</h3>
+        <p class="text-secondary text-sm mb-6">How modern NAT design minimizes testing anxiety and maximizes student potential.</p>
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-secondary">Sept 19, 2024</span>
+          <a href="#" class="text-primary font-bold text-sm flex items-center gap-1">
+            Read Full Article <span class="material-symbols-outlined text-sm">open_in_new</span>
+          </a>
+        </div>
+      </article>
+    </div>
+
+    <!-- Pagination -->
+    <section class="mt-20 flex justify-center items-center gap-4">
+      <button class="w-10 h-10 rounded-full flex items-center justify-center text-secondary hover:bg-surface-container-high transition-colors">
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
+      <div class="flex gap-2">
+        <button class="w-10 h-10 rounded-full bg-primary text-white font-bold text-sm">1</button>
+        <button class="w-10 h-10 rounded-full text-primary font-bold text-sm hover:bg-surface-container-high">2</button>
+        <button class="w-10 h-10 rounded-full text-primary font-bold text-sm hover:bg-surface-container-high">3</button>
+        <span class="flex items-center px-2 text-secondary">...</span>
+        <button class="w-10 h-10 rounded-full text-primary font-bold text-sm hover:bg-surface-container-high">12</button>
+      </div>
+      <button class="w-10 h-10 rounded-full flex items-center justify-center text-secondary hover:bg-surface-container-high transition-colors">
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-surface-container-low w-full py-12 px-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 items-center max-w-7xl mx-auto">
+      <div class="mb-8 md:mb-0">
+        <div class="font-bold text-primary text-xl mb-4">NAT-TEST Centre</div>
+        <p class="text-sm leading-relaxed text-secondary max-w-md">
+          © 2024 National Assessment Test Centre. Pursuing Academic Excellence through rigorous evaluation and research-based standards.
+        </p>
+      </div>
+      <div class="flex flex-wrap md:justify-end gap-6">
+        <a href="#" class="text-sm text-secondary hover:text-primary underline decoration-dotted transition-all">Privacy Policy</a>
+        <a href="#" class="text-sm text-secondary hover:text-primary underline decoration-dotted transition-all">Terms of Service</a>
+        <a href="#" class="text-sm text-secondary hover:text-primary underline decoration-dotted transition-all">Accessibility</a>
+        <a href="#" class="text-sm text-secondary hover:text-primary underline decoration-dotted transition-all">Staff Portal</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

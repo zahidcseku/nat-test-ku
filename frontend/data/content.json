@@ -1,0 +1,92 @@
+{
+  "last_updated": "2026-04-24T05:55:34.348758",
+  "blocks": [
+    {
+      "id": "701186fe-4b4b-4aa0-8734-7391e1ec65c2",
+      "type": "hero",
+      "display_order": 1,
+      "is_active": true,
+      "content": {
+        "slogan": "Start your journey today.",
+        "description": "The Global Standard for Japanese Language Achievement Since 1988.\n\nThe NAT-TEST is more than just an exam; it is a bridge to your future in Japan. Join thousands of successful candidates who have used this certification to unlock new opportunities and achieve their dreams.\n\nFor more information, please visit the official website of <a href=\"http://www.nat-test.com/index.html\">Senmon Kyouiku Publishing Co., Ltd.</a>",
+        "image_url": "/media/images/optimized/hero-home.webp",
+        "primary_link": {
+          "label": "Register Now",
+          "url": "/registration.html"
+        },
+        "secondary_link": {
+          "label": "Learn More",
+          "url": "/resources.html"
+        }
+      }
+    },
+    {
+      "id": "68d51b60-dda5-4fa3-b622-cecf0da57844",
+      "type": "banner",
+      "display_order": 2,
+      "is_active": true,
+      "content": {
+        "exam_date": "2026-06-15",
+        "exam_info_url": "/resources/exam-info.html",
+        "registration_url": "/registration.html"
+      }
+    },
+    {
+      "id": "bbf12295-159e-405e-a1cd-0eeeb4756272",
+      "type": "heading_text",
+      "display_order": 3,
+      "is_active": true,
+      "content": {
+        "heading": "About NAT-TEST",
+        "body_text": "The National Assessment Test Centre promotes academic excellence through standardized testing."
+      }
+    },
+    {
+      "id": "7ac14cb8-47f5-48cf-ab1d-17b720adff6d",
+      "type": "card",
+      "display_order": 4,
+      "is_active": true,
+      "content": {
+        "title": "Resources",
+        "description": "Access study materials, practice tests, and preparation guides",
+        "link_url": "/resources.html",
+        "icon_name": "library_books"
+      }
+    },
+    {
+      "id": "fdb6e857-5a29-49a6-a12f-7788f47a1e76",
+      "type": "card",
+      "display_order": 5,
+      "is_active": true,
+      "content": {
+        "title": "Get Assistance",
+        "description": "Contact our support team for help with registration and exams",
+        "link_url": "/contact.html",
+        "icon_name": "support_agent"
+      }
+    },
+    {
+      "id": "c0e84370-353a-41d4-9ae7-48b5bf25c99a",
+      "type": "footer",
+      "display_order": 6,
+      "is_active": true,
+      "content": {
+        "copyright_text": "\u00a9 2026 NAT-TEST Centre. All rights reserved.",
+        "links": [
+          {
+            "label": "Privacy Policy",
+            "url": "/privacy.html"
+          },
+          {
+            "label": "Terms of Service",
+            "url": "/terms.html"
+          },
+          {
+            "label": "Contact",
+            "url": "/contact.html"
+          }
+        ]
+      }
+    }
+  ]
+}
