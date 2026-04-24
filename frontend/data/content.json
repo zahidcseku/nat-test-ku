@@ -1,8 +1,8 @@
 {
-  "last_updated": "2026-04-24T06:00:00.000000",
+  "last_updated": "2026-04-24T10:20:00.552991",
   "blocks": [
     {
-      "id": "hero-badge-001",
+      "id": "168da421-aabe-45da-8976-28e80226754e",
       "type": "hero_badge",
       "display_order": 1,
       "is_active": true,
@@ -11,7 +11,7 @@
       }
     },
     {
-      "id": "hero-headline-001",
+      "id": "61693667-c5ef-4330-a799-694b2466161d",
       "type": "hero_headline",
       "display_order": 2,
       "is_active": true,
@@ -23,7 +23,7 @@
       }
     },
     {
-      "id": "hero-description-001",
+      "id": "ca35308e-c694-473d-9845-61f8f558751d",
       "type": "hero_description",
       "display_order": 3,
       "is_active": true,
@@ -32,18 +32,18 @@
       }
     },
     {
-      "id": "hero-cta-primary-001",
+      "id": "2108dd2d-8ba9-422f-b4c7-b8903eaa33e0",
       "type": "hero_cta_primary",
       "display_order": 4,
       "is_active": true,
       "content": {
         "label": "Begin Registration",
-        "url": "registration.html",
+        "url": "/registration.html",
         "icon": "arrow_forward"
       }
     },
     {
-      "id": "hero-cta-secondary-001",
+      "id": "4ccbc830-96ac-4aad-8901-e2b25227bc6a",
       "type": "hero_cta_secondary",
       "display_order": 5,
       "is_active": true,
@@ -54,19 +54,19 @@
       }
     },
     {
-      "id": "exam-ribbon-001",
+      "id": "10c4108f-1cea-4ffe-a88e-abd975337b68",
       "type": "exam_ribbon",
       "display_order": 6,
       "is_active": true,
       "content": {
         "exam_date": "October 14, 2024",
         "registration_status": "Registration closes in 12 days",
-        "exam_info_url": "resources.html",
-        "registration_url": "registration.html"
+        "exam_info_url": "/resources.html",
+        "registration_url": "/registration.html"
       }
     },
     {
-      "id": "benefits-heading-001",
+      "id": "d3f83e1a-b96a-49d3-b377-5c4203c8e419",
       "type": "benefits_heading",
       "display_order": 7,
       "is_active": true,
@@ -78,7 +78,7 @@
       }
     },
     {
-      "id": "benefits-description-001",
+      "id": "a25f5a07-988c-4466-a63f-cfbbde3ad980",
       "type": "benefits_description",
       "display_order": 8,
       "is_active": true,
@@ -87,7 +87,7 @@
       }
     },
     {
-      "id": "resources-heading-001",
+      "id": "4ed305a8-84f8-4ead-b62d-e01f8467c88e",
       "type": "resources_heading",
       "display_order": 9,
       "is_active": true,
@@ -99,43 +99,43 @@
       }
     },
     {
-      "id": "resource-card-001",
+      "id": "46706c87-4916-4ea6-8445-7df97b16c638",
       "type": "resource_card",
       "display_order": 10,
       "is_active": true,
       "content": {
         "badge_type": "PDF",
         "title": "2024 Candidate Handbook",
-        "url": "resources.html",
+        "url": "/resources.html",
         "icon": "download"
       }
     },
     {
-      "id": "resource-card-002",
+      "id": "5a061a1c-8d81-46c8-b507-a6c604d26821",
       "type": "resource_card",
       "display_order": 11,
       "is_active": true,
       "content": {
         "badge_type": "CHECKLIST",
         "title": "Examination Day Checklist",
-        "url": "resources.html",
+        "url": "/resources.html",
         "icon": "download"
       }
     },
     {
-      "id": "resource-card-003",
+      "id": "dffd9696-364a-44a8-a6da-9dcc98f11578",
       "type": "resource_card",
       "display_order": 12,
       "is_active": true,
       "content": {
         "badge_type": "PROTOCOL",
         "title": "Security & Privacy Protocols",
-        "url": "resources.html",
+        "url": "/resources.html",
         "icon": "description"
       }
     },
     {
-      "id": "support-heading-001",
+      "id": "fdd31c10-8c7a-4d3f-be51-f515d8defb26",
       "type": "support_heading",
       "display_order": 13,
       "is_active": true,
@@ -147,7 +147,7 @@
       }
     },
     {
-      "id": "support-description-001",
+      "id": "de8850c4-4113-4886-9531-680a68dac184",
       "type": "support_description",
       "display_order": 14,
       "is_active": true,
@@ -156,7 +156,7 @@
       }
     },
     {
-      "id": "support-phone-001",
+      "id": "51759a09-9a0e-4669-b623-7def41d3cef9",
       "type": "support_contact",
       "display_order": 15,
       "is_active": true,
@@ -167,7 +167,7 @@
       }
     },
     {
-      "id": "support-email-001",
+      "id": "611c90f4-4a17-4c6d-9c09-8dd5f18c1ec8",
       "type": "support_contact",
       "display_order": 16,
       "is_active": true,
@@ -178,16 +178,16 @@
       }
     },
     {
-      "id": "footer-copyright-001",
+      "id": "bcc20d18-17df-4ec5-aa6f-ef742f69e4f3",
       "type": "footer_copyright",
       "display_order": 17,
       "is_active": true,
       "content": {
-        "text": "© 2024 National Assessment Test Centre.\nPursuing Academic Excellence."
+        "text": "\u00a9 2024 National Assessment Test Centre.\nPursuing Academic Excellence."
       }
     },
     {
-      "id": "footer-links-001",
+      "id": "8b74bf8c-0286-49f1-88d2-4702e0567466",
       "type": "footer_links",
       "display_order": 18,
       "is_active": true,

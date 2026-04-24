@@ -61,8 +61,8 @@ class HeroCtaContent(BaseModel):
     @field_validator("url")
     @classmethod
     def validate_url(cls, v: str) -> str:
-        if not v.startswith(("http://", "https://", "/")):
-            raise ValueError("URL must start with http://, https://, or /")
+        if not v.startswith(("http://", "https://", "/", "#")):
+            raise ValueError("URL must start with http://, https://, /, or #")
         return v
 
 
@@ -76,8 +76,8 @@ class ExamRibbonContent(BaseModel):
     @field_validator("exam_info_url", "registration_url")
     @classmethod
     def validate_url(cls, v: str) -> str:
-        if not v.startswith(("http://", "https://", "/")):
-            raise ValueError("URL must start with http://, https://, or /")
+        if not v.startswith(("http://", "https://", "/", "#")):
+            raise ValueError("URL must start with http://, https://, /, or #")
         return v
 
 
@@ -104,8 +104,8 @@ class ResourceCardContent(BaseModel):
     @field_validator("url")
     @classmethod
     def validate_url(cls, v: str) -> str:
-        if not v.startswith(("http://", "https://", "/")):
-            raise ValueError("URL must start with http://, https://, or /")
+        if not v.startswith(("http://", "https://", "/", "#")):
+            raise ValueError("URL must start with http://, https://, /, or #")
         return v
 
 
@@ -131,8 +131,8 @@ class FooterLinksContent(BaseModel):
         for link in v:
             if "label" not in link or "url" not in link:
                 raise ValueError("Each link must have 'label' and 'url' keys")
-            if not link["url"].startswith(("http://", "https://", "/")):
-                raise ValueError("URL must start with http://, https://, or /")
+            if not link["url"].startswith(("http://", "https://", "/", "#")):
+                raise ValueError("URL must start with http://, https://, /, or #")
         return v
 
 
