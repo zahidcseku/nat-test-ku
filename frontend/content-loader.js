@@ -87,7 +87,7 @@ async function loadContent() {
 
 // Hero badge
 function renderHeroBadge(content) {
-  const badge = document.querySelector('.animate-fade-in-up.opacity-0.delay-100 span.text-primary\\/80.text-\\[10px\\]');
+  const badge = document.querySelector('.min-h-\\[100vh\\] .animate-fade-in-up.opacity-0.delay-100 span.text-primary\\/80.text-\\[10px\\]');
   if (badge) {
     badge.textContent = content.text;
     console.log('✓ Updated hero badge');
@@ -96,7 +96,7 @@ function renderHeroBadge(content) {
 
 // Hero headline - preserve HTML structure for styling
 function renderHeroHeadline(content) {
-  const headline = document.querySelector('.animate-fade-in-up.opacity-0.delay-200.font-serif.text-6xl');
+  const headline = document.querySelector('.min-h-\\[100vh\\] .animate-fade-in-up.opacity-0.delay-200.font-serif.text-6xl');
   if (headline && content.full_html) {
     headline.innerHTML = content.full_html;
     console.log('✓ Updated hero headline');
@@ -105,7 +105,7 @@ function renderHeroHeadline(content) {
 
 // Hero description
 function renderHeroDescription(content) {
-  const description = document.querySelector('.animate-fade-in-up.opacity-0.delay-300.text-base');
+  const description = document.querySelector('.min-h-\\[100vh\\] .animate-fade-in-up.opacity-0.delay-300.text-base');
   if (description) {
     description.textContent = content.text;
     console.log('✓ Updated hero description');
@@ -114,7 +114,7 @@ function renderHeroDescription(content) {
 
 // Hero primary CTA
 function renderHeroCtaPrimary(content) {
-  const cta = document.querySelector('.animate-fade-in-up.opacity-0.delay-400 .btn-magnetic.bg-primary');
+  const cta = document.querySelector('.min-h-\\[100vh\\] .animate-fade-in-up.opacity-0.delay-400 .btn-magnetic.bg-primary');
   if (cta) {
     cta.href = content.url;
     const span = cta.querySelector('span');
@@ -129,7 +129,7 @@ function renderHeroCtaPrimary(content) {
 
 // Hero secondary CTA
 function renderHeroCtaSecondary(content) {
-  const ctas = document.querySelectorAll('.animate-fade-in-up.opacity-0.delay-400 .btn-magnetic');
+  const ctas = document.querySelectorAll('.min-h-\\[100vh\\] .animate-fade-in-up.opacity-0.delay-400 .btn-magnetic');
   if (ctas.length > 1) {
     const cta = ctas[1]; // Second button
     cta.href = content.url;
@@ -145,23 +145,23 @@ function renderHeroCtaSecondary(content) {
 
 // Exam ribbon
 function renderExamRibbon(content) {
-  const dateEl = document.querySelector('.bg-primary .font-serif.text-3xl span.font-semibold');
+  const dateEl = document.querySelector('.relative.z-20 .bg-primary .font-serif.text-3xl span.font-semibold');
   if (dateEl) {
     dateEl.textContent = content.exam_date;
     console.log('✓ Updated exam date');
   }
 
-  const statusEl = document.querySelector('.bg-primary .text-white\\/50.text-sm');
+  const statusEl = document.querySelector('.relative.z-20 .bg-primary .text-white\\/50.text-sm');
   if (statusEl) {
     statusEl.textContent = content.registration_status;
   }
 
-  const infoLink = document.querySelector('.bg-primary a[href*="resources"]');
+  const infoLink = document.querySelector('.relative.z-20 .bg-primary a[href*="resources"]');
   if (infoLink) {
     infoLink.href = content.exam_info_url;
   }
 
-  const registerLink = document.querySelector('.bg-primary a.bg-accent');
+  const registerLink = document.querySelector('.relative.z-20 .bg-primary a.bg-accent');
   if (registerLink) {
     registerLink.href = content.registration_url;
   }
@@ -171,7 +171,7 @@ function renderExamRibbon(content) {
 
 // Benefits heading - preserve HTML structure
 function renderBenefitsHeading(content) {
-  const heading = document.querySelector('.reveal.mb-20 .font-serif.text-5xl');
+  const heading = document.querySelector('.py-32.bg-surface .reveal.mb-20 .font-serif.text-5xl');
   if (heading && content.full_html) {
     heading.innerHTML = content.full_html;
     console.log('✓ Updated benefits heading');
@@ -180,7 +180,7 @@ function renderBenefitsHeading(content) {
 
 // Benefits description
 function renderBenefitsDescription(content) {
-  const desc = document.querySelector('.reveal.mb-20 p.text-secondary');
+  const desc = document.querySelector('.py-32.bg-surface .reveal.mb-20 p.text-secondary');
   if (desc) {
     desc.textContent = content.text;
     console.log('✓ Updated benefits description');
@@ -189,7 +189,7 @@ function renderBenefitsDescription(content) {
 
 // Resources heading - preserve HTML structure
 function renderResourcesHeading(content) {
-  const heading = document.querySelector('.py-32.bg-surface-container-low .font-serif.text-5xl');
+  const heading = document.querySelector('.py-32.bg-surface-container-low .reveal .font-serif.text-5xl');
   if (heading && content.full_html) {
     heading.innerHTML = content.full_html;
     console.log('✓ Updated resources heading');
@@ -198,7 +198,7 @@ function renderResourcesHeading(content) {
 
 // Resource cards - needs to match by title
 function renderResourceCard(content) {
-  const cards = document.querySelectorAll('.py-32.bg-surface-container-low .group.block.p-8');
+  const cards = document.querySelectorAll('.py-32.bg-surface-container-low .space-y-4 .group.block.p-8');
   cards.forEach(card => {
     const titleEl = card.querySelector('.font-serif.text-xl');
     if (titleEl && titleEl.textContent === content.title) {
@@ -223,7 +223,7 @@ function renderResourceCard(content) {
 
 // Support heading - preserve HTML structure
 function renderSupportHeading(content) {
-  const heading = document.querySelector('.bg-primary .font-serif.text-4xl');
+  const heading = document.querySelector('.bg-primary.p-14 .font-serif.text-4xl');
   if (heading && content.full_html) {
     heading.innerHTML = content.full_html;
     console.log('✓ Updated support heading');
@@ -232,7 +232,7 @@ function renderSupportHeading(content) {
 
 // Support description
 function renderSupportDescription(content) {
-  const desc = document.querySelector('.bg-primary .text-white\\/60');
+  const desc = document.querySelector('.bg-primary.p-14 .text-white\\/60');
   if (desc) {
     desc.textContent = content.text;
     console.log('✓ Updated support description');
@@ -241,7 +241,7 @@ function renderSupportDescription(content) {
 
 // Support contact (phone and email)
 function renderSupportContact(content) {
-  const contactGroups = document.querySelectorAll('.bg-primary .space-y-6 .flex');
+  const contactGroups = document.querySelectorAll('.bg-primary.p-14 .space-y-6 .flex');
   contactGroups.forEach(group => {
     const labelEl = group.querySelector('.text-white\\/60.text-xs');
     if (labelEl && labelEl.textContent === content.label) {
@@ -260,7 +260,7 @@ function renderSupportContact(content) {
 
 // Footer copyright
 function renderFooterCopyright(content) {
-  const copyright = document.querySelector('footer .text-white\\/50.text-sm');
+  const copyright = document.querySelector('footer .text-white\\/50.text-sm.leading-relaxed');
   if (copyright) {
     copyright.innerHTML = content.text.replace('\n', '<br>');
     console.log('✓ Updated footer copyright');
@@ -269,7 +269,7 @@ function renderFooterCopyright(content) {
 
 // Footer links
 function renderFooterLinks(content) {
-  const linksContainer = document.querySelector('footer .flex.flex-wrap.md\\:justify-end');
+  const linksContainer = document.querySelector('footer .max-w-7xl .flex.flex-wrap.md\\:justify-end');
   if (linksContainer && content.links) {
     linksContainer.innerHTML = '';
     content.links.forEach(linkData => {
