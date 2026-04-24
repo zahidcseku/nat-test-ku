@@ -29,6 +29,117 @@ from core.crud import (
 from core.database import init_db
 
 
+def rich_text_editor(key: str, initial_content: str = "", height: int = 200) -> str:
+    """Embed a Quill.js rich text editor in Streamlit.
+
+    NOTE: This is for local-only admin use by trusted administrators.
+    The HTML is rendered on the frontend which already supports HTML content.
+    """
+    # Import Quill CSS and JS
+    st.markdown("""
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    """, unsafe_allow_html=True)
+
+    # Generate unique IDs
+    editor_id = f"quill-editor-{key}"
+    hidden_id = f"quill-hidden-{key}"
+
+    # Escape initial content for JavaScript
+    initial_escaped = initial_content.replace("`", "\\`").replace('"', '\\"')
+
+    # Create editor
+    editor_html = f"""
+    <style>
+    #{editor_id} {{
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background: white;
+    }}
+    .ql-toolbar {{
+        border-top-left-radius: 4px !important;
+        border-top-right-radius: 4px !important;
+        border: 1px solid #ccc !important;
+        border-bottom: none !important;
+    }}
+    .ql-container {{
+        border: none !important;
+        border-bottom-left-radius: 4px !important;
+        border-bottom-right-radius: 4px !important;
+        font-size: 16px !important;
+    }}
+    </style>
+    <div id="{editor_id}"></div>
+    <input type="hidden" id="{hidden_id}" value="">
+    <script>
+    (function() {{
+        var quill = new Quill('#{editor_id}', {{
+            modules: {{
+                toolbar: [
+                    ['bold', 'italic', 'underline'],
+                    ['link'],
+                    [{{ 'list': 'ordered'}}, {{ 'list': 'bullet' }}]
+                ]
+            }},
+            theme: 'snow',
+            placeholder: 'Start typing your description here...'
+        }});
+
+        // Set initial content
+        quill.root.innerHTML = `{initial_escaped}`;
+
+        // Save to hidden input on change
+        quill.on('text-change', function() {{
+            document.getElementById('{hidden_id}').value = quill.root.innerHTML;
+            // Trigger change event on input
+            document.getElementById('{hidden_id}').dispatchEvent(new Event('input', {{ bubbles: true }}));
+        }});
+
+        // Initial save
+        document.getElementById('{hidden_id}').value = quill.root.innerHTML;
+    }})();
+    </script>
+    """
+
+    # Render the editor
+    st.components.v1.html(editor_html, height=280)
+
+    # Hidden input to capture the value
+    # We use a session state to store the editor content
+    if f"{key}_content" not in st.session_state:
+        st.session_state[f"{key}_content"] = initial_content
+
+    # JavaScript to sync editor content with Streamlit
+    sync_script = f"""
+    <script>
+    // Sync editor content with Streamlit session state
+    setInterval(function() {{
+        var content = document.getElementById('{hidden_id}').value;
+        if (content) {{
+            // Update Streamlit text area
+            var textarea = document.querySelector('[data-testid="stTextArea"] textarea');
+            if (textarea && textarea.value !== content) {{
+                textarea.value = content;
+                textarea.dispatchEvent(new Event('input', {{ bubbles: true }}));
+            }}
+        }}
+    }}, 500);
+    </script>
+    """
+    st.components.v1.html(sync_script)
+
+    # Text area to capture and display the output
+    html_content = st.text_area(
+        "Description HTML (auto-synced from editor above)",
+        value=initial_content,
+        key=f"{key}_html",
+        height=150,
+        help="The HTML from the rich text editor will appear here. You can also edit it directly."
+    )
+
+    return html_content
+
+
 st.set_page_config(
     page_title="Home Content Editor",
     page_icon="🏠",
@@ -97,58 +208,47 @@ with tab1:
                 st.rerun()
 
     with st.expander("Description", expanded=True):
+        st.markdown("**Rich Text Editor** - Use the toolbar to format text (bold, italic, links, lists)")
+
         if description_block:
-            text = st.text_area("Description Text", value=description_block.content.text, height=100, key="hero_desc_text")
+            # Get initial HTML content if it exists, otherwise use text
+            initial_html = description_block.content.html if description_block.content.html else description_block.content.text
 
-            st.markdown("---")
-            st.markdown("**➕ Add Link to Description:**")
+            # Rich text editor
+            html_content = rich_text_editor(
+                key="hero_desc",
+                initial_content=initial_html,
+                height=200
+            )
+
+            # Also store plain text version (strip HTML tags for fallback)
+            import re
+            plain_text = re.sub('<[^<]+?>', '', html_content) if html_content else ""
+
             col1, col2 = st.columns(2)
             with col1:
-                link_text = st.text_input("Link Text", key="hero_link_text")
-            with col2:
-                link_url = st.text_input("Link URL", key="hero_link_url", placeholder="/page.html or https://example.com")
-
-            if st.button("Insert Link", key="hero_add_link"):
-                if link_text and link_url:
-                    # Insert link at cursor position or append
-                    link_html = f'<a href="{link_url}">{link_text}</a>'
-                    current_pos = text.rfind(" ")
-                    if current_pos >= 0:
-                        text = text[:current_pos + 1] + link_html + " " + text[current_pos + 1:]
-                    else:
-                        text = link_html + " " + text
-                    st.success("Link added! Review the text below and adjust if needed.")
+                if st.button("✅ Update Description", key="update_hero_desc", type="primary"):
+                    # Store both text and html versions
+                    update_block(description_block.id, content=HeroDescriptionContent(text=plain_text, html=html_content))
+                    st.success("Description updated!")
                     st.rerun()
-
-            if st.button("Update Description", key="update_hero_desc"):
-                # Store both text and html (same if no links, different if links added)
-                update_block(description_block.id, content=HeroDescriptionContent(text=text, html=text))
-                st.success("Description updated!")
-                st.rerun()
+            with col2:
+                if st.button("🗑️ Clear", key="clear_hero_desc"):
+                    st.session_state[f"hero_desc_content"] = ""
+                    st.rerun()
         else:
-            text = st.text_area("Description Text", value="Experience a testing environment designed for absolute focus.", height=100, key="hero_desc_text_new")
+            # Rich text editor for new description
+            html_content = rich_text_editor(
+                key="hero_desc_new",
+                initial_content="",
+                height=200
+            )
 
-            st.markdown("---")
-            st.markdown("**➕ Add Link to Description:**")
-            col1, col2 = st.columns(2)
-            with col1:
-                link_text = st.text_input("Link Text", key="hero_link_text_new")
-            with col2:
-                link_url = st.text_input("Link URL", key="hero_link_url_new", placeholder="/page.html or https://example.com")
+            import re
+            plain_text = re.sub('<[^<]+?>', '', html_content) if html_content else ""
 
-            if st.button("Insert Link", key="hero_add_link_new"):
-                if link_text and link_url:
-                    link_html = f'<a href="{link_url}">{link_text}</a>'
-                    current_pos = text.rfind(" ")
-                    if current_pos >= 0:
-                        text = text[:current_pos + 1] + link_html + " " + text[current_pos + 1:]
-                    else:
-                        text = link_html + " " + text
-                    st.success("Link added! Review the text below and adjust if needed.")
-                    st.rerun()
-
-            if st.button("Create Description", key="create_hero_desc"):
-                create_block("hero_description", HeroDescriptionContent(text=text, html=text))
+            if st.button("✅ Create Description", key="create_hero_desc", type="primary"):
+                create_block("hero_description", HeroDescriptionContent(text=plain_text, html=html_content))
                 st.success("Description created!")
                 st.rerun()
 
@@ -261,56 +361,46 @@ with tab3:
                 st.rerun()
 
     with st.expander("Description", expanded=True):
+        st.markdown("**Rich Text Editor** - Use the toolbar to format text (bold, italic, links, lists)")
+
         if description_block:
-            text = st.text_area("Description Text", value=description_block.content.text, height=100, key="benefits_desc_text")
+            # Get initial HTML content if it exists, otherwise use text
+            initial_html = description_block.content.html if description_block.content.html else description_block.content.text
 
-            st.markdown("---")
-            st.markdown("**➕ Add Link to Description:**")
+            # Rich text editor
+            html_content = rich_text_editor(
+                key="benefits_desc",
+                initial_content=initial_html,
+                height=200
+            )
+
+            # Also store plain text version (strip HTML tags for fallback)
+            import re
+            plain_text = re.sub('<[^<]+?>', '', html_content) if html_content else ""
+
             col1, col2 = st.columns(2)
             with col1:
-                link_text = st.text_input("Link Text", key="benefits_link_text")
-            with col2:
-                link_url = st.text_input("Link URL", key="benefits_link_url", placeholder="/page.html or https://example.com")
-
-            if st.button("Insert Link", key="benefits_add_link"):
-                if link_text and link_url:
-                    link_html = f'<a href="{link_url}">{link_text}</a>'
-                    current_pos = text.rfind(" ")
-                    if current_pos >= 0:
-                        text = text[:current_pos + 1] + link_html + " " + text[current_pos + 1:]
-                    else:
-                        text = link_html + " " + text
-                    st.success("Link added! Review the text below and adjust if needed.")
+                if st.button("✅ Update Description", key="update_benefits_desc", type="primary"):
+                    update_block(description_block.id, content=DescriptionContent(text=plain_text, html=html_content))
+                    st.success("Benefits description updated!")
                     st.rerun()
-
-            if st.button("Update Benefits Description", key="update_benefits_desc"):
-                update_block(description_block.id, content=DescriptionContent(text=text, html=text))
-                st.success("Benefits description updated!")
-                st.rerun()
+            with col2:
+                if st.button("🗑️ Clear", key="clear_benefits_desc"):
+                    st.session_state[f"benefits_desc_content"] = ""
+                    st.rerun()
         else:
-            text = st.text_area("Description Text", value="We provide more than just a seat; we offer an ecosystem designed to minimize distractions and maximize performance.", height=100, key="benefits_desc_text_new")
+            # Rich text editor for new description
+            html_content = rich_text_editor(
+                key="benefits_desc_new",
+                initial_content="",
+                height=200
+            )
 
-            st.markdown("---")
-            st.markdown("**➕ Add Link to Description:**")
-            col1, col2 = st.columns(2)
-            with col1:
-                link_text = st.text_input("Link Text", key="benefits_link_text_new")
-            with col2:
-                link_url = st.text_input("Link URL", key="benefits_link_url_new", placeholder="/page.html or https://example.com")
+            import re
+            plain_text = re.sub('<[^<]+?>', '', html_content) if html_content else ""
 
-            if st.button("Insert Link", key="benefits_add_link_new"):
-                if link_text and link_url:
-                    link_html = f'<a href="{link_url}">{link_text}</a>'
-                    current_pos = text.rfind(" ")
-                    if current_pos >= 0:
-                        text = text[:current_pos + 1] + link_html + " " + text[current_pos + 1:]
-                    else:
-                        text = link_html + " " + text
-                    st.success("Link added! Review the text below and adjust if needed.")
-                    st.rerun()
-
-            if st.button("Create Benefits Description", key="create_benefits_desc"):
-                create_block("benefits_description", DescriptionContent(text=text, html=text))
+            if st.button("✅ Create Description", key="create_benefits_desc", type="primary"):
+                create_block("benefits_description", DescriptionContent(text=plain_text, html=html_content))
                 st.success("Benefits description created!")
                 st.rerun()
 
@@ -406,31 +496,47 @@ with tab5:
                 st.rerun()
 
     with st.expander("Description", expanded=True):
-        if description_block:
-            text = st.text_area("Description Text", value=description_block.content.text, height=100, key="support_desc_text")
+        st.markdown("**Rich Text Editor** - Use the toolbar to format text (bold, italic, links, lists)")
 
-            st.markdown("---")
-            st.markdown("**➕ Add Link to Description:**")
+        if description_block:
+            # Get initial HTML content if it exists, otherwise use text
+            initial_html = description_block.content.html if description_block.content.html else description_block.content.text
+
+            # Rich text editor
+            html_content = rich_text_editor(
+                key="support_desc",
+                initial_content=initial_html,
+                height=200
+            )
+
+            # Also store plain text version (strip HTML tags for fallback)
+            import re
+            plain_text = re.sub('<[^<]+?>', '', html_content) if html_content else ""
+
             col1, col2 = st.columns(2)
             with col1:
-                link_text = st.text_input("Link Text", key="support_link_text")
-            with col2:
-                link_url = st.text_input("Link URL", key="support_link_url", placeholder="/page.html or https://example.com")
-
-            if st.button("Insert Link", key="support_add_link"):
-                if link_text and link_url:
-                    link_html = f'<a href="{link_url}">{link_text}</a>'
-                    current_pos = text.rfind(" ")
-                    if current_pos >= 0:
-                        text = text[:current_pos + 1] + link_html + " " + text[current_pos + 1:]
-                    else:
-                        text = link_html + " " + text
-                    st.success("Link added! Review the text below and adjust if needed.")
+                if st.button("✅ Update Description", key="update_support_desc", type="primary"):
+                    update_block(description_block.id, content=DescriptionContent(text=plain_text, html=html_content))
+                    st.success("Support description updated!")
                     st.rerun()
+            with col2:
+                if st.button("🗑️ Clear", key="clear_support_desc"):
+                    st.session_state[f"support_desc_content"] = ""
+                    st.rerun()
+        else:
+            # Rich text editor for new description
+            html_content = rich_text_editor(
+                key="support_desc_new",
+                initial_content="",
+                height=200
+            )
 
-            if st.button("Update Support Description", key="update_support_desc"):
-                update_block(description_block.id, content=DescriptionContent(text=text, html=text))
-                st.success("Support description updated!")
+            import re
+            plain_text = re.sub('<[^<]+?>', '', html_content) if html_content else ""
+
+            if st.button("✅ Create Description", key="create_support_desc", type="primary"):
+                create_block("support_description", DescriptionContent(text=plain_text, html=html_content))
+                st.success("Support description created!")
                 st.rerun()
 
     st.markdown("### Contact Information")

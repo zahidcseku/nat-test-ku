@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-04-24T10:31:24.363195",
+  "last_updated": "2026-04-24T12:00:02.957159",
   "blocks": [
     {
       "id": "ef8f578b-714a-44aa-991b-123dee30063e",
@@ -16,10 +16,10 @@
       "display_order": 2,
       "is_active": true,
       "content": {
-        "line1": "The Standard of",
-        "line2_italic": "Academic Excellence.",
+        "line1": "Japanese Language",
+        "line2_italic": "Start your journey today.",
         "line2_text": "",
-        "full_html": "The Standard of<br><span class=\"italic font-normal text-secondary\">Academic Excellence.</span>"
+        "full_html": "Japanese Language<br><span class=\"italic font-normal text-secondary\">Start your journey today.</span>"
       }
     },
     {
@@ -28,7 +28,7 @@
       "display_order": 3,
       "is_active": true,
       "content": {
-        "text": "Experience a testing environment designed for absolute focus. The National Assessment Test Centre provides rigorous, high-stakes examination facilities for the leaders of tomorrow."
+        "text": "The NAT-TEST is more than just an exam; it is a bridge to your future in Japan. Join thousands of successful candidates who have used this certification to unlock new opportunities and achieve their dreams. For more information on the opportunity, please visit the official website of "
       }
     },
     {
