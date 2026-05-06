@@ -10,4 +10,4 @@ jobs:
         run: |
           curl -fsS --max-time 60 \
             -u "${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
-            "https://${{ secrets.CPANEL_HOST }}:2083/execute/VersionControlDeployment/create?repository_root=%2Fhome%2Fnattestkuac%2Frepo"
+            "https://${{ secrets.CPANEL_HOST }}:2083/execute/VersionControlDeployment/create?repository_root=/home/nattestkuac/repositories/nat-test-ku"
