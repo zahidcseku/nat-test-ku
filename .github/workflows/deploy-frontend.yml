@@ -1,35 +1,12 @@
-name: Deploy to FTP
-
+name: Trigger cPanel Deploy
 on:
   push:
-    branches:
-      - main  # change to 'master' if that's your default
-
+    branches: [main]
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Deploy via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ./public_html/   # web root on your host
-          local-dir: ./                # what to upload from the repo
-          protocol: ftp                # use 'ftps' for FTP over TLS
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.github/**
-            README.md
-            .gitignore
-            admin/
-            .claude
-            .pytest_cache/
-            .vscode/
-            images/
-            intake/
+      - name: Pull and deploy on cPanel
+        run: |
+          curl -u "${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
+            "https://${{ secrets.CPANEL_HOST }}:2083/execute/VersionControlDeployment/create?repository_root=%2Fhome%2Fnattestkuac%2Frepo"
