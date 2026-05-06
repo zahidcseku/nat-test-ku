@@ -1,0 +1,6 @@
+*.db
+.env
+frontend/media/
+# Ignore all files in frontend/data/ by default
+frontend/data/*
+!frontend/data/content.json
