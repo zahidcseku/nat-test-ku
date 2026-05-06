@@ -1,0 +1,25 @@
+name: Deploy Frontend to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up SSH agent
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Deploy Frontend via rsync
+      run: |
+        # -e "ssh -o StrictHostKeyChecking=no" handles the server identity automatically
+        rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" frontend/ ${{ secrets.PRODUCTION_HOST }}:${{ secrets.PRODUCTION_PATH }}
