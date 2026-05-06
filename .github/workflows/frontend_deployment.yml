@@ -16,9 +16,11 @@ jobs:
 
     - name: Set up SSH agent
       # This action sets up an SSH agent and adds your private key to it.
+      # Replace with equivalent for your CI/CD system if not GitHub Actions.
       uses: webfactory/ssh-agent@v0.8.0
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        ssh-passphrase: ${{ secrets.SSH_PASSPHRASE }}
 
     - name: Add production host to known_hosts
       run: |
