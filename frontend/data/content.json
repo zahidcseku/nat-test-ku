@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-04-24T12:31:22.682022",
+  "last_updated": "2026-04-24T18:18:17.623456",
   "blocks": [
     {
       "id": "ef8f578b-714a-44aa-991b-123dee30063e",
@@ -16,10 +16,10 @@
       "display_order": 2,
       "is_active": true,
       "content": {
-        "line1": "Japanese Language",
-        "line2_italic": "Start your journey today.",
+        "line1": "Say \"Konnichiwa\"",
+        "line2_italic": "to your future.",
         "line2_text": "",
-        "full_html": "Japanese Language<br><span class=\"italic font-normal text-secondary\">Start your journey today.</span>"
+        "full_html": "Say \"Konnichiwa\"<br><span class=\"italic font-normal text-secondary\">to your future.</span>"
       }
     },
     {
@@ -28,7 +28,8 @@
       "display_order": 3,
       "is_active": true,
       "content": {
-        "text": "Start Your Journey Today\nThe NAT-TEST is more than just an exam; it is a bridge to your future in Japan. Join thousands of successful candidates who have used this certification to unlock new opportunities and achieve their dreams.\n\nOfficial Updates & Registration\nFor the latest information on test dates, registration procedures, and official announcements, please visit the official website of Senmon Kyouiku Publishing Co., Ltd."
+        "text": "Start Your Japanese Language Journey TodayThe NAT-TEST is more than just an exam; it is a bridge to your future in Japan. Join thousands of successful candidates who have used this certification to unlock new opportunities and achieve their dreams. Official Updates: for more information, please visit the official website of Senmon Kyouiku Publishing Co., Ltd.",
+        "html": "<p><strong>Start Your Japanese Language Journey Today</strong><br>The NAT-TEST is more than just an exam; it is a bridge to your future in Japan. Join thousands of successful candidates who have used this certification to unlock new opportunities and achieve their dreams. <strong><em>Official Updates</em>:</strong> for more information, please visit the official website of <a href=\"http://www.nat-test.com/en/about.html\">Senmon Kyouiku Publishing Co., Ltd</a>.</p>"
       }
     },
     {
@@ -71,10 +72,10 @@
       "display_order": 7,
       "is_active": true,
       "content": {
-        "line1": "Why Candidates",
-        "line2_italic": "Choose NAT",
+        "line1": "Official Partnership: Khulna University",
+        "line2_italic": "and Senmon Kyouiku Publishing Co., Ltd.",
         "line2_text": "",
-        "full_html": "Why Candidates<br><span class=\"italic text-secondary\">Choose NAT</span>"
+        "full_html": "Official Partnership: Khulna University<br><span class=\"italic text-secondary\">and Senmon Kyouiku Publishing Co., Ltd.</span>"
       }
     },
     {
@@ -83,8 +84,8 @@
       "display_order": 8,
       "is_active": true,
       "content": {
-        "text": "We provide more than just a seat; we offer an ecosystem designed to minimize distractions and maximize performance.",
-        "html": ""
+        "text": "Khulna University is proud to announce a formal collaboration with Senmon Kyouiku Publishing Co., Ltd., the authorized administrator of the Japanese Language NAT-TEST. Under this landmark partnership, Khulna University has been designated as an official test center for the NAT-TEST in the region.\nObjectives of the Collaboration\nThis strategic alliance is designed to bolster Japanese language education and provide a streamlined pathway for students and language enthusiasts to certify their proficiency. Key responsibilities include:\n\n\nAdministrative Excellence: Ensuring the smooth execution of examination logistics and registration.\n\n\nStandardized Security: Conducting tests in strict accordance with the secure protocols set by Senmon Kyouiku.\n\n\nAcademic Support: Coordinating the publication of results to assist candidates in their professional and academic pursuits.\n\n\nAbout the Japanese Language NAT-TEST\nThe NAT-TEST is a premier global examination that measures the Japanese language skills of non-native speakers. It is meticulously aligned with the standards of the Japanese Language Proficiency Test (JLPT) and is widely accepted by employers and academic institutions across Japan.\nWith multiple testing windows available throughout the year, the NAT-TEST serves as an essential credential for anyone looking to study, work, or engage professionally within Japan's vibrant landscape.",
+        "html": "<p data-path-to-node=\"1\"><strong data-path-to-node=\"1\" data-index-in-node=\"0\">Khulna University</strong> is proud to announce a formal collaboration with <strong data-path-to-node=\"1\" data-index-in-node=\"67\">Senmon Kyouiku Publishing Co., Ltd.</strong>, the authorized administrator of the <strong data-path-to-node=\"1\" data-index-in-node=\"140\">Japanese Language NAT-TEST</strong>. Under this landmark partnership, Khulna University has been designated as an <strong data-path-to-node=\"1\" data-index-in-node=\"245\">official test center</strong> for the NAT-TEST in the region.</p>\n<h3 data-path-to-node=\"2\">Objectives of the Collaboration</h3>\n<p data-path-to-node=\"3\">This strategic alliance is designed to bolster Japanese language education and provide a streamlined pathway for students and language enthusiasts to certify their proficiency. Key responsibilities include:</p>\n<ul data-path-to-node=\"4\">\n<li>\n<p data-path-to-node=\"4,0,0\"><strong data-path-to-node=\"4,0,0\" data-index-in-node=\"0\">Administrative Excellence:</strong> Ensuring the smooth execution of examination logistics and registration.</p>\n</li>\n<li>\n<p data-path-to-node=\"4,1,0\"><strong data-path-to-node=\"4,1,0\" data-index-in-node=\"0\">Standardized Security:</strong> Conducting tests in strict accordance with the secure protocols set by Senmon Kyouiku.</p>\n</li>\n<li>\n<p data-path-to-node=\"4,2,0\"><strong data-path-to-node=\"4,2,0\" data-index-in-node=\"0\">Academic Support:</strong> Coordinating the publication of results to assist candidates in their professional and academic pursuits.</p>\n</li>\n</ul>\n<h3 data-path-to-node=\"5\">About the Japanese Language NAT-TEST</h3>\n<p data-path-to-node=\"6\">The NAT-TEST is a premier global examination that measures the Japanese language skills of non-native speakers. It is meticulously aligned with the standards of the <strong data-path-to-node=\"6\" data-index-in-node=\"165\">Japanese Language Proficiency Test (JLPT)</strong> and is widely accepted by employers and academic institutions across Japan.</p>\n<p data-path-to-node=\"7\">With multiple testing windows available throughout the year, the NAT-TEST serves as an essential credential for anyone looking to study, work, or engage professionally within Japan's vibrant landscape.</p>"
       }
     },
     {

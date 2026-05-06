@@ -96,7 +96,7 @@ function renderHeroBadge(content) {
 
 // Hero headline - preserve HTML structure for styling
 function renderHeroHeadline(content) {
-  const headline = document.querySelector('.min-h-\\[100vh\\] .animate-fade-in-up.opacity-0.delay-200.font-serif.text-6xl');
+  const headline = document.querySelector('.min-h-\\[100vh\\] .animate-fade-in-up.opacity-0.delay-200.font-serif.text-5xl');
   if (headline && content.full_html) {
     headline.innerHTML = content.full_html;
     console.log('✓ Updated hero headline');
@@ -176,7 +176,7 @@ function renderExamRibbon(content) {
 
 // Benefits heading - preserve HTML structure
 function renderBenefitsHeading(content) {
-  const heading = document.querySelector('.py-32.bg-surface .reveal.mb-20 .font-serif.text-5xl');
+  const heading = document.querySelector('.py-32.bg-surface .reveal.mb-20 .font-serif.text-3xl');
   if (heading && content.full_html) {
     heading.innerHTML = content.full_html;
     console.log('✓ Updated benefits heading');
@@ -185,7 +185,7 @@ function renderBenefitsHeading(content) {
 
 // Benefits description
 function renderBenefitsDescription(content) {
-  const desc = document.querySelector('.py-32.bg-surface .reveal.mb-20 p.text-secondary');
+  const desc = document.querySelector('.py-32.bg-surface .reveal.mb-20 div.text-secondary');
   if (desc) {
     // Use HTML if available (for links), otherwise use plain text
     if (content.html) {

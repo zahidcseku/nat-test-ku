@@ -254,6 +254,34 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #00152e;
     }
+
+    /* Rich text content styling for descriptions */
+    .prose h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #002147;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .prose ul {
+      list-style-type: disc;
+      margin-left: 1.5rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .prose li {
+      margin-bottom: 0.25rem;
+    }
+
+    .prose strong {
+      font-weight: 600;
+    }
+
+    .prose p {
+      margin-bottom: 0.5rem;
+    }
   </style>
 </head>
 <body class="bg-surface font-sans text-[#191c1e] antialiased overflow-x-hidden">
@@ -324,13 +352,13 @@
           </div>
 
           <!-- Headline -->
-          <h1 class="animate-fade-in-up opacity-0 delay-200 font-serif text-6xl md:text-8xl text-primary font-light leading-[0.95] tracking-tight">
+          <h1 class="animate-fade-in-up opacity-0 delay-200 font-serif text-5xl md:text-6xl text-primary font-light leading-[0.95] tracking-tight">
             The Standard of<br>
             <span class="italic font-normal text-secondary">Academic Excellence.</span>
           </h1>
 
           <!-- Subtext -->
-          <p class="animate-fade-in-up opacity-0 delay-300 text-base md:text-lg text-secondary max-w-lg leading-relaxed font-light tracking-wide">
+          <p class="animate-fade-in-up opacity-0 delay-300 text-base md:text-lg text-secondary max-w-lg leading-relaxed font-normal tracking-wide">
             Experience a testing environment designed for absolute focus. The National Assessment Test Centre provides rigorous, high-stakes examination facilities for the leaders of tomorrow.
           </p>
 
@@ -442,17 +470,17 @@
 
       <div class="max-w-7xl mx-auto px-8">
         <!-- Section header -->
-        <div class="reveal mb-20 flex flex-col md:flex-row md:items-end md:justify-between gap-8">
-          <div class="max-w-2xl">
+        <div class="reveal mb-20 flex flex-col md:flex-row md:items-start gap-8">
+          <div class="md:w-2/5">
             <div class="decorative-line mb-6"></div>
-            <h2 class="font-serif text-5xl md:text-6xl text-primary font-light leading-tight mb-6">
+            <h2 class="font-serif text-3xl md:text-4xl text-primary font-light leading-tight mb-6">
               Why Candidates<br>
               <span class="italic text-secondary">Choose NAT</span>
             </h2>
           </div>
-          <p class="text-secondary text-base max-w-md leading-relaxed">
+          <div class="md:w-3/5 text-secondary text-base leading-relaxed prose prose-sm max-w-none">
             We provide more than just a seat; we offer an ecosystem designed to minimize distractions and maximize performance.
-          </p>
+          </div>
         </div>
       </div>
     </section>
@@ -515,9 +543,9 @@
                 Need<br>
                 <span class="italic font-normal">Assistance?</span>
               </h3>
-              <p class="text-white/60 mb-12 leading-relaxed max-w-md">
+              <div class="text-white/60 mb-12 leading-relaxed max-w-md prose prose-invert prose-sm max-w-none">
                 Our support team is available Monday through Friday, 8:00 AM to 6:00 PM, to answer any questions regarding registration, accessibility accommodations, or result interpretation.
-              </p>
+              </div>
 
               <div class="space-y-6">
                 <div class="flex items-center gap-4 group cursor-pointer">
