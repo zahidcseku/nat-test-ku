@@ -4,3 +4,13 @@ frontend/media/
 # Ignore all files in frontend/data/ by default
 frontend/data/*
 !frontend/data/content.json
+
+.DS_Store/
+admin/
+frontend/.DS_Store/
+admin/pages/__pycache__/
+dev_resources/
+node_modeules/
+
+package-lock.json
+package.json
