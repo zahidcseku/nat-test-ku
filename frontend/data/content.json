@@ -7,7 +7,7 @@
       "display_order": 1,
       "is_active": true,
       "content": {
-        "text": "Official Assessment Partner"
+        "text": "The Japanese Language NAT-TEST"
       }
     },
     {
@@ -16,10 +16,10 @@
       "display_order": 2,
       "is_active": true,
       "content": {
-        "line1": "Japanese Language",
-        "line2_italic": "Start your journey today.",
+        "line1": "Say \"Konnichiwa\"",
+        "line2_italic": "to your future.",
         "line2_text": "",
-        "full_html": "Japanese Language<br><span class=\"italic font-normal text-secondary\">Start your journey today.</span>"
+        "full_html": "Say \"Konnichiwa\"<br><span class=\"italic font-normal text-secondary\">to your future.</span>"
       }
     },
     {
@@ -28,7 +28,8 @@
       "display_order": 3,
       "is_active": true,
       "content": {
-        "text": "Start Your Journey Today\nThe NAT-TEST is more than just an exam; it is a bridge to your future in Japan. Join thousands of successful candidates who have used this certification to unlock new opportunities and achieve their dreams.\n\nOfficial Updates & Registration\nFor the latest information on test dates, registration procedures, and official announcements, please visit the official website of Senmon Kyouiku Publishing Co., Ltd."
+        "text": "Start Your Japanese Language Journey Today\nThe NAT-TEST is more than just an exam; it is a bridge to your future in Japan. Join thousands of successful candidates who have used this certification to unlock new opportunities and achieve their dreams.\n\nThe Japanese Language NAT-TEST is designed, organized, and administered by Senmon Kyouiku Publishing Co., Ltd.",
+        "html": "<p class=\"animate-fade-in-up opacity-0 delay-300 text-base md:text-lg text-secondary max-w-lg leading-relaxed font-normal tracking-wide\">\n            <p><strong>Start Your Japanese Language Journey Today</strong><br>\n              The NAT-TEST is more than just an exam; it is a bridge to your future in Japan. \n              Join thousands of successful candidates who have used this certification to unlock \n              new opportunities and achieve their dreams. \n            </p>\n            <p>\n              The Japanese Language NAT-TEST is designed, organized, and administered by \n              <a href=\"http://www.nat-test.com/en/about.html\"><strong>Senmon Kyouiku Publishing Co., Ltd</strong></a>.\n            </p>\n          </p>"
       }
     },
     {
