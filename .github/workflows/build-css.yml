@@ -61,7 +61,9 @@ jobs:
           **/tailwind.config.js
           **/mockups/**
           **/tmp/**
+          **/*.sh
         local-dir: frontend/
+        
 
     - name: Deployment summary
       run: |
