@@ -1,13 +1,34 @@
-name: Trigger cPanel Deploy
+name: Deploy Frontend to Production
+
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+  workflow_dispatch:
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Pull and deploy on cPanel
-        run: |
-          curl -fsS --max-time 60 \
-            -u "${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
-            "https://${{ secrets.CPANEL_HOST }}:2083/execute/VersionControlDeployment/create?repository_root=/home/nattestkuac/repositories/nat-test-ku"
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Build Tailwind CSS
+      run: |
+        npx tailwindcss -c frontend/tailwind.config.js -i frontend/css/input.css -o frontend/css/style.css --minify
+
+    - name: Set up SSH agent
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Deploy Frontend via rsync
+      run: |
+        # --chmod ensures files are readable by the web server (644 for files, 755 for dirs)
+        rsync -avzvv --delete --chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r -e "ssh -o StrictHostKeyChecking=no -o BatchMode=yes" frontend/ ${{ secrets.PRODUCTION_HOST }}:${{ secrets.PRODUCTION_PATH }}
