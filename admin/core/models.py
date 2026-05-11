@@ -48,8 +48,9 @@ class HeroHeadlineContent(BaseModel):
 
 
 class HeroDescriptionContent(BaseModel):
-    """Hero section description text."""
-    text: str = Field(..., max_length=1000)
+    """Hero section description text with optional HTML."""
+    text: str = Field(..., max_length=10000)
+    html: str = ""  # HTML version with formatting
 
 
 class HeroCtaContent(BaseModel):
@@ -91,7 +92,7 @@ class HeadingContent(BaseModel):
 
 class DescriptionContent(BaseModel):
     """Generic description text with optional HTML links."""
-    text: str = Field(..., max_length=1000)
+    text: str = Field(..., max_length=10000)
     html: str = ""  # HTML version with links, if different from text
 
 

@@ -19,7 +19,7 @@ The app will be available at http://127.0.0.1:8501
 ### 1. Install Dependencies
 
 ```bash
-pip install --break-system-packages pydantic python-dotenv streamlit
+pip install --break-system-packages pydantic python-dotenv streamlit st-tiny-editor
 ```
 
 ### 2. Configure Environment (Optional)

@@ -22,7 +22,7 @@ The admin interface now includes a **Quill.js WYSIWYG rich text editor** for all
 
 1. **Visual Editor**: Type and format text using the toolbar
 2. **HTML Output**: The editor generates HTML automatically
-3. **Auto-Sync**: Content is synced to the text area below
+3. **Auto-Sync**: Content is automatically synced to the text area below as you type (real-time)
 4. **Save**: Click "Update/Create" to save to database
 5. **Frontend**: HTML is rendered safely on the frontend
 
@@ -33,14 +33,16 @@ The admin interface now includes a **Quill.js WYSIWYG rich text editor** for all
 1. Navigate to a description section (Hero, Benefits, or Support)
 2. Type directly in the rich text editor
 3. Use toolbar buttons to format text
-4. Click "Create Description" to save
+4. Watch the text area below update automatically as you type
+5. Click "Create Description" to save
 
 ### Editing Existing Description
 
 1. Expand the Description section
 2. Rich text editor loads with existing content
 3. Make changes using the editor
-4. Click "Update Description" to save
+4. Watch the text area below update automatically as you type
+5. Click "Update Description" to save
 
 ### Adding Links
 
@@ -136,6 +138,14 @@ The frontend uses `innerHTML` which is safe in this context because:
    https://cdn.quilljs.com/1.3.6/quill.min.js
    ```
 
+### Auto-Sync Not Working
+
+1. **Check browser console** for the message "Auto-sync listener attached for [key]"
+2. Look for "Auto-synced content for [key]" messages as you type
+3. If no sync messages appear, refresh the page and try again
+4. Make sure the editor has fully loaded (wait 1-2 seconds after page load)
+5. Check that the text area below the editor shows HTML code updating as you type
+
 ### Content Not Appearing on Frontend
 
 1. Check browser console for errors
@@ -146,8 +156,8 @@ The frontend uses `innerHTML` which is safe in this context because:
 ### Formatting Lost After Save
 
 1. Make sure you clicked "Update" (not just edited)
-2. Check the HTML output text area below the editor
-3. Verify HTML is being saved to database
+2. Check the HTML output text area below the editor shows your formatting
+3. Verify HTML is being saved to database (check for `<strong>`, `<em>`, `<a>` tags)
 4. Try re-publishing from admin Publish page
 
 ### Links Not Clickable

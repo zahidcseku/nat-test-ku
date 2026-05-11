@@ -1,47 +1,16 @@
 #!/bin/bash
-# Start script for NAT-TEST Admin
+# NAT-TEST Admin Startup Script
+# Ensures dependencies are present before launching the server
 
-set -e
+cd "$(dirname "$0")"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+echo "📦 Checking and updating dependencies..."
+python3 -m pip install --break-system-packages pydantic python-dotenv streamlit st-tiny-editor
 
-echo "🎓 NAT-TEST Admin - Starting..."
-echo ""
-
-# Check if .env exists
-if [ ! -f .env ]; then
-    echo -e "${YELLOW}Creating .env file from template...${NC}"
-    cp .env.example .env
-    echo -e "${GREEN}✓ Created .env file${NC}"
-    echo -e "${YELLOW}⚠ Please edit .env with your configuration before continuing${NC}"
-    echo ""
+if [ $? -eq 0 ]; then
+    echo "🚀 Dependencies verified. Starting NAT-TEST Admin..."
+    streamlit run main.py
+else
+    echo "❌ Error: Failed to install dependencies. Please check your internet connection or permissions."
+    exit 1
 fi
-
-# Check if dependencies are installed
-if ! python3 -c "import streamlit" 2>/dev/null; then
-    echo -e "${YELLOW}Installing dependencies...${NC}"
-    pip install -q -r requirements.txt
-    echo -e "${GREEN}✓ Dependencies installed${NC}"
-    echo ""
-fi
-
-# Check if database exists
-if [ ! -f data/admin.db ]; then
-    echo -e "${YELLOW}Initializing database with seed content...${NC}"
-    python scripts/seed_content.py
-    echo -e "${GREEN}✓ Database initialized${NC}"
-    echo ""
-fi
-
-# Start Streamlit
-echo -e "${GREEN}Starting admin interface...${NC}"
-echo "Admin will be available at: http://127.0.0.1:8501"
-echo ""
-echo "Press Ctrl+C to stop"
-echo ""
-
-streamlit run main.py

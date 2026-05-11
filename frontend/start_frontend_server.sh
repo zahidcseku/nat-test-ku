@@ -1,7 +1,7 @@
 #!/bin/bash
 # Start script for NAT-TEST Frontend
 
-set -e
+
 
 # Colors for output
 GREEN='\033[0;32m'
