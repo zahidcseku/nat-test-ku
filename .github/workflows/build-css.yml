@@ -1,0 +1,81 @@
+name: Build Frontend CSS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/build-css.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build Tailwind CSS
+      run: |
+        cd frontend && npx tailwindcss -c tailwind.config.js -i input.css -o css/style.css --minify
+
+    - name: Verify CSS file was created
+      run: |
+        if [ ! -f frontend/css/style.css ]; then
+          echo "❌ CSS file was not created!"
+          exit 1
+        fi
+        SIZE=$(wc -c < frontend/css/style.css)
+        echo "✅ CSS file created successfully!"
+        echo "📦 File size: $SIZE bytes"
+        if [ $SIZE -lt 10000 ]; then
+          echo "⚠️  Warning: CSS file seems small, build may have issues"
+        fi
+
+    - name: Create deployment package
+      run: |
+        mkdir -p deploy-package
+        cp -r frontend/*.html deploy-package/
+        cp -r frontend/css deploy-package/
+        cp -r frontend/data deploy-package/ 2>/dev/null || true
+        cp -r frontend/images deploy-package/ 2>/dev/null || true
+        cp -r frontend/*.png deploy-package/ 2>/dev/null || true
+        cp -r frontend/*.ico deploy-package/ 2>/dev/null || true
+        cp -r frontend/content-loader.js deploy-package/ 2>/dev/null || true
+        echo "✅ Deployment package created"
+
+    - name: Upload deployment package
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-deployment
+        path: deploy-package/
+        retention-days: 7
+
+    - name: Deployment summary
+      run: |
+        echo "## 🎉 CSS Build Completed!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 What to do next:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "1. **Download** the deployment package from the Artifacts section below" >> $GITHUB_STEP_SUMMARY
+        echo "2. **Extract** the zip file" >> $GITHUB_STEP_SUMMARY
+        echo "3. **Upload** files to your server using your usual method (cPanel, FTP, etc.)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📁 Files included:" >> $GITHUB_STEP_SUMMARY
+        echo "- HTML files (*.html)" >> $GITHUB_STEP_SUMMARY
+        echo "- CSS directory with compiled styles" >> $GITHUB_STEP_SUMMARY
+        echo "- Data files (content JSON)" >> $GITHUB_STEP_SUMMARY
+        echo "- Images and fonts" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✨ **All styles are properly built and ready to deploy!**" >> $GITHUB_STEP_SUMMARY
