@@ -1,0 +1,13 @@
+{
+  "name": "nat-test-frontend",
+  "version": "1.0.0",
+  "description": "NAT-TEST Centre Frontend",
+  "scripts": {
+    "build:css": "cd frontend && npx tailwindcss -c tailwind.config.js -i input.css -o css/style.css --minify",
+    "build:css:dev": "cd frontend && npx tailwindcss -c tailwind.config.js -i input.css -o css/style.css",
+    "deploy": "npm run build:css && rsync -avz --delete --chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r -e 'ssh -o StrictHostKeyChecking=no' frontend/ user@server:/var/www/html/"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}
