@@ -59,6 +59,8 @@ jobs:
           **/.DS_Store
           **/input.css
           **/tailwind.config.js
+          **/mockups/**
+          **/tmp/**
         local-dir: frontend/
 
     - name: Deployment summary
