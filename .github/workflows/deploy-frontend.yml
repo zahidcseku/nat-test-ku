@@ -18,17 +18,40 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
 
     - name: Build Tailwind CSS
       run: |
-        npx tailwindcss -c frontend/tailwind.config.js -i frontend/css/input.css -o frontend/css/style.css --minify
+        cd frontend && npx tailwindcss -c tailwind.config.js -i input.css -o css/style.css --minify
+
+    - name: Verify CSS file was created
+      run: |
+        if [ ! -f frontend/css/style.css ]; then
+          echo "CSS file was not created!"
+          exit 1
+        fi
+        echo "CSS file size: $(wc -c < frontend/css/style.css) bytes"
+        if [ $(wc -c < frontend/css/style.css) -lt 10000 ]; then
+          echo "CSS file is too small, build may have failed!"
+          exit 1
+        fi
 
     - name: Set up SSH agent
       uses: webfactory/ssh-agent@v0.8.0
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+    - name: Add server to known_hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H ${{ secrets.PRODUCTION_HOST }} >> ~/.ssh/known_hosts
+
     - name: Deploy Frontend via rsync
       run: |
-        # --chmod ensures files are readable by the web server (644 for files, 755 for dirs)
-        rsync -avzvv --delete --chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r -e "ssh -o StrictHostKeyChecking=no -o BatchMode=yes" frontend/ ${{ secrets.PRODUCTION_HOST }}:${{ secrets.PRODUCTION_PATH }}
+        rsync -avzvv --delete \
+          --chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r \
+          -e "ssh -o StrictHostKeyChecking=no -o BatchMode=yes" \
+          frontend/ ${{ secrets.PRODUCTION_HOST }}:${{ secrets.PRODUCTION_PATH }}
