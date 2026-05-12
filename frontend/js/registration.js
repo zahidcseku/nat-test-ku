@@ -184,18 +184,34 @@ const RegistrationForm = (function() {
     }
 
     // Date of Birth
-    const dob = document.getElementById('dob').value;
+    const dob = document.getElementById('dob').value.trim();
     if (!dob) {
       showError('dob', 'Please enter your date of birth');
       isValid = false;
     } else {
-      const dobDate = new Date(dob);
-      const today = new Date();
-      if (dobDate > today) {
-        showError('dob', 'Date of birth cannot be in the future');
+      // Validate YYYY/MM/DD format
+      const dobRegex = /^\d{4}\/\d{2}\/\d{2}$/;
+      if (!dobRegex.test(dob)) {
+        showError('dob', 'Please enter date in YYYY/MM/DD format');
         isValid = false;
       } else {
-        showSuccess('dob', '✓');
+        // Parse and validate the date
+        const [year, month, day] = dob.split('/').map(Number);
+        const dobDate = new Date(year, month - 1, day);
+        const today = new Date();
+
+        // Check if date is valid
+        if (dobDate.getFullYear() !== year ||
+            dobDate.getMonth() !== month - 1 ||
+            dobDate.getDate() !== day) {
+          showError('dob', 'Please enter a valid date');
+          isValid = false;
+        } else if (dobDate > today) {
+          showError('dob', 'Date of birth cannot be in the future');
+          isValid = false;
+        } else {
+          showSuccess('dob', '✓');
+        }
       }
     }
 
