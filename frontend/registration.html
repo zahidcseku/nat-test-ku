@@ -154,7 +154,7 @@
 
           <!-- Progress Tracker -->
           <div class="mb-12">
-            <div class="flex items-center justify-between max-w-2xl mx-auto">
+            <div class="flex items-center justify-between max-w-3xl mx-auto">
               <div class="flex flex-col items-center">
                 <div data-progress-step="1" class="progress-step w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-sm font-bold ring-8 ring-surface active">1</div>
                 <span class="text-xs mt-2 text-secondary">Personal Info</span>
@@ -162,11 +162,16 @@
               <div class="flex-1 h-[1px] bg-surface-container-highest mx-2"></div>
               <div class="flex flex-col items-center">
                 <div data-progress-step="2" class="progress-step w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-sm font-bold ring-8 ring-surface">2</div>
-                <span class="text-xs mt-2 text-secondary">Exam Details</span>
+                <span class="text-xs mt-2 text-secondary">Payment</span>
               </div>
               <div class="flex-1 h-[1px] bg-surface-container-highest mx-2"></div>
               <div class="flex flex-col items-center">
                 <div data-progress-step="3" class="progress-step w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-sm font-bold ring-8 ring-surface">3</div>
+                <span class="text-xs mt-2 text-secondary">Exam Details</span>
+              </div>
+              <div class="flex-1 h-[1px] bg-surface-container-highest mx-2"></div>
+              <div class="flex flex-col items-center">
+                <div data-progress-step="4" class="progress-step w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-sm font-bold ring-8 ring-surface">4</div>
                 <span class="text-xs mt-2 text-secondary">Documents</span>
               </div>
             </div>
@@ -237,42 +242,105 @@
                 </div>
               </div>
 
+              <!-- Navigation -->
+              <div class="flex justify-end pt-4">
+                <button onclick="RegistrationForm.nextStep()" class="bg-primary text-white px-10 py-4 rounded-lg font-bold text-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3">
+                  Proceed to Payment
+                  <span class="material-symbols-outlined">arrow_forward</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 2: Payment Method -->
+            <div id="step-2" class="form-step space-y-10">
+              <div>
+                <h2 class="text-2xl font-bold text-primary mb-2">Payment Method</h2>
+                <p class="text-secondary">Select your preferred payment method</p>
+              </div>
+
               <!-- Payment Method Selection -->
-              <div class="pt-6 border-t border-surface-container-highest">
-                <label class="text-xs font-semibold text-secondary tracking-wider uppercase mb-6 block">Payment Method</label>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                  <label class="cursor-pointer group">
-                    <input class="hidden peer" name="payment_method" type="radio" value="online" />
-                    <div class="p-6 bg-surface-container-low rounded-lg peer-checked:bg-primary-container peer-checked:text-white transition-all group-hover:bg-surface-container-high">
-                      <div class="flex items-center gap-3 mb-2">
-                        <span class="material-symbols-outlined peer-checked:text-white">payment</span>
-                        <p class="font-bold">Online Payment</p>
+              <div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <!-- Online Payment Option -->
+                  <div>
+                    <label class="cursor-pointer group block">
+                      <input class="hidden peer" name="payment_method" type="radio" value="online" />
+                      <div class="p-6 bg-surface-container-low rounded-lg peer-checked:bg-primary-container peer-checked:text-white transition-all group-hover:bg-surface-container-high">
+                        <div class="flex items-center gap-3 mb-2">
+                          <span class="material-symbols-outlined peer-checked:text-white">payment</span>
+                          <p class="font-bold">Online Payment</p>
+                        </div>
+                        <p class="text-sm opacity-80">Pay securely using online payment gateway</p>
                       </div>
-                      <p class="text-sm opacity-80">Pay securely using online payment gateway</p>
-                    </div>
-                  </label>
-                  <label class="cursor-pointer group">
-                    <input class="hidden peer" name="payment_method" type="radio" value="offline" />
-                    <div class="p-6 bg-surface-container-low rounded-lg peer-checked:bg-primary-container peer-checked:text-white transition-all group-hover:bg-surface-container-high">
-                      <div class="flex items-center gap-3 mb-2">
-                        <span class="material-symbols-outlined peer-checked:text-white">account_balance</span>
-                        <p class="font-bold">Bank Deposit</p>
+                    </label>
+                    <div id="online-instructions" class="hidden mt-4 bg-surface-container-low p-5 rounded-lg">
+                      <p class="font-bold text-primary mb-2">Online Payment Instructions:</p>
+                      <p class="text-sm text-secondary mb-3">Click the link below to pay securely using our online payment gateway.</p>
+                      <a href="#" class="inline-block bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition-all text-sm mb-4">
+                        Proceed to Online Payment
+                      </a>
+                      <div class="bg-warning-container/20 border-l-4 border-warning p-3 rounded">
+                        <p class="text-sm font-bold text-warning mb-2">Important</p>
+                        <p class="text-xs text-secondary">There is a 2.5% percent online transaction (3.5% for AMEX) charge for online payments.</p>
                       </div>
-                      <p class="text-sm opacity-80">Deposit directly to bank account</p>
                     </div>
-                  </label>
+                  </div>
+
+                  <!-- Bank Deposit Option -->
+                  <div>
+                    <label class="cursor-pointer group block">
+                      <input class="hidden peer" name="payment_method" type="radio" value="offline" />
+                      <div class="p-6 bg-surface-container-low rounded-lg peer-checked:bg-primary-container peer-checked:text-white transition-all group-hover:bg-surface-container-high">
+                        <div class="flex items-center gap-3 mb-2">
+                          <span class="material-symbols-outlined peer-checked:text-white">account_balance</span>
+                          <p class="font-bold">Bank Deposit</p>
+                        </div>
+                        <p class="text-sm opacity-80">Deposit directly to bank account</p>
+                      </div>
+                    </label>
+                    <div id="offline-instructions" class="hidden mt-4 bg-primary-container p-5 rounded-lg">
+                      <h4 class="text-lg font-bold text-white mb-3">Bank Transfer Details</h4>
+                      <table class="w-full mb-4 border-collapse">
+                        <tbody>
+                          <tr class="border-b border-white/20">
+                            <td class="text-white py-1.5 pr-3 font-semibold text-sm">Account Name</td>
+                            <td class="text-white py-1.5 text-sm"><strong>Test Site Director</strong></td>
+                          </tr>
+                          <tr class="border-b border-white/20">
+                            <td class="text-white py-1.5 pr-3 font-semibold text-sm">Account Number</td>
+                            <td class="text-white py-1.5 text-sm"><strong>0200025673722</strong></td>
+                          </tr>
+                          <tr class="border-b border-white/20">
+                            <td class="text-white py-1.5 pr-3 font-semibold text-sm">Bank</td>
+                            <td class="text-white py-1.5 text-sm"><strong>Agrani Bank Plc.</strong></td>
+                          </tr>
+                          <tr>
+                            <td class="text-white py-1.5 pr-3 font-semibold text-sm">Branch</td>
+                            <td class="text-white py-1.5 text-sm"><strong>Khulna University</strong></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <div class="bg-white/10 p-3 rounded-lg">
+                        <p class="text-sm font-bold text-white mb-2">Important</p>
+                        <ul class="text-xs text-white space-y-1">
+                          <li class="text-white">- Do not make partial payments.</li>
+                          <li class="text-white">- Keep the payment slips until the exam ends.</li>
+                          <li class="text-white">- Deposits are non refundable.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <span class="field-error" id="payment_method-error"></span>
                 <span class="field-success" id="payment_method-success"></span>
-
-                <!-- Payment Instructions (shown based on selection) -->
-                <div id="payment-instructions" class="hidden mt-6 p-6 bg-surface-container-low rounded-lg">
-                  <!-- Instructions will be populated by JavaScript -->
-                </div>
               </div>
 
               <!-- Navigation -->
-              <div class="flex justify-end pt-4">
+              <div class="flex justify-between pt-4">
+                <button onclick="RegistrationForm.previousStep()" class="text-primary font-semibold text-sm hover:underline underline-offset-8 transition-all flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm">arrow_back</span>
+                  Previous Step
+                </button>
                 <button onclick="RegistrationForm.nextStep()" class="bg-primary text-white px-10 py-4 rounded-lg font-bold text-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3">
                   Proceed to Exam Details
                   <span class="material-symbols-outlined">arrow_forward</span>
@@ -280,8 +348,8 @@
               </div>
             </div>
 
-            <!-- Step 2: Exam Details -->
-            <div id="step-2" class="form-step space-y-10">
+            <!-- Step 3: Exam Details -->
+            <div id="step-3" class="form-step space-y-10">
               <div>
                 <h2 class="text-2xl font-bold text-primary mb-2">Exam Details</h2>
                 <p class="text-secondary">Select your examination level and preferred test date</p>
@@ -330,8 +398,8 @@
               </div>
             </div>
 
-            <!-- Step 3: Document Uploads -->
-            <div id="step-3" class="form-step space-y-10">
+            <!-- Step 4: Document Uploads -->
+            <div id="step-4" class="form-step space-y-10">
               <div>
                 <h2 class="text-2xl font-bold text-primary mb-2">Document Uploads</h2>
                 <p class="text-secondary">Upload your photograph and identification documents</p>
@@ -421,6 +489,13 @@
       <div id="tab-pbt-offline" class="tab-content">
         <div class="accordion-content" id="offline-accordion">
           <div class="bg-white p-10 lg:p-16 rounded-2xl">
+            <!-- Offline Registration Process Image -->
+            <div class="mb-8 flex justify-center">
+              <div class="max-w-sm">
+                <img src="resources/offline_reg_processV4.png" alt="Offline Registration Process" class="w-full h-auto">
+              </div>
+            </div>
+
             <div class="space-y-8">
               <div>
                 <h2 class="text-3xl font-bold text-primary mb-4">Offline Registration Process</h2>
@@ -437,7 +512,7 @@
                   <p class="text-secondary mb-4">
                     Download the offline application form and fill it out completely with accurate information.
                   </p>
-                  <a href="resources/offline_application_formV3.pdf" download class="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all">
+                  <a href="resources/offline_application_formV5.pdf" download class="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all">
                     <span class="material-symbols-outlined">download</span>
                     Download Offline Form (PDF)
                   </a>
@@ -461,10 +536,9 @@
                   <div class="mt-4 p-4 bg-warning-container text-warning-dark rounded-lg text-sm">
                     <p class="font-bold mb-1">Important Instructions:</p>
                     <ul class="list-disc list-inside space-y-1">
-                      <li>Pay the exact fee amount</li>
-                      <li>Do not use online transfer or third-party transfers</li>
-                      <li>Keep your payment slip until the exam is over</li>
-                      <li>Deposited money cannot be refunded</li>
+                      <li>- Do not make partial payments.</li>
+                      <li>- Keep the payment receipt until the exam ends.</li>
+                      <li>- Deposits are non refundable.</li>
                     </ul>
                   </div>
                 </div>
@@ -567,12 +641,84 @@
 
             <div class="space-y-4">
               <h3 class="font-bold text-lg text-primary">Get Notified When CBT Launches</h3>
-              <form class="flex gap-4 max-w-md mx-auto" onsubmit="alert('Thank you! We will notify you when CBT registration opens.'); return false;">
-                <input class="flex-1 ghost-input py-3 px-4 border border-surface-container-highest rounded-lg" placeholder="Enter your email" required type="email" />
-                <button type="submit" class="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-all">
-                  Notify Me
-                </button>
-              </form>
+              <div class="kit-form-container" style="max-width: 600px; margin: 0 auto;">
+                <script src="https://f.convertkit.com/ckjs/ck.5.js"></script>
+                <form action="https://app.kit.com/forms/9433999/subscriptions" class="seva-form formkit-form" method="post" data-sv-form="9433999" data-uid="f60b199b8f" data-format="inline" data-version="5" data-options="{&quot;settings&quot;:{&quot;after_subscribe&quot;:{&quot;action&quot;:&quot;message&quot;,&quot;success_message&quot;:&quot;Thank you! Please check your email to confirm your subscription.&quot;,&quot;redirect_url&quot;:&quot;&quot;},&quot;analytics&quot;:{&quot;google&quot;:null,&quot;fathom&quot;:null,&quot;facebook&quot;:null,&quot;segment&quot;:null,&quot;pinterest&quot;:null,&quot;sparkloop&quot;:null,&quot;googletagmanager&quot;:null},&quot;modal&quot;:{&quot;trigger&quot;:&quot;timer&quot;,&quot;scroll_percentage&quot;:null,&quot;timer&quot;:5,&quot;devices&quot;:&quot;all&quot;,&quot;show_once_every&quot;:15},&quot;powered_by&quot;:{&quot;show&quot;:true,&quot;url&quot;:&quot;https://kit.com/features/forms?utm_campaign=poweredby&amp;utm_content=form&amp;utm_medium=referral&amp;utm_source=dynamic&quot;},&quot;recaptcha&quot;:{&quot;enabled&quot;:false},&quot;return_visitor&quot;:{&quot;action&quot;:&quot;show&quot;,&quot;custom_content&quot;:&quot;&quot;},&quot;slide_in&quot;:{&quot;display_in&quot;:&quot;bottom_right&quot;,&quot;trigger&quot;:&quot;timer&quot;,&quot;scroll_percentage&quot;:null,&quot;timer&quot;:5,&quot;devices&quot;:&quot;all&quot;,&quot;show_once_every&quot;:15},&quot;sticky_bar&quot;:{&quot;display_in&quot;:&quot;top&quot;,&quot;trigger&quot;:&quot;timer&quot;,&quot;scroll_percentage&quot;:null,&quot;timer&quot;:5,&quot;devices&quot;:&quot;all&quot;,&quot;show_once_every&quot;:15}},&quot;version&quot;:&quot;5&quot;}" min-width="400 500 600 700 800">
+                  <div data-style="clean">
+                    <ul class="formkit-alert formkit-alert-error" data-element="errors" data-group="alert"></ul>
+                    <div data-element="fields" data-stacked="false" class="seva-fields formkit-fields">
+                      <div class="formkit-field">
+                        <input class="formkit-input" name="email_address" aria-label="Email Address" placeholder="Email Address" required="" type="email" style="color: rgb(0, 0, 0); border-color: rgb(227, 227, 227); border-radius: 4px; font-weight: 400;">
+                      </div>
+                      <button data-element="submit" class="formkit-submit formkit-submit" style="color: rgb(255, 255, 255); background-color: rgb(22, 119, 190); border-radius: 4px; font-weight: 400;">
+                        <div class="formkit-spinner">
+                          <div></div><div></div><div></div>
+                        </div>
+                        <span class="">Subscribe</span>
+                      </button>
+                    </div>
+                    <div class="formkit-powered-by-convertkit-container">
+                      <a href="https://kit.com/features/forms?utm_campaign=poweredby&amp;utm_content=form&amp;utm_medium=referral&amp;utm_source=dynamic" data-element="powered-by" class="formkit-powered-by-convertkit" data-variant="dark" target="_blank" rel="nofollow noopener">Built with Kit</a>
+                    </div>
+                  </div>
+                  <style>
+                    .formkit-form[data-uid="f60b199b8f"] *{box-sizing:border-box;}
+                    .formkit-form[data-uid="f60b199b8f"]{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+                    .formkit-form[data-uid="f60b199b8f"] legend{border:none;font-size:inherit;margin-bottom:10px;padding:0;position:relative;display:table;}
+                    .formkit-form[data-uid="f60b199b8f"] fieldset{border:0;padding:0.01em 0 0 0;margin:0;min-width:0;}
+                    .formkit-form[data-uid="f60b199b8f"] body:not(:-moz-handler-blocked) fieldset{display:table-cell;}
+                    .formkit-form[data-uid="f60b199b8f"] h1,.formkit-form[data-uid="f60b199b8f"] h2,.formkit-form[data-uid="f60b199b8f"] h3,.formkit-form[data-uid="f60b199b8f"] h4,.formkit-form[data-uid="f60b199b8f"] h5,.formkit-form[data-uid="f60b199b8f"] h6{color:inherit;font-size:inherit;font-weight:inherit;}
+                    .formkit-form[data-uid="f60b199b8f"] p{color:inherit;font-size:inherit;font-weight:inherit;}
+                    .formkit-form[data-uid="f60b199b8f"] ol:not([template-default]),.formkit-form[data-uid="f60b199b8f"] ul:not([template-default]),.formkit-form[data-uid="f60b199b8f"] blockquote:not([template-default]){text-align:left;}
+                    .formkit-form[data-uid="f60b199b8f"] .ordered-list,.formkit-form[data-uid="f60b199b8f"] .unordered-list{list-style-position:outside !important;padding-left:1em;}
+                    .formkit-form[data-uid="f60b199b8f"] .list-item{padding-left:0;}
+                    .formkit-form[data-uid="f60b199b8f"][data-format="modal"]{display:none;}
+                    .formkit-form[data-uid="f60b199b8f"][data-format="slide in"]{display:none;}
+                    .formkit-form[data-uid="f60b199b8f"][data-format="sticky bar"]{display:none;}
+                    .formkit-sticky-bar .formkit-form[data-uid="f60b199b8f"][data-format="sticky bar"]{display:block;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-input,.formkit-form[data-uid="f60b199b8f"] .formkit-select,.formkit-form[data-uid="f60b199b8f"] .formkit-checkboxes{width:100%;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-button,.formkit-form[data-uid="f60b199b8f"] .formkit-submit{border:0;border-radius:5px;color:#ffffff;cursor:pointer;display:inline-block;text-align:center;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:15px;overflow:hidden;padding:0;position:relative;vertical-align:middle;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-button:hover,.formkit-form[data-uid="f60b199b8f"] .formkit-submit:hover,.formkit-form[data-uid="f60b199b8f"] .formkit-button:focus,.formkit-form[data-uid="f60b199b8f"] .formkit-submit:focus{outline:none;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-button:hover > span,.formkit-form[data-uid="f60b199b8f"] .formkit-submit:hover > span,.formkit-form[data-uid="f60b199b8f"] .formkit-button:focus > span,.formkit-form[data-uid="f60b199b8f"] .formkit-submit:focus > span{background-color:rgba(0,0,0,0.1);}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-button > span,.formkit-form[data-uid="f60b199b8f"] .formkit-submit > span{display:block;-webkit-transition:all 300ms ease-in-out;transition:all 300ms ease-in-out;padding:12px 24px;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-input{background:#ffffff;font-size:15px;padding:12px;border:1px solid #e3e3e3;-webkit-flex:1 0 auto;-ms-flex:1 0 auto;flex:1 0 auto;line-height:1.4;margin:0;-webkit-transition:border-color ease-out 300ms;transition:border-color ease-out 300ms;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-input:focus{outline:none;border-color:#1677be;-webkit-transition:border-color ease 300ms;transition:border-color ease 300ms;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-alert{background:#f9fafb;border:1px solid #e3e3e3;border-radius:5px;-webkit-flex:1 0 auto;-ms-flex:1 0 auto;flex:1 0 auto;list-style:none;margin:25px auto;padding:12px;text-align:center;width:100%;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-alert:empty{display:none;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-alert-success{background:#d3fbeb;border-color:#10bf7a;color:#0c905c;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-alert-error{background:#fde8e2;border-color:#f2643b;color:#ea4110;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-spinner{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;height:0px;width:0px;margin:0 auto;position:absolute;top:0;left:0;right:0;width:0px;overflow:hidden;text-align:center;-webkit-transition:all 300ms ease-in-out;transition:all 300ms ease-in-out;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-spinner > div{margin:auto;width:12px;height:12px;background-color:#fff;opacity:0.3;border-radius:100%;display:inline-block;-webkit-animation:formkit-bouncedelay-formkit-form-data-uid-f60b199b8f- 1.4s infinite ease-in-out both;animation:formkit-bouncedelay-formkit-form-data-uid-f60b199b8f- 1.4s infinite ease-in-out both;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-spinner > div:nth-child(1){-webkit-animation-delay:-0.32s;animation-delay:-0.32s;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-spinner > div:nth-child(2){-webkit-animation-delay:-0.16s;animation-delay:-0.16s;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-submit[data-active] .formkit-spinner{opacity:1;height:100%;width:50px;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-submit[data-active] .formkit-spinner ~ span{opacity:0;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-powered-by[data-active="false"]{opacity:0.35;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-powered-by-convertkit-container{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;width:100%;margin:10px 0;position:relative;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-powered-by-convertkit-container[data-active="false"]{opacity:0.35;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-powered-by-convertkit-container{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;width:100%;margin:10px 0;position:relative;justify-content:center;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-powered-by-convertkit{background:#ffffff url('https://kit.com/images/logo-light.svg') center/contain no-repeat;border:1px solid #e1e1e1;border-radius:6px;color:#3d3d3d;cursor:pointer;display:inline-block;font-size:0;height:30px;margin:0 auto;opacity:0.95;padding:0;text-decoration:none;text-indent:-9999px;transition:opacity 0.2s ease;width:110px;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-powered-by-convertkit:hover{opacity:1;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-powered-by-convertkit[data-variant="light"]{background:#ffffff url('https://kit.com/images/logo-light.svg') center/contain no-repeat;border-color:#e1e1e1;color:#3d3d3d;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-powered-by-convertkit[data-variant="dark"]{background:#ffffff url('https://kit.com/images/logo-light.svg') center/contain no-repeat;border-color:#e1e1e1;color:#3d3d3d;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-powered-by-convertkit:hover,.formkit-form[data-uid="f60b199b8f"] .formkit-powered-by-convertkit:focus{background-color:#ffffff;-webkit-transform:scale(1.025) perspective(1px);-ms-transform:scale(1.025) perspective(1px);transform:scale(1.025) perspective(1px);opacity:1;}
+                    .formkit-form[data-uid="f60b199b8f"] blockquote{padding:10px 20px;margin:0 0 20px;border-left:5px solid #e1e1e1;}
+                    .formkit-form[data-uid="f60b199b8f"]{max-width:700px;}
+                    .formkit-form[data-uid="f60b199b8f"] [data-style="clean"]{width:100%;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-fields{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-flex-wrap:wrap;-ms-flex-wrap:wrap;flex-wrap:wrap;margin:0 auto;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-field,.formkit-form[data-uid="f60b199b8f"] .formkit-submit{margin:0 0 15px 0;-webkit-flex:1 0 100%;-ms-flex:1 0 100%;flex:1 0 100%;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-powered-by-convertkit-container{margin:0;}
+                    .formkit-form[data-uid="f60b199b8f"] .formkit-submit{position:static;}
+                    .formkit-form[data-uid="f60b199b8f"][min-width~="700"] [data-style="clean"]{padding:10px;}
+                    .formkit-form[data-uid="f60b199b8f"][min-width~="700"] .formkit-fields[data-stacked="false"]{margin-left:-5px;margin-right:-5px;}
+                    .formkit-form[data-uid="f60b199b8f"][min-width~="700"] .formkit-fields[data-stacked="false"] .formkit-field,.formkit-form[data-uid="f60b199b8f"][min-width~="700"] .formkit-fields[data-stacked="false"] .formkit-submit{margin:0 5px 15px 5px;}
+                    .formkit-form[data-uid="f60b199b8f"][min-width~="700"] .formkit-fields[data-stacked="false"] .formkit-field{-webkit-flex:100 1 auto;-ms-flex:100 1 auto;flex:100 1 auto;}
+                    .formkit-form[data-uid="f60b199b8f"][min-width~="700"] .formkit-fields[data-stacked="false"] .formkit-submit{-webkit-flex:1 1 auto;-ms-flex:1 1 auto;flex:1 1 auto;}
+                    @-webkit-keyframes formkit-bouncedelay-formkit-form-data-uid-f60b199b8f-{0%,80%,100%{-webkit-transform:scale(0);-ms-transform:scale(0);transform:scale(0);}40%{-webkit-transform:scale(1);-ms-transform:scale(1);transform:scale(1);}}
+                    @keyframes formkit-bouncedelay-formkit-form-data-uid-f60b199b8f-{0%,80%,100%{-webkit-transform:scale(0);-ms-transform:scale(0);transform:scale(0);}40%{-webkit-transform:scale(1);-ms-transform:scale(1);transform:scale(1);}}
+                  </style>
+                </form>
+              </div>
             </div>
           </div>
         </div>
@@ -613,34 +759,15 @@
       const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
       paymentMethods.forEach(method => {
         method.addEventListener('change', function() {
-          const instructions = document.getElementById('payment-instructions');
+          // Hide all instructions first
+          document.getElementById('online-instructions').classList.add('hidden');
+          document.getElementById('offline-instructions').classList.add('hidden');
+
+          // Show instructions for selected method
           if (this.value === 'online') {
-            const onlineHtml = `
-              <div class="bg-primary-container p-4 rounded-lg">
-                <p class="font-bold text-primary mb-2">Online Payment Instructions:</p>
-                <p class="text-sm">Click the link below to pay securely using our online payment gateway.</p>
-                <a href="#" class="inline-block mt-3 bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition-all">
-                  Proceed to Online Payment
-                </a>
-              </div>
-            `;
-            instructions.innerHTML = DOMPurify.sanitize(onlineHtml);
-            instructions.classList.remove('hidden');
+            document.getElementById('online-instructions').classList.remove('hidden');
           } else if (this.value === 'offline') {
-            const offlineHtml = `
-              <div class="bg-primary-container p-4 rounded-lg">
-                <p class="font-bold text-primary mb-2">Bank Deposit Instructions:</p>
-                <ul class="text-sm space-y-1 mb-3">
-                  <li><strong>Account Name:</strong> Test Site Director</li>
-                  <li><strong>Account Number:</strong> 0200025673722</li>
-                  <li><strong>Bank:</strong> Agrani Bank Plc.</li>
-                  <li><strong>Branch:</strong> Khulna University</li>
-                </ul>
-                <p class="text-xs text-primary-dark">Important: Pay exact amount. Do not use online transfer. Keep payment slip until exam ends.</p>
-              </div>
-            `;
-            instructions.innerHTML = DOMPurify.sanitize(offlineHtml);
-            instructions.classList.remove('hidden');
+            document.getElementById('offline-instructions').classList.remove('hidden');
           }
         });
       });

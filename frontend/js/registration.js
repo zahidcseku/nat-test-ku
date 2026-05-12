@@ -21,7 +21,8 @@ const RegistrationForm = (function() {
   let formData = {
     step1: {},
     step2: {},
-    step3: {}
+    step3: {},
+    step4: {}
   };
 
   /**
@@ -235,15 +236,6 @@ const RegistrationForm = (function() {
       showSuccess('nationality', '✓');
     }
 
-    // Payment Method
-    const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
-    if (!paymentMethod) {
-      showError('payment_method', 'Please select a payment method');
-      isValid = false;
-    } else {
-      showSuccess('payment_method', '✓');
-    }
-
     // Store valid data
     if (isValid) {
       formData.step1 = {
@@ -253,8 +245,7 @@ const RegistrationForm = (function() {
         address: address,
         dob: dob,
         gender: gender,
-        nationality: nationality,
-        payment_method: paymentMethod ? paymentMethod.value : null
+        nationality: nationality
       };
     }
 
@@ -265,6 +256,28 @@ const RegistrationForm = (function() {
    * Validate Step 2: Exam Details
    */
   function validateStep2() {
+    let isValid = true;
+
+    // Payment Method Selection
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
+    if (!paymentMethod) {
+      showError('payment_method', 'Please select a payment method');
+      isValid = false;
+    } else {
+      showSuccess('payment_method', '✓');
+      // Store valid data
+      formData.step2 = {
+        payment_method: paymentMethod.value
+      };
+    }
+
+    return isValid;
+  }
+
+  /**
+   * Validate Step 3: Exam Details
+   */
+  function validateStep3() {
     let isValid = true;
 
     // Exam Level
@@ -287,7 +300,7 @@ const RegistrationForm = (function() {
 
     // Store valid data
     if (isValid) {
-      formData.step2 = {
+      formData.step3 = {
         exam_level: examLevel,
         test_date: testDate
       };
@@ -329,7 +342,7 @@ const RegistrationForm = (function() {
   /**
    * Validate Step 3: Document Uploads
    */
-  function validateStep3() {
+  function validateStep4() {
     let isValid = true;
 
     // Student Photo (required)
@@ -388,7 +401,7 @@ const RegistrationForm = (function() {
 
     // Store valid data
     if (isValid) {
-      formData.step3 = {
+      formData.step4 = {
         photo_file: photoFile,
         id_file: idFile,
         payment_receipt_file: paymentFile || null
@@ -424,7 +437,7 @@ const RegistrationForm = (function() {
    * Update progress tracker visual state
    */
   function updateProgressTracker(activeStep) {
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 4; i++) {
       const stepEl = document.querySelector(`[data-progress-step="${i}"]`);
       if (!stepEl) continue;
 
@@ -442,13 +455,37 @@ const RegistrationForm = (function() {
    * Go to next step
    */
   function nextStep() {
+    console.log('nextStep called, currentStep:', currentStep);
+
     if (currentStep === 1) {
-      if (validateStep1()) {
+      console.log('Validating step 1...');
+      const step1Valid = validateStep1();
+      console.log('Step 1 validation result:', step1Valid);
+      if (step1Valid) {
+        console.log('Moving to step 2');
         showStep(2);
+      } else {
+        console.log('Step 1 validation failed');
       }
     } else if (currentStep === 2) {
-      if (validateStep2()) {
+      console.log('Validating step 2...');
+      const step2Valid = validateStep2();
+      console.log('Step 2 validation result:', step2Valid);
+      if (step2Valid) {
+        console.log('Moving to step 3');
         showStep(3);
+      } else {
+        console.log('Step 2 validation failed');
+      }
+    } else if (currentStep === 3) {
+      console.log('Validating step 3...');
+      const step3Valid = validateStep3();
+      console.log('Step 3 validation result:', step3Valid);
+      if (step3Valid) {
+        console.log('Moving to step 4');
+        showStep(4);
+      } else {
+        console.log('Step 3 validation failed');
       }
     }
   }
@@ -495,9 +532,13 @@ const RegistrationForm = (function() {
    * Toggle offline process accordion
    */
   function toggleOffline() {
+    // First switch to the pbt-offline tab
+    switchTab('pbt-offline');
+
+    // Then open the accordion
     const accordion = document.getElementById('offline-accordion');
     if (accordion) {
-      accordion.classList.toggle('open');
+      accordion.classList.add('open');
     }
   }
 
@@ -508,8 +549,9 @@ const RegistrationForm = (function() {
     const step1Valid = validateStep1();
     const step2Valid = validateStep2();
     const step3Valid = validateStep3();
+    const step4Valid = validateStep4();
 
-    return step1Valid && step2Valid && step3Valid;
+    return step1Valid && step2Valid && step3Valid && step4Valid;
   }
 
   /**
@@ -526,10 +568,11 @@ const RegistrationForm = (function() {
     const submissionData = {
       ...formData.step1,
       ...formData.step2,
-      photo_filename: formData.step3.photo_file.name,
-      id_filename: formData.step3.id_file.name,
-      payment_receipt_filename: formData.step3.payment_receipt_file ?
-        formData.step3.payment_receipt_file.name : null,
+      ...formData.step3,
+      photo_filename: formData.step4.photo_file.name,
+      id_filename: formData.step4.id_file.name,
+      payment_receipt_filename: formData.step4.payment_receipt_file ?
+        formData.step4.payment_receipt_file.name : null,
       submitted_at: new Date().toISOString()
     };
 
@@ -635,7 +678,8 @@ const RegistrationForm = (function() {
     formData = {
       step1: {},
       step2: {},
-      step3: {}
+      step3: {},
+      step4: {}
     };
 
     // Show first step
