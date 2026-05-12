@@ -472,6 +472,7 @@ const RegistrationForm = (function() {
     handleFileUpload,
     validateStep3,
     showStep,
+    updateProgressTracker,
     nextStep,
     previousStep
   };
