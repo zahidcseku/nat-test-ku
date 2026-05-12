@@ -60,42 +60,28 @@
     <div class="bg-surface-container-low h-[1px] opacity-20"></div>
   </nav>
   <!-- Main Content -->
-  <main class="pb-24 px-8 max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 pt-40">
-    <!-- Left Column: Context & Steps -->
-    <aside class="lg:col-span-4 space-y-12">
+  <main class="pb-24 px-8 max-w-7xl mx-auto pt-40">
+    <!-- Left Column: Context & Instructions -->
+    <aside class="lg:col-span-4 space-y-8 mb-12">
       <div class="space-y-4">
-        <span class="text-secondary font-medium tracking-[0.2em] text-xs uppercase">Portal Access</span>
-        <h1 class="text-5xl font-bold text-primary leading-tight">National Assessment Registration</h1>
+        <span class="text-secondary font-medium tracking-[0.2em] text-xs uppercase">Registration Portal</span>
+        <h1 class="text-5xl font-bold text-primary leading-tight">Examination Registration</h1>
         <p class="text-secondary leading-relaxed text-lg">
-          Join the ranks of academic excellence. Complete the three-step application to secure your testing session.
+          Complete your application for the NAT-TEST examination. Choose your registration type below.
         </p>
       </div>
-      <!-- Progress Tracker -->
-      <nav class="flex flex-col gap-8 relative">
-        <div class="absolute left-3 top-2 bottom-2 w-[1px] bg-surface-container-highest"></div>
-        <div class="flex items-start gap-6">
-          <div class="z-10 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-[10px] text-white font-bold ring-8 ring-surface">1</div>
-          <div class="space-y-1">
-            <h3 class="font-bold text-primary">Personal Details</h3>
-            <p class="text-sm text-secondary">Identification and contact info</p>
-          </div>
+
+      <!-- Application Fee Notice -->
+      <div class="p-6 bg-primary-container rounded-lg border border-primary/20">
+        <div class="flex items-center gap-2 text-primary mb-2">
+          <span class="material-symbols-outlined text-xl">payments</span>
+          <span class="font-bold">Application Fee (2026)</span>
         </div>
-        <div class="flex items-start gap-6 opacity-50">
-          <div class="z-10 w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center text-[10px] text-secondary font-bold ring-8 ring-surface">2</div>
-          <div class="space-y-1">
-            <h3 class="font-semibold text-secondary">Session Selection</h3>
-            <p class="text-sm text-secondary">Choose your date and centre</p>
-          </div>
-        </div>
-        <div class="flex items-start gap-6 opacity-50">
-          <div class="z-10 w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center text-[10px] text-secondary font-bold ring-8 ring-surface">3</div>
-          <div class="space-y-1">
-            <h3 class="font-semibold text-secondary">Documentation</h3>
-            <p class="text-sm text-secondary">Upload ID and certifications</p>
-          </div>
-        </div>
-      </nav>
-      <!-- Support Pill -->
+        <p class="text-2xl font-bold text-primary mb-1">BDT 4,000.00</p>
+        <p class="text-xs text-primary-dark">Subject to change as per Senmon Kyouiku Publishing Co. Ltd.</p>
+      </div>
+
+      <!-- Contact Support -->
       <div class="p-6 bg-surface-container-low rounded-lg space-y-3">
         <div class="flex items-center gap-2 text-primary">
           <span class="material-symbols-outlined text-xl">help_center</span>
@@ -104,96 +90,472 @@
         <p class="text-sm text-secondary leading-relaxed">
           Our registrar office is available Mon-Fri, 9am-5pm for any technical queries.
         </p>
+        <p class="text-xs text-secondary">
+          For group registration, please contact the center directly.
+        </p>
       </div>
     </aside>
-    <!-- Right Column: Form -->
-    <section class="lg:col-span-8">
-      <div class="bg-white p-10 lg:p-16 rounded-2xl">
-        <form class="space-y-12">
-          <!-- Personal Info -->
-          <div class="space-y-10">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-              <div class="flex flex-col gap-2">
-                <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="full_name">Legal Full Name</label>
-                <input class="ghost-input py-3 text-lg placeholder:text-surface-container-highest" id="full_name" placeholder="As it appears on ID" type="text" />
-              </div>
-              <div class="flex flex-col gap-2">
-                <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="email">Institutional Email</label>
-                <input class="ghost-input py-3 text-lg placeholder:text-surface-container-highest" id="email" placeholder="name@university.edu" type="email" />
-              </div>
-              <div class="flex flex-col gap-2">
-                <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="candidate_id">National ID / Passport</label>
-                <input class="ghost-input py-3 text-lg placeholder:text-surface-container-highest" id="candidate_id" placeholder="Document number" type="text" />
-              </div>
-              <div class="flex flex-col gap-2">
-                <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="dob">Date of Birth</label>
-                <input class="ghost-input py-3 text-lg text-secondary" id="dob" type="date" />
-              </div>
-            </div>
-            <!-- Examination Stream -->
-            <div class="pt-6">
-              <label class="text-xs font-semibold text-secondary tracking-wider uppercase mb-6 block">Examination Stream</label>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <label class="cursor-pointer group">
-                  <input checked class="hidden peer" name="stream" type="radio" />
-                  <div class="p-5 bg-surface-container-low rounded-lg peer-checked:bg-primary-container peer-checked:text-white transition-all group-hover:bg-surface-container-high">
-                    <span class="material-symbols-outlined mb-2 block">science</span>
-                    <p class="font-bold text-sm">Sciences</p>
-                  </div>
-                </label>
-                <label class="cursor-pointer group">
-                  <input class="hidden peer" name="stream" type="radio" />
-                  <div class="p-5 bg-surface-container-low rounded-lg peer-checked:bg-primary-container peer-checked:text-white transition-all group-hover:bg-surface-container-high">
-                    <span class="material-symbols-outlined mb-2 block">history_edu</span>
-                    <p class="font-bold text-sm">Humanities</p>
-                  </div>
-                </label>
-                <label class="cursor-pointer group">
-                  <input class="hidden peer" name="stream" type="radio" />
-                  <div class="p-5 bg-surface-container-low rounded-lg peer-checked:bg-primary-container peer-checked:text-white transition-all group-hover:bg-surface-container-high">
-                    <span class="material-symbols-outlined mb-2 block">architecture</span>
-                    <p class="font-bold text-sm">Technical</p>
-                  </div>
-                </label>
-              </div>
-            </div>
-          </div>
-          <div class="h-[1px] bg-surface-container-highest"></div>
-          <!-- Navigation -->
-          <div class="flex justify-between items-center pt-4">
-            <a href="index.html" class="text-primary font-semibold text-sm hover:underline underline-offset-8 transition-all flex items-center gap-2">
-              <span class="material-symbols-outlined text-sm">arrow_back</span>
-              Return to Homepage
-            </a>
-            <button class="bg-primary text-white px-10 py-4 rounded-lg font-bold text-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3" type="button">
-              Proceed to Scheduling
-              <span class="material-symbols-outlined">arrow_forward</span>
-            </button>
-          </div>
-        </form>
+
+    <!-- Right Column: Tab Content -->
+    <section class="space-y-8">
+      <!-- Tab Navigation -->
+      <div class="border-b border-outline-variant/20">
+        <nav class="flex gap-8 -mb-px">
+          <button data-tab="pbt-online" onclick="RegistrationForm.switchTab('pbt-online')" class="tab-button px-4 py-3 border-b-2 border-primary text-primary font-semibold text-sm transition-all">
+            PBT Online Registration
+          </button>
+          <button data-tab="pbt-offline" onclick="RegistrationForm.toggleOffline()" class="tab-button px-4 py-3 border-b-2 border-transparent text-secondary font-medium text-sm hover:text-primary transition-all">
+            PBT Offline Registration
+          </button>
+          <button data-tab="cbt" onclick="RegistrationForm.switchTab('cbt')" class="tab-button px-4 py-3 border-b-2 border-transparent text-secondary font-medium text-sm hover:text-primary transition-all">
+            CBT Registration
+          </button>
+        </nav>
       </div>
-      <!-- Info Grid -->
-      <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="p-8 bg-surface-container-low rounded-xl flex flex-col justify-between aspect-video">
-          <span class="material-symbols-outlined text-3xl text-primary">verified_user</span>
-          <div class="space-y-2">
-            <h4 class="font-bold text-xl">Secure Processing</h4>
-            <p class="text-sm text-secondary">All registration data is encrypted and handled via secure academic protocols.</p>
+
+      <!-- PBT Online Registration Tab -->
+      <div id="tab-pbt-online" class="tab-content active">
+        <div class="bg-white p-10 lg:p-16 rounded-2xl">
+          <!-- Progress Tracker -->
+          <div class="mb-12">
+            <div class="flex items-center justify-between max-w-2xl mx-auto">
+              <div class="flex flex-col items-center">
+                <div data-progress-step="1" class="progress-step w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-sm font-bold ring-8 ring-surface active">1</div>
+                <span class="text-xs mt-2 text-secondary">Personal Info</span>
+              </div>
+              <div class="flex-1 h-[1px] bg-surface-container-highest mx-2"></div>
+              <div class="flex flex-col items-center">
+                <div data-progress-step="2" class="progress-step w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-sm font-bold ring-8 ring-surface">2</div>
+                <span class="text-xs mt-2 text-secondary">Exam Details</span>
+              </div>
+              <div class="flex-1 h-[1px] bg-surface-container-highest mx-2"></div>
+              <div class="flex flex-col items-center">
+                <div data-progress-step="3" class="progress-step w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-sm font-bold ring-8 ring-surface">3</div>
+                <span class="text-xs mt-2 text-secondary">Documents</span>
+              </div>
+            </div>
+          </div>
+
+          <form id="registration-form" class="space-y-12" onsubmit="return false;">
+            <!-- Step 1: Personal Information -->
+            <div id="step-1" class="form-step active space-y-10">
+              <div>
+                <h2 class="text-2xl font-bold text-primary mb-2">Personal Information</h2>
+                <p class="text-secondary">Please provide your personal details and payment preference</p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                <div class="flex flex-col gap-2">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="full_name">Legal Full Name</label>
+                  <input class="ghost-input py-3 text-lg placeholder:text-surface-container-highest" id="full_name" placeholder="As it appears on ID" type="text" />
+                  <span class="field-error" id="full_name-error"></span>
+                  <span class="field-success" id="full_name-success"></span>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="email">Email Address</label>
+                  <input class="ghost-input py-3 text-lg placeholder:text-surface-container-highest" id="email" placeholder="name@example.com" type="email" />
+                  <span class="field-error" id="email-error"></span>
+                  <span class="field-success" id="email-success"></span>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="mobile">Mobile Number</label>
+                  <input class="ghost-input py-3 text-lg placeholder:text-surface-container-highest" id="mobile" placeholder="01712345678" type="tel" />
+                  <span class="field-error" id="mobile-error"></span>
+                  <span class="field-success" id="mobile-success"></span>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="dob">Date of Birth</label>
+                  <input class="ghost-input py-3 text-lg text-secondary" id="dob" type="date" />
+                  <span class="field-error" id="dob-error"></span>
+                  <span class="field-success" id="dob-success"></span>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="gender">Gender</label>
+                  <select class="ghost-input py-3 text-lg bg-white" id="gender">
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <span class="field-error" id="gender-error"></span>
+                  <span class="field-success" id="gender-success"></span>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="nationality">Nationality</label>
+                  <input class="ghost-input py-3 text-lg placeholder:text-surface-container-highest" id="nationality" placeholder="Bangladeshi" type="text" value="Bangladeshi" />
+                  <span class="field-error" id="nationality-error"></span>
+                  <span class="field-success" id="nationality-success"></span>
+                </div>
+
+                <div class="flex flex-col gap-2 md:col-span-2">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="address">Full Address</label>
+                  <textarea class="ghost-input py-3 text-lg placeholder:text-surface-container-highest resize-none" id="address" placeholder="House, Street, Area, City, District" rows="2"></textarea>
+                  <span class="field-error" id="address-error"></span>
+                  <span class="field-success" id="address-success"></span>
+                </div>
+
+                <div class="flex flex-col gap-2 md:col-span-2">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="id_number">National ID / Passport Number</label>
+                  <input class="ghost-input py-3 text-lg placeholder:text-surface-container-highest" id="id_number" placeholder="Enter your ID or Passport number" type="text" />
+                  <span class="field-error" id="id_number-error"></span>
+                  <span class="field-success" id="id_number-success"></span>
+                </div>
+              </div>
+
+              <!-- Payment Method Selection -->
+              <div class="pt-6 border-t border-surface-container-highest">
+                <label class="text-xs font-semibold text-secondary tracking-wider uppercase mb-6 block">Payment Method</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                  <label class="cursor-pointer group">
+                    <input class="hidden peer" name="payment_method" type="radio" value="online" />
+                    <div class="p-6 bg-surface-container-low rounded-lg peer-checked:bg-primary-container peer-checked:text-white transition-all group-hover:bg-surface-container-high">
+                      <div class="flex items-center gap-3 mb-2">
+                        <span class="material-symbols-outlined">payment</span>
+                        <p class="font-bold">Online Payment</p>
+                      </div>
+                      <p class="text-sm opacity-80">Pay securely using online payment gateway</p>
+                    </div>
+                  </label>
+                  <label class="cursor-pointer group">
+                    <input class="hidden peer" name="payment_method" type="radio" value="offline" />
+                    <div class="p-6 bg-surface-container-low rounded-lg peer-checked:bg-primary-container peer-checked:text-white transition-all group-hover:bg-surface-container-high">
+                      <div class="flex items-center gap-3 mb-2">
+                        <span class="material-symbols-outlined">account_balance</span>
+                        <p class="font-bold">Bank Deposit</p>
+                      </div>
+                      <p class="text-sm opacity-80">Deposit directly to bank account</p>
+                    </div>
+                  </label>
+                </div>
+                <span class="field-error" id="payment_method-error"></span>
+                <span class="field-success" id="payment_method-success"></span>
+
+                <!-- Payment Instructions (shown based on selection) -->
+                <div id="payment-instructions" class="hidden mt-6 p-6 bg-surface-container-low rounded-lg">
+                  <!-- Instructions will be populated by JavaScript -->
+                </div>
+              </div>
+
+              <!-- Navigation -->
+              <div class="flex justify-end pt-4">
+                <button onclick="RegistrationForm.nextStep()" class="bg-primary text-white px-10 py-4 rounded-lg font-bold text-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3">
+                  Proceed to Exam Details
+                  <span class="material-symbols-outlined">arrow_forward</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 2: Exam Details -->
+            <div id="step-2" class="form-step space-y-10">
+              <div>
+                <h2 class="text-2xl font-bold text-primary mb-2">Exam Details</h2>
+                <p class="text-secondary">Select your examination level and preferred test date</p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                <div class="flex flex-col gap-2">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="exam_level">Exam Level</label>
+                  <select class="ghost-input py-3 text-lg bg-white" id="exam_level">
+                    <option value="">Select Exam Level</option>
+                    <option value="1Q">1Q - Basic Level</option>
+                    <option value="2Q">2Q - Elementary Level</option>
+                    <option value="3Q">3Q - Intermediate Level</option>
+                    <option value="4Q">4Q - Upper Intermediate Level</option>
+                    <option value="5Q">5Q - Advanced Level</option>
+                  </select>
+                  <span class="field-error" id="exam_level-error"></span>
+                  <span class="field-success" id="exam_level-success"></span>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="test_date">Intended Test Date</label>
+                  <select class="ghost-input py-3 text-lg bg-white" id="test_date">
+                    <option value="">Select Test Date</option>
+                    <!-- PLACEHOLDER: Options will be loaded from database -->
+                    <option value="2026-06-15">June 15, 2026</option>
+                    <option value="2026-07-20">July 20, 2026</option>
+                    <option value="2026-08-17">August 17, 2026</option>
+                  </select>
+                  <span class="field-error" id="test_date-error"></span>
+                  <span class="field-success" id="test_date-success"></span>
+                  <p class="text-xs text-secondary mt-1">Available dates will be loaded from examination schedule</p>
+                </div>
+              </div>
+
+              <!-- Navigation -->
+              <div class="flex justify-between pt-4">
+                <button onclick="RegistrationForm.previousStep()" class="text-primary font-semibold text-sm hover:underline underline-offset-8 transition-all flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm">arrow_back</span>
+                  Previous Step
+                </button>
+                <button onclick="RegistrationForm.nextStep()" class="bg-primary text-white px-10 py-4 rounded-lg font-bold text-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3">
+                  Proceed to Uploads
+                  <span class="material-symbols-outlined">arrow_forward</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 3: Document Uploads -->
+            <div id="step-3" class="form-step space-y-10">
+              <div>
+                <h2 class="text-2xl font-bold text-primary mb-2">Document Uploads</h2>
+                <p class="text-secondary">Upload your photograph and identification documents</p>
+              </div>
+
+              <div class="space-y-8">
+                <!-- Photo Upload -->
+                <div class="p-6 bg-surface-container-low rounded-lg">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase mb-4 block">Student Photograph</label>
+                  <div class="space-y-4">
+                    <p class="text-sm text-secondary">
+                      Photograph must be taken within last 6 months on a plain, light-colored background.
+                      Face should occupy 70-80% of the frame, front-facing with eyes open.
+                    </p>
+                    <div class="flex items-center gap-4">
+                      <label class="file-input-wrapper bg-white border-2 border-dashed border-surface-container-highest hover:border-primary rounded-lg px-6 py-4 cursor-pointer transition-all">
+                        <span class="material-symbols-outlined text-2xl text-secondary mr-2">upload</span>
+                        <span class="text-sm font-medium text-secondary">Choose Photo (max 2MB, JPG/PNG)</span>
+                        <input accept="image/jpeg,image/png" id="photo_upload" type="file" />
+                      </label>
+                      <img alt="Photo preview" class="file-preview" id="photo_upload-preview" />
+                    </div>
+                    <span class="field-error" id="photo_upload-error"></span>
+                    <span class="field-success" id="photo_upload-success"></span>
+                  </div>
+                </div>
+
+                <!-- ID Upload -->
+                <div class="p-6 bg-surface-container-low rounded-lg">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase mb-4 block">Government-Issued ID</label>
+                  <div class="space-y-4">
+                    <p class="text-sm text-secondary">
+                      Upload a clear copy of your Passport or National ID card.
+                    </p>
+                    <div class="flex items-center gap-4">
+                      <label class="file-input-wrapper bg-white border-2 border-dashed border-surface-container-highest hover:border-primary rounded-lg px-6 py-4 cursor-pointer transition-all">
+                        <span class="material-symbols-outlined text-2xl text-secondary mr-2">upload</span>
+                        <span class="text-sm font-medium text-secondary">Choose ID (max 4MB, JPG/PNG/PDF)</span>
+                        <input accept="image/jpeg,image/png,application/pdf" id="id_upload" type="file" />
+                      </label>
+                      <img alt="ID preview" class="file-preview" id="id_upload-preview" />
+                    </div>
+                    <span class="field-error" id="id_upload-error"></span>
+                    <span class="field-success" id="id_upload-success"></span>
+                  </div>
+                </div>
+
+                <!-- Payment Receipt (Optional) -->
+                <div class="p-6 bg-surface-container-low rounded-lg">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase mb-4 block">Payment Receipt (Optional)</label>
+                  <div class="space-y-4">
+                    <p class="text-sm text-secondary">
+                      If you have already made the payment, you can upload the receipt here.
+                      Otherwise, send it later to <a href="mailto:money_receipt@nat-test.ku.ac.bd" class="text-primary underline">money_receipt@nat-test.ku.ac.bd</a>
+                    </p>
+                    <div class="flex items-center gap-4">
+                      <label class="file-input-wrapper bg-white border-2 border-dashed border-surface-container-highest hover:border-primary rounded-lg px-6 py-4 cursor-pointer transition-all">
+                        <span class="material-symbols-outlined text-2xl text-secondary mr-2">upload</span>
+                        <span class="text-sm font-medium text-secondary">Choose Receipt (max 4MB, JPG/PNG/PDF)</span>
+                        <input accept="image/jpeg,image/png,application/pdf" id="payment_upload" type="file" />
+                      </label>
+                      <img alt="Payment receipt preview" class="file-preview" id="payment_upload-preview" />
+                    </div>
+                    <span class="field-error" id="payment_upload-error"></span>
+                    <span class="field-success" id="payment_upload-success"></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Navigation -->
+              <div class="flex justify-between pt-4">
+                <button onclick="RegistrationForm.previousStep()" class="text-primary font-semibold text-sm hover:underline underline-offset-8 transition-all flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm">arrow_back</span>
+                  Previous Step
+                </button>
+                <button onclick="RegistrationForm.submitForm()" class="bg-primary text-white px-10 py-4 rounded-lg font-bold text-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3">
+                  Submit Application
+                  <span class="material-symbols-outlined">check_circle</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- PBT Offline Registration Tab -->
+      <div id="tab-pbt-offline" class="tab-content">
+        <div class="accordion-content" id="offline-accordion">
+          <div class="bg-white p-10 lg:p-16 rounded-2xl">
+            <div class="space-y-8">
+              <div>
+                <h2 class="text-3xl font-bold text-primary mb-4">Offline Registration Process</h2>
+                <p class="text-secondary text-lg">
+                  Follow these steps to complete your registration offline:
+                </p>
+              </div>
+
+              <!-- Step 1 -->
+              <div class="flex gap-6">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">1</div>
+                <div class="flex-1">
+                  <h3 class="font-bold text-xl text-primary mb-2">Download and Fill the Application Form</h3>
+                  <p class="text-secondary mb-4">
+                    Download the offline application form and fill it out completely with accurate information.
+                  </p>
+                  <a href="resources/offline_application_formV3.pdf" download class="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all">
+                    <span class="material-symbols-outlined">download</span>
+                    Download Offline Form (PDF)
+                  </a>
+                </div>
+              </div>
+
+              <!-- Step 2 -->
+              <div class="flex gap-6">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">2</div>
+                <div class="flex-1">
+                  <h3 class="font-bold text-xl text-primary mb-2">Make the Payment</h3>
+                  <p class="text-secondary mb-4">
+                    Pay the application fee of <strong>BDT 4,000.00</strong> to the following bank account:
+                  </p>
+                  <div class="bg-surface-container-low p-6 rounded-lg space-y-2">
+                    <p><strong>Account Name:</strong> Test Site Director</p>
+                    <p><strong>Account Number:</strong> 0200025673722</p>
+                    <p><strong>Bank:</strong> Agrani Bank Plc.</p>
+                    <p><strong>Branch:</strong> Khulna University</p>
+                  </div>
+                  <div class="mt-4 p-4 bg-warning-container text-warning-dark rounded-lg text-sm">
+                    <p class="font-bold mb-1">Important Instructions:</p>
+                    <ul class="list-disc list-inside space-y-1">
+                      <li>Pay the exact fee amount</li>
+                      <li>Do not use online transfer or third-party transfers</li>
+                      <li>Keep your payment slip until the exam is over</li>
+                      <li>Deposited money cannot be refunded</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 3 -->
+              <div class="flex gap-6">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">3</div>
+                <div class="flex-1">
+                  <h3 class="font-bold text-xl text-primary mb-2">Prepare Required Documents</h3>
+                  <p class="text-secondary mb-4">Gather the following documents:</p>
+                  <ul class="list-disc list-inside space-y-2 text-secondary">
+                    <li>Two passport-size photographs (recent, plain background)</li>
+                    <li>Copy of ID card (Passport or National ID)</li>
+                    <li>Payment receipt/deposit slip</li>
+                    <li>Completed application form</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Step 4 -->
+              <div class="flex gap-6">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">4</div>
+                <div class="flex-1">
+                  <h3 class="font-bold text-xl text-primary mb-2">Send Documents via Email</h3>
+                  <p class="text-secondary mb-4">
+                    Send all documents as attachments to:
+                  </p>
+                  <a href="mailto:offline_registration@nat-test.ku.ac.bd" class="text-primary font-bold text-lg underline">
+                    offline_registration@nat-test.ku.ac.bd
+                  </a>
+                  <p class="text-sm text-secondary mt-2">
+                    Include your full name and ID number in the email subject line
+                  </p>
+                </div>
+              </div>
+
+              <!-- Step 5 -->
+              <div class="flex gap-6">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">5</div>
+                <div class="flex-1">
+                  <h3 class="font-bold text-xl text-primary mb-2">Receive Confirmation Email</h3>
+                  <p class="text-secondary">
+                    You will receive a confirmation email within 24-48 hours after we receive your application.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Step 6 -->
+              <div class="flex gap-6">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">6</div>
+                <div class="flex-1">
+                  <h3 class="font-bold text-xl text-primary mb-2">Receive Admission Ticket</h3>
+                  <p class="text-secondary">
+                    After your application is reviewed and approved, you will receive your admission ticket via email.
+                  </p>
+                </div>
+              </div>
+
+              <div class="pt-6 border-t border-surface-container-highest">
+                <p class="text-sm text-secondary">
+                  Questions? Contact us at <a href="mailto:info@nat-test.ku.ac.bd" class="text-primary underline">info@nat-test.ku.ac.bd</a>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="relative overflow-hidden rounded-xl aspect-video">
-          <img
-            alt="Academic Building"
-            class="absolute inset-0 w-full h-full object-cover"
-            src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop"
-          />
-          <div class="absolute inset-0 bg-primary/20 flex items-end p-8">
-            <p class="text-white text-lg italic">"Excellence is not an act, but a habit."</p>
+      </div>
+
+      <!-- CBT Registration Tab -->
+      <div id="tab-cbt" class="tab-content">
+        <div class="bg-white p-10 lg:p-16 rounded-2xl text-center">
+          <div class="max-w-2xl mx-auto space-y-8">
+            <div class="text-6xl">🚀</div>
+            <h2 class="text-4xl font-bold text-primary mb-4">CBT Registration Coming Soon</h2>
+            <p class="text-lg text-secondary mb-8">
+              Computer-Based Testing (CBT) registration will open soon. Get notified when it launches!
+            </p>
+
+            <div class="bg-surface-container-low p-8 rounded-xl">
+              <h3 class="font-bold text-xl text-primary mb-4">What is CBT?</h3>
+              <p class="text-secondary mb-6">
+                Computer-Based Testing offers a modern, flexible examination experience with faster results and convenient scheduling options.
+              </p>
+              <ul class="text-left space-y-3 text-secondary max-w-md mx-auto">
+                <li class="flex items-start gap-3">
+                  <span class="material-symbols-outlined text-primary">check_circle</span>
+                  <span>Flexible scheduling options</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="material-symbols-outlined text-primary">check_circle</span>
+                  <span>Faster result processing</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="material-symbols-outlined text-primary">check_circle</span>
+                  <span>Modern testing environment</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="space-y-4">
+              <h3 class="font-bold text-lg text-primary">Get Notified When CBT Launches</h3>
+              <form class="flex gap-4 max-w-md mx-auto" onsubmit="alert('Thank you! We will notify you when CBT registration opens.'); return false;">
+                <input class="flex-1 ghost-input py-3 px-4 border border-surface-container-highest rounded-lg" placeholder="Enter your email" required type="email" />
+                <button type="submit" class="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-all">
+                  Notify Me
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
     </section>
   </main>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay" id="success-modal">
+    <div class="modal-content">
+      <!-- Content will be populated by JavaScript -->
+    </div>
+  </div>
   <!-- Footer -->
   <footer class="bg-surface-container-low w-full py-12 px-8">
     <div class="grid grid-cols-1 md:grid-cols-2 items-center max-w-7xl mx-auto gap-8">
@@ -211,5 +573,72 @@
       </div>
     </div>
   </footer>
+
+  <script src="js/lib/dompurify.js"></script>
+  <script src="js/registration.js"></script>
+  <script>
+    // Initialize form event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      // Payment method change handler
+      const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
+      paymentMethods.forEach(method => {
+        method.addEventListener('change', function() {
+          const instructions = document.getElementById('payment-instructions');
+          if (this.value === 'online') {
+            const onlineHtml = `
+              <div class="bg-primary-container p-4 rounded-lg">
+                <p class="font-bold text-primary mb-2">Online Payment Instructions:</p>
+                <p class="text-sm">Click the link below to pay securely using our online payment gateway.</p>
+                <a href="#" class="inline-block mt-3 bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition-all">
+                  Proceed to Online Payment
+                </a>
+              </div>
+            `;
+            instructions.innerHTML = DOMPurify.sanitize(onlineHtml);
+            instructions.classList.remove('hidden');
+          } else if (this.value === 'offline') {
+            const offlineHtml = `
+              <div class="bg-primary-container p-4 rounded-lg">
+                <p class="font-bold text-primary mb-2">Bank Deposit Instructions:</p>
+                <ul class="text-sm space-y-1 mb-3">
+                  <li><strong>Account Name:</strong> Test Site Director</li>
+                  <li><strong>Account Number:</strong> 0200025673722</li>
+                  <li><strong>Bank:</strong> Agrani Bank Plc.</li>
+                  <li><strong>Branch:</strong> Khulna University</li>
+                </ul>
+                <p class="text-xs text-primary-dark">Important: Pay exact amount. Do not use online transfer. Keep payment slip until exam ends.</p>
+              </div>
+            `;
+            instructions.innerHTML = DOMPurify.sanitize(offlineHtml);
+            instructions.classList.remove('hidden');
+          }
+        });
+      });
+
+      // File input change handlers
+      const fileInputs = document.querySelectorAll('input[type="file"]');
+      fileInputs.forEach(input => {
+        input.addEventListener('change', function() {
+          const fieldId = this.id;
+          const file = this.files[0];
+          if (file) {
+            // Validate and show preview
+            let maxSize, allowedTypes;
+            if (fieldId === 'photo_upload') {
+              maxSize = RegistrationForm.CONFIG.MAX_PHOTO_SIZE;
+              allowedTypes = RegistrationForm.CONFIG.ALLOWED_PHOTO_TYPES;
+            } else if (fieldId === 'id_upload') {
+              maxSize = RegistrationForm.CONFIG.MAX_ID_SIZE;
+              allowedTypes = RegistrationForm.CONFIG.ALLOWED_ID_TYPES;
+            } else if (fieldId === 'payment_upload') {
+              maxSize = RegistrationForm.CONFIG.MAX_PAYMENT_SIZE;
+              allowedTypes = RegistrationForm.CONFIG.ALLOWED_PAYMENT_TYPES;
+            }
+            RegistrationForm.handleFileUpload(fieldId, file, maxSize, allowedTypes);
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>
