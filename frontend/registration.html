@@ -26,6 +26,13 @@
       box-shadow: none;
       border-bottom: 2px solid #002147;
     }
+    /* Ensure white text in checked payment method boxes */
+    input[name="payment_method"]:checked + div {
+      color: white !important;
+    }
+    input[name="payment_method"]:checked + div .material-symbols-outlined {
+      color: white !important;
+    }
   </style>
 </head>
 <body class="bg-surface font-sans text-[#191c1e] antialiased">
@@ -240,7 +247,7 @@
                     <input class="hidden peer" name="payment_method" type="radio" value="online" />
                     <div class="p-6 bg-surface-container-low rounded-lg peer-checked:bg-primary-container peer-checked:text-white transition-all group-hover:bg-surface-container-high">
                       <div class="flex items-center gap-3 mb-2">
-                        <span class="material-symbols-outlined">payment</span>
+                        <span class="material-symbols-outlined peer-checked:text-white">payment</span>
                         <p class="font-bold">Online Payment</p>
                       </div>
                       <p class="text-sm opacity-80">Pay securely using online payment gateway</p>
@@ -250,7 +257,7 @@
                     <input class="hidden peer" name="payment_method" type="radio" value="offline" />
                     <div class="p-6 bg-surface-container-low rounded-lg peer-checked:bg-primary-container peer-checked:text-white transition-all group-hover:bg-surface-container-high">
                       <div class="flex items-center gap-3 mb-2">
-                        <span class="material-symbols-outlined">account_balance</span>
+                        <span class="material-symbols-outlined peer-checked:text-white">account_balance</span>
                         <p class="font-bold">Bank Deposit</p>
                       </div>
                       <p class="text-sm opacity-80">Deposit directly to bank account</p>
