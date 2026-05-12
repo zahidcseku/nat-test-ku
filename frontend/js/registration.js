@@ -643,6 +643,64 @@ const RegistrationForm = (function() {
     }
   }
 
+  /**
+   * Handle payment method selection
+   */
+  function handlePaymentMethodChange() {
+    const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
+    const instructionsDiv = document.getElementById('payment-instructions');
+
+    paymentMethods.forEach(method => {
+      method.addEventListener('change', function() {
+        if (this.checked) {
+          instructionsDiv.classList.remove('hidden');
+
+          if (this.value === 'online') {
+            // Online Payment Instructions
+            instructionsDiv.className = 'mt-6 p-6 bg-primary-container rounded-lg text-white';
+            instructionsDiv.innerHTML = `
+              <h4 class="font-bold text-lg mb-3">Online Payment Instructions</h4>
+              <p class="mb-4">Click the link below to pay securely using our online payment gateway.</p>
+              <a href="#" class="inline-block bg-white text-primary px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all">
+                Proceed to Online Payment
+              </a>
+            `;
+          } else if (this.value === 'offline') {
+            // Bank Deposit Instructions
+            instructionsDiv.className = 'mt-6 p-6 bg-primary-container rounded-lg text-white';
+            instructionsDiv.innerHTML = `
+              <h4 class="font-bold text-lg mb-3">Bank Deposit Instructions</h4>
+              <div class="space-y-2">
+                <p><strong>Account Name:</strong> Test Site Director</p>
+                <p><strong>Account Number:</strong> 0200025673722</p>
+                <p><strong>Bank:</strong> Agrani Bank Plc.</p>
+                <p><strong>Branch:</strong> Khulna University</p>
+                <p class="mt-3 text-sm font-semibold">Important: Pay exact amount. Do not use online transfer. Keep payment slip until exam ends.</p>
+              </div>
+            `;
+          }
+        } else {
+          instructionsDiv.classList.add('hidden');
+        }
+      });
+    });
+  }
+
+  /**
+   * Initialize payment method listeners
+   */
+  function initPaymentMethodListeners() {
+    // Call when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', handlePaymentMethodChange);
+    } else {
+      handlePaymentMethodChange();
+    }
+  }
+
+  // Initialize payment method listeners
+  initPaymentMethodListeners();
+
   // Export public API
   return {
     CONFIG,
