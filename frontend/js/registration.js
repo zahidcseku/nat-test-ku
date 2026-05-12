@@ -664,7 +664,9 @@ const RegistrationForm = (function() {
     switchTab,
     toggleOffline,
     submitForm,
-    resetForm
+    resetForm,
+    validateAllSteps,
+    showSuccessMessage
   };
 
 })();
