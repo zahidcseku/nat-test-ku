@@ -138,6 +138,13 @@ function renderHeroCtaSecondary(content) {
   if (ctas.length > 1) {
     const cta = ctas[1]; // Second button
     cta.href = content.url;
+
+    // Open PDFs in a new tab
+    if (content.url && content.url.toLowerCase().endsWith('.pdf')) {
+      cta.setAttribute('target', '_blank');
+      cta.setAttribute('rel', 'noopener noreferrer');
+    }
+
     const span = cta.querySelector('span');
     if (span) span.textContent = content.label;
 
@@ -221,6 +228,12 @@ function renderResourceCard(content) {
 
       // Update link
       card.href = content.url;
+
+      // Open PDFs in a new tab
+      if (content.url && content.url.toLowerCase().endsWith('.pdf')) {
+        card.setAttribute('target', '_blank');
+        card.setAttribute('rel', 'noopener noreferrer');
+      }
 
       // Update icon
       const iconEl = card.querySelector('.material-symbols-outlined');

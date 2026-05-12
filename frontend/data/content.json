@@ -49,8 +49,8 @@
       "display_order": 5,
       "is_active": true,
       "content": {
-        "label": "Download Prospectus",
-        "url": "#",
+        "label": "Download Pamphlet",
+        "url": "/resources/test_pamphlet_2026.pdf",
         "icon": "download"
       }
     },
