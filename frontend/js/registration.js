@@ -291,6 +291,108 @@ const RegistrationForm = (function() {
     return isValid;
   }
 
+  /**
+   * Handle file upload with validation
+   */
+  function handleFileUpload(fieldId, file, maxSize, allowedTypes) {
+    const validation = validateFile(file, maxSize, allowedTypes);
+
+    if (!validation.valid) {
+      showError(fieldId, validation.error);
+      return false;
+    }
+
+    // Show file info
+    showSuccess(fieldId, `✓ ${file.name} (${formatFileSize(file.size)})`);
+
+    // Show preview if it's an image
+    if (file.type.startsWith('image/')) {
+      const preview = document.getElementById(`${fieldId}-preview`);
+      if (preview) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.classList.add('show');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Validate Step 3: Document Uploads
+   */
+  function validateStep3() {
+    let isValid = true;
+
+    // Student Photo (required)
+    const photoInput = document.getElementById('photo_upload');
+    const photoFile = photoInput ? photoInput.files[0] : null;
+
+    if (!photoFile) {
+      showError('photo_upload', 'Please upload your photo (max 2MB, JPG or PNG)');
+      isValid = false;
+    } else {
+      const photoValid = handleFileUpload(
+        'photo_upload',
+        photoFile,
+        CONFIG.MAX_PHOTO_SIZE,
+        CONFIG.ALLOWED_PHOTO_TYPES
+      );
+      if (!photoValid) {
+        isValid = false;
+      }
+    }
+
+    // Government ID (required)
+    const idInput = document.getElementById('id_upload');
+    const idFile = idInput ? idInput.files[0] : null;
+
+    if (!idFile) {
+      showError('id_upload', 'Please upload your government ID (max 4MB, JPG, PNG, or PDF)');
+      isValid = false;
+    } else {
+      const idValid = handleFileUpload(
+        'id_upload',
+        idFile,
+        CONFIG.MAX_ID_SIZE,
+        CONFIG.ALLOWED_ID_TYPES
+      );
+      if (!idValid) {
+        isValid = false;
+      }
+    }
+
+    // Payment Receipt (optional)
+    const paymentInput = document.getElementById('payment_upload');
+    const paymentFile = paymentInput ? paymentInput.files[0] : null;
+
+    if (paymentFile) {
+      const paymentValid = handleFileUpload(
+        'payment_upload',
+        paymentFile,
+        CONFIG.MAX_PAYMENT_SIZE,
+        CONFIG.ALLOWED_PAYMENT_TYPES
+      );
+      if (!paymentValid) {
+        isValid = false;
+      }
+    }
+
+    // Store valid data
+    if (isValid) {
+      formData.step3 = {
+        photo_file: photoFile,
+        id_file: idFile,
+        payment_receipt_file: paymentFile || null
+      };
+    }
+
+    return isValid;
+  }
+
   // Export public API
   return {
     CONFIG,
@@ -302,7 +404,9 @@ const RegistrationForm = (function() {
     showSuccess,
     clearFieldValidation,
     validateStep1,
-    validateStep2
+    validateStep2,
+    handleFileUpload,
+    validateStep3
   };
 
 })();
