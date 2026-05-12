@@ -235,18 +235,6 @@ const RegistrationForm = (function() {
       showSuccess('nationality', '✓');
     }
 
-    // National ID / Passport Number
-    const idNumber = document.getElementById('id_number').value.trim();
-    if (!idNumber) {
-      showError('id_number', 'Please enter your National ID or Passport number');
-      isValid = false;
-    } else if (idNumber.length < 5) {
-      showError('id_number', 'ID number must be at least 5 characters');
-      isValid = false;
-    } else {
-      showSuccess('id_number', '✓');
-    }
-
     // Payment Method
     const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
     if (!paymentMethod) {
@@ -266,7 +254,6 @@ const RegistrationForm = (function() {
         dob: dob,
         gender: gender,
         nationality: nationality,
-        id_number: idNumber,
         payment_method: paymentMethod ? paymentMethod.value : null
       };
     }
