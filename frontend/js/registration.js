@@ -675,12 +675,12 @@ const RegistrationForm = (function() {
             instructionsDiv.className = 'mt-6 p-6 bg-primary-container rounded-lg text-white';
             instructionsDiv.innerHTML = `
               <h4 class="font-bold text-lg mb-3 text-white">Bank Deposit Instructions</h4>
-              <div class="space-y-2">
-                <p><strong>Account Name:</strong> Test Site Director</p>
-                <p><strong>Account Number:</strong> 0200025673722</p>
-                <p><strong>Bank:</strong> Agrani Bank Plc.</p>
-                <p><strong>Branch:</strong> Khulna University</p>
-                <p class="mt-3 text-sm font-semibold">Important: Pay exact amount. Do not use online transfer. Keep payment slip until exam ends.</p>
+              <div class="space-y-2 text-white">
+                <p class="text-white"><strong class="text-white">Account Name:</strong> Test Site Director</p>
+                <p class="text-white"><strong class="text-white">Account Number:</strong> 0200025673722</p>
+                <p class="text-white"><strong class="text-white">Bank:</strong> Agrani Bank Plc.</p>
+                <p class="text-white"><strong class="text-white">Branch:</strong> Khulna University</p>
+                <p class="mt-3 text-sm font-semibold text-white">Important: Pay exact amount. Do not use online transfer. Keep payment slip until exam ends.</p>
               </div>
             `;
           }
