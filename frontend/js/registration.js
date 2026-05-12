@@ -184,21 +184,19 @@ const RegistrationForm = (function() {
     }
 
     // Date of Birth
-    const dob = document.getElementById('dob').value;
+    const dob = document.getElementById('dob').value.trim();
     if (!dob) {
       showError('dob', 'Please enter your date of birth');
       isValid = false;
     } else {
-      // Convert YYYY-MM-DD to YYYY/MM/DD for validation
-      const dobFormatted = dob.replace(/-/g, '/');
+      // Validate YYYY/MM/DD format
       const dobRegex = /^\d{4}\/\d{2}\/\d{2}$/;
-
-      if (!dobRegex.test(dobFormatted)) {
-        showError('dob', 'Please enter date in YYYY/MM/DD format');
+      if (!dobRegex.test(dob)) {
+        showError('dob', 'Please enter date in YYYY/MM/DD format (e.g., 1990/01/15)');
         isValid = false;
       } else {
         // Parse and validate the date
-        const [year, month, day] = dobFormatted.split('/').map(Number);
+        const [year, month, day] = dob.split('/').map(Number);
         const dobDate = new Date(year, month - 1, day);
         const today = new Date();
 
@@ -705,6 +703,36 @@ const RegistrationForm = (function() {
 
   // Initialize payment method listeners
   initPaymentMethodListeners();
+
+  /**
+   * Auto-format date input as YYYY/MM/DD
+   */
+  function initDateInputFormatter() {
+    const dobInput = document.getElementById('dob');
+    if (!dobInput) return;
+
+    dobInput.addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, ''); // Remove all non-digits
+
+      // Limit to 8 digits (YYYYMMDD)
+      if (value.length > 8) {
+        value = value.slice(0, 8);
+      }
+
+      // Add slashes automatically
+      if (value.length >= 4) {
+        value = value.slice(0, 4) + '/' + value.slice(4);
+      }
+      if (value.length >= 7) {
+        value = value.slice(0, 7) + '/' + value.slice(7);
+      }
+
+      e.target.value = value;
+    });
+  }
+
+  // Initialize date input formatter
+  initDateInputFormatter();
 
   // Export public API
   return {
