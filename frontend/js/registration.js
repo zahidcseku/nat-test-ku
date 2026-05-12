@@ -564,30 +564,87 @@ const RegistrationForm = (function() {
       return false;
     }
 
-    // Collect all form data
-    const submissionData = {
-      ...formData.step1,
-      ...formData.step2,
-      ...formData.step3,
-      photo_filename: formData.step4.photo_file.name,
-      id_filename: formData.step4.id_file.name,
-      payment_receipt_filename: formData.step4.payment_receipt_file ?
-        formData.step4.payment_receipt_file.name : null,
-      submitted_at: new Date().toISOString()
-    };
+    // Show loading state
+    const submitBtn = document.querySelector('.submit-btn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+    }
 
-    // Log to console (for development - remove in production)
-    console.log('Form submitted with data:', submissionData);
+    // Prepare FormData for multipart/form-data upload
+    const formDataToSend = new FormData();
 
-    // Show success message
-    showSuccessMessage(submissionData);
+    // Add step 1 data (Personal Information)
+    formDataToSend.append('full_name', formData.step1.full_name);
+    formDataToSend.append('email', formData.step1.email);
+    formDataToSend.append('mobile', formData.step1.mobile);
+    formDataToSend.append('address', formData.step1.address);
+    formDataToSend.append('dob', formData.step1.dob);
+    formDataToSend.append('gender', formData.step1.gender);
+    formDataToSend.append('nationality', formData.step1.nationality);
 
-    // Reset form after delay
-    setTimeout(() => {
-      resetForm();
-    }, 5000);
+    // Add step 2 data (Payment Method)
+    formDataToSend.append('payment_method', formData.step2.payment_method);
 
-    return true;
+    // Add step 3 data (Exam Details)
+    formDataToSend.append('exam_level', formData.step3.exam_level);
+    formDataToSend.append('test_date', formData.step3.test_date);
+
+    // Add step 4 files (Document Uploads)
+    formDataToSend.append('photo', formData.step4.photo_file);
+    formDataToSend.append('id_document', formData.step4.id_file);
+    if (formData.step4.payment_receipt_file) {
+      formDataToSend.append('payment_receipt', formData.step4.payment_receipt_file);
+    }
+
+    // Add honeypot field (should be empty)
+    formDataToSend.append('website', '');
+
+    // Send to intake service
+    const intakeUrl = '../intake/register.php'; // Adjust path as needed
+
+    fetch(intakeUrl, {
+      method: 'POST',
+      body: formDataToSend
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Collect submission data for success message
+        const submissionData = {
+          ...formData.step1,
+          ...formData.step2,
+          ...formData.step3,
+          id: data.data?.id,
+          submitted_at: new Date().toISOString()
+        };
+
+        // Show success message
+        showSuccessMessage(submissionData);
+
+        // Reset form after delay
+        setTimeout(() => {
+          resetForm();
+        }, 5000);
+      } else {
+        // Show error message
+        alert('Submission failed: ' + (data.error || 'Unknown error'));
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Application';
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Submission error:', error);
+      alert('Submission failed. Please try again or contact support.');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Application';
+      }
+    });
+
+    return false;
   }
 
   /**

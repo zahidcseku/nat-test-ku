@@ -1,0 +1,34 @@
+# Environment configuration
+.env
+
+# Log files
+logs/
+*.log
+
+# Uploaded files (these should be pulled by admin service, not committed)
+uploads/
+
+# Database dumps
+*.sql
+*.sqlite
+*.db
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# Temporary files
+*.tmp
+*.temp

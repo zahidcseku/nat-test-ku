@@ -1,0 +1,280 @@
+<?php
+/**
+ * NAT-TEST Intake Service - Input Validation
+ *
+ * Provides validation and sanitization functions for all input fields.
+ */
+
+// Prevent direct access
+if (!defined('INTAKE_SERVICE')) {
+    exit('Direct access not permitted');
+}
+
+/**
+ * Validate email address
+ */
+function validateEmail($email) {
+    $email = trim($email);
+    $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return [
+            'valid' => false,
+            'error' => 'Invalid email address format',
+            'sanitized' => ''
+        ];
+    }
+
+    // Additional check for reasonable length
+    if (strlen($email) > 255) {
+        return [
+            'valid' => false,
+            'error' => 'Email address too long',
+            'sanitized' => ''
+        ];
+    }
+
+    return [
+        'valid' => true,
+        'error' => null,
+        'sanitized' => $email
+    ];
+}
+
+/**
+ * Validate mobile phone number
+ * Accepts formats: +8801XXXXXXXXX, 01XXXXXXXXX
+ */
+function validateMobile($mobile) {
+    $mobile = trim($mobile);
+    $mobile = preg_replace('/[^0-9+]/', '', $mobile);
+
+    // Bangladesh mobile number format
+    if (preg_match('/^(\+880)?1[3-9]\d{8}$/', $mobile)) {
+        // Normalize to +880 format
+        if (strpos($mobile, '+') !== 0) {
+            $mobile = '+880' . $mobile;
+        }
+
+        return [
+            'valid' => true,
+            'error' => null,
+            'sanitized' => $mobile
+        ];
+    }
+
+    // International format (more lenient)
+    if (preg_match('/^\+[1-9]\d{1,14}$/', $mobile)) {
+        return [
+            'valid' => true,
+            'error' => null,
+            'sanitized' => $mobile
+        ];
+    }
+
+    return [
+        'valid' => false,
+        'error' => 'Invalid mobile number format. Use format: +8801XXXXXXXXX or 01XXXXXXXXX',
+        'sanitized' => ''
+    ];
+}
+
+/**
+ * Validate date in YYYY/MM/DD format
+ */
+function validateDate($dateString) {
+    $dateString = trim($dateString);
+
+    // Check format YYYY/MM/DD
+    if (!preg_match('/^\d{4}\/\d{2}\/\d{2}$/', $dateString)) {
+        return [
+            'valid' => false,
+            'error' => 'Date must be in YYYY/MM/DD format',
+            'sanitized' => ''
+        ];
+    }
+
+    // Parse and validate date
+    $parts = explode('/', $dateString);
+    $year = (int)$parts[0];
+    $month = (int)$parts[1];
+    $day = (int)$parts[2];
+
+    if (!checkdate($month, $day, $year)) {
+        return [
+            'valid' => false,
+            'error' => 'Invalid date',
+            'sanitized' => ''
+        ];
+    }
+
+    // Check reasonable date range (not in future, not before 1900)
+    $inputDate = strtotime("$year-$month-$day");
+    $minDate = strtotime('1900-01-01');
+    $maxDate = strtotime('+1 day'); // Allow today
+
+    if ($inputDate < $minDate || $inputDate > $maxDate) {
+        return [
+            'valid' => false,
+            'error' => 'Date out of valid range',
+            'sanitized' => ''
+        ];
+    }
+
+    // Convert to MySQL DATE format (YYYY-MM-DD)
+    $mysqlDate = sprintf('%04d-%02d-%02d', $year, $month, $day);
+
+    return [
+        'valid' => true,
+        'error' => null,
+        'sanitized' => $mysqlDate
+    ];
+}
+
+/**
+ * Validate required text field
+ */
+function validateRequired($field, $fieldName, $minLength = 1, $maxLength = 1000) {
+    $value = trim($field);
+
+    if (empty($value)) {
+        return [
+            'valid' => false,
+            'error' => "$fieldName is required",
+            'sanitized' => ''
+        ];
+    }
+
+    if (strlen($value) < $minLength) {
+        return [
+            'valid' => false,
+            'error' => "$fieldName must be at least $minLength characters",
+            'sanitized' => ''
+        ];
+    }
+
+    if (strlen($value) > $maxLength) {
+        return [
+            'valid' => false,
+            'error' => "$fieldName must not exceed $maxLength characters",
+            'sanitized' => ''
+        ];
+    }
+
+    // Prevent XSS
+    $sanitized = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+
+    return [
+        'valid' => true,
+        'error' => null,
+        'sanitized' => $sanitized
+    ];
+}
+
+/**
+ * Validate enum field
+ */
+function validateEnum($value, $fieldName, $allowedValues) {
+    $value = trim($value);
+
+    if (!in_array($value, $allowedValues, true)) {
+        return [
+            'valid' => false,
+            'error' => "$fieldName must be one of: " . implode(', ', $allowedValues),
+            'sanitized' => ''
+        ];
+    }
+
+    return [
+        'valid' => true,
+        'error' => null,
+        'sanitized' => $value
+    ];
+}
+
+/**
+ * Validate complete registration data
+ */
+function validateRegistrationData($data) {
+    $errors = [];
+    $sanitized = [];
+
+    // Step 1: Personal Information
+    $nameResult = validateRequired($data['full_name'] ?? '', 'Full name', 2, 255);
+    if (!$nameResult['valid']) {
+        $errors['full_name'] = $nameResult['error'];
+    } else {
+        $sanitized['full_name'] = $nameResult['sanitized'];
+    }
+
+    $emailResult = validateEmail($data['email'] ?? '');
+    if (!$emailResult['valid']) {
+        $errors['email'] = $emailResult['error'];
+    } else {
+        $sanitized['email'] = $emailResult['sanitized'];
+    }
+
+    $mobileResult = validateMobile($data['mobile'] ?? '');
+    if (!$mobileResult['valid']) {
+        $errors['mobile'] = $mobileResult['error'];
+    } else {
+        $sanitized['mobile'] = $mobileResult['sanitized'];
+    }
+
+    $addressResult = validateRequired($data['address'] ?? '', 'Address', 10, 1000);
+    if (!$addressResult['valid']) {
+        $errors['address'] = $addressResult['error'];
+    } else {
+        $sanitized['address'] = $addressResult['sanitized'];
+    }
+
+    $dobResult = validateDate($data['dob'] ?? '');
+    if (!$dobResult['valid']) {
+        $errors['dob'] = $dobResult['error'];
+    } else {
+        $sanitized['dob'] = $dobResult['sanitized'];
+    }
+
+    $genderResult = validateEnum($data['gender'] ?? '', 'Gender', ['male', 'female', 'other']);
+    if (!$genderResult['valid']) {
+        $errors['gender'] = $genderResult['error'];
+    } else {
+        $sanitized['gender'] = $genderResult['sanitized'];
+    }
+
+    $nationalityResult = validateRequired($data['nationality'] ?? '', 'Nationality', 2, 100);
+    if (!$nationalityResult['valid']) {
+        $errors['nationality'] = $nationalityResult['error'];
+    } else {
+        $sanitized['nationality'] = $nationalityResult['sanitized'];
+    }
+
+    // Step 2: Payment Method
+    $paymentResult = validateEnum($data['payment_method'] ?? '', 'Payment method', ['online', 'offline']);
+    if (!$paymentResult['valid']) {
+        $errors['payment_method'] = $paymentResult['error'];
+    } else {
+        $sanitized['payment_method'] = $paymentResult['sanitized'];
+    }
+
+    // Step 3: Exam Details
+    $examLevelResult = validateRequired($data['exam_level'] ?? '', 'Exam level', 1, 50);
+    if (!$examLevelResult['valid']) {
+        $errors['exam_level'] = $examLevelResult['error'];
+    } else {
+        $sanitized['exam_level'] = $examLevelResult['sanitized'];
+    }
+
+    $testDateResult = validateDate($data['test_date'] ?? '');
+    if (!$testDateResult['valid']) {
+        $errors['test_date'] = $testDateResult['error'];
+    } else {
+        $sanitized['test_date'] = $testDateResult['sanitized'];
+    }
+
+    return [
+        'valid' => empty($errors),
+        'errors' => $errors,
+        'data' => $sanitized
+    ];
+}
