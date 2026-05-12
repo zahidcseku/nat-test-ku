@@ -184,19 +184,21 @@ const RegistrationForm = (function() {
     }
 
     // Date of Birth
-    const dob = document.getElementById('dob').value.trim();
+    const dob = document.getElementById('dob').value;
     if (!dob) {
       showError('dob', 'Please enter your date of birth');
       isValid = false;
     } else {
-      // Validate YYYY/MM/DD format
+      // Convert YYYY-MM-DD to YYYY/MM/DD for validation
+      const dobFormatted = dob.replace(/-/g, '/');
       const dobRegex = /^\d{4}\/\d{2}\/\d{2}$/;
-      if (!dobRegex.test(dob)) {
+
+      if (!dobRegex.test(dobFormatted)) {
         showError('dob', 'Please enter date in YYYY/MM/DD format');
         isValid = false;
       } else {
         // Parse and validate the date
-        const [year, month, day] = dob.split('/').map(Number);
+        const [year, month, day] = dobFormatted.split('/').map(Number);
         const dobDate = new Date(year, month - 1, day);
         const today = new Date();
 
