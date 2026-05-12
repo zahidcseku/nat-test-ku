@@ -2631,10 +2631,10 @@ select.valid {
 
 .form-step.active {
   display: block;
-  animation: fadeIn 0.3s ease-in;
+  animation: fadeInSlideDown 0.3s ease-in;
 }
 
-@keyframes fadeIn {
+@keyframes fadeInSlideDown {
   from {
     opacity: 0;
     transform: translateY(-10px);
