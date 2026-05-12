@@ -659,7 +659,7 @@ const RegistrationForm = (function() {
             // Online Payment Instructions
             instructionsDiv.className = 'mt-6 p-6 bg-primary-container rounded-lg text-white';
             instructionsDiv.innerHTML = `
-              <h4 class="font-bold text-lg mb-3">Online Payment Instructions</h4>
+              <h4 class="font-bold text-lg mb-3 text-white">Online Payment Instructions</h4>
               <p class="mb-4">Click the link below to pay securely using our online payment gateway.</p>
               <a href="#" class="inline-block bg-white text-primary px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all">
                 Proceed to Online Payment
@@ -669,7 +669,7 @@ const RegistrationForm = (function() {
             // Bank Deposit Instructions
             instructionsDiv.className = 'mt-6 p-6 bg-primary-container rounded-lg text-white';
             instructionsDiv.innerHTML = `
-              <h4 class="font-bold text-lg mb-3">Bank Deposit Instructions</h4>
+              <h4 class="font-bold text-lg mb-3 text-white">Bank Deposit Instructions</h4>
               <div class="space-y-2">
                 <p><strong>Account Name:</strong> Test Site Director</p>
                 <p><strong>Account Number:</strong> 0200025673722</p>
