@@ -457,6 +457,45 @@ const RegistrationForm = (function() {
     }
   }
 
+  /**
+   * Switch between registration type tabs
+   */
+  function switchTab(tabName) {
+    // Hide all tab content
+    document.querySelectorAll('.tab-content').forEach(tab => {
+      tab.classList.remove('active');
+    });
+
+    // Remove active state from all tab buttons
+    document.querySelectorAll('[data-tab]').forEach(btn => {
+      btn.classList.remove('active', 'border-primary', 'text-primary');
+      btn.classList.add('border-transparent', 'text-secondary');
+    });
+
+    // Show selected tab content
+    const targetTab = document.getElementById(`tab-${tabName}`);
+    if (targetTab) {
+      targetTab.classList.add('active');
+    }
+
+    // Activate selected tab button
+    const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+    if (activeBtn) {
+      activeBtn.classList.remove('border-transparent', 'text-secondary');
+      activeBtn.classList.add('active', 'border-primary', 'text-primary');
+    }
+  }
+
+  /**
+   * Toggle offline process accordion
+   */
+  function toggleOffline() {
+    const accordion = document.getElementById('offline-accordion');
+    if (accordion) {
+      accordion.classList.toggle('open');
+    }
+  }
+
   // Export public API
   return {
     CONFIG,
@@ -474,7 +513,9 @@ const RegistrationForm = (function() {
     showStep,
     updateProgressTracker,
     nextStep,
-    previousStep
+    previousStep,
+    switchTab,
+    toggleOffline
   };
 
 })();
