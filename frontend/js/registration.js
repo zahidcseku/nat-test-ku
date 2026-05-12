@@ -256,6 +256,41 @@ const RegistrationForm = (function() {
     return isValid;
   }
 
+  /**
+   * Validate Step 2: Exam Details
+   */
+  function validateStep2() {
+    let isValid = true;
+
+    // Exam Level
+    const examLevel = document.getElementById('exam_level').value;
+    if (!examLevel) {
+      showError('exam_level', 'Please select your exam level');
+      isValid = false;
+    } else {
+      showSuccess('exam_level', '✓');
+    }
+
+    // Intended Test Date (PLACEHOLDER: will load from database)
+    const testDate = document.getElementById('test_date').value;
+    if (!testDate) {
+      showError('test_date', 'Please select your intended test date');
+      isValid = false;
+    } else {
+      showSuccess('test_date', '✓');
+    }
+
+    // Store valid data
+    if (isValid) {
+      formData.step2 = {
+        exam_level: examLevel,
+        test_date: testDate
+      };
+    }
+
+    return isValid;
+  }
+
   // Export public API
   return {
     CONFIG,
@@ -266,7 +301,8 @@ const RegistrationForm = (function() {
     showError,
     showSuccess,
     clearFieldValidation,
-    validateStep1
+    validateStep1,
+    validateStep2
   };
 
 })();
