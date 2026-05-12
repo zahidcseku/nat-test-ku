@@ -393,6 +393,70 @@ const RegistrationForm = (function() {
     return isValid;
   }
 
+  /**
+   * Show a specific form step
+   */
+  function showStep(stepNumber) {
+    // Hide all steps
+    document.querySelectorAll('.form-step').forEach(step => {
+      step.classList.remove('active');
+    });
+
+    // Show target step
+    const targetStep = document.getElementById(`step-${stepNumber}`);
+    if (targetStep) {
+      targetStep.classList.add('active');
+    }
+
+    // Update progress tracker
+    updateProgressTracker(stepNumber);
+
+    // Update current step
+    currentStep = stepNumber;
+  }
+
+  /**
+   * Update progress tracker visual state
+   */
+  function updateProgressTracker(activeStep) {
+    for (let i = 1; i <= 3; i++) {
+      const stepEl = document.querySelector(`[data-progress-step="${i}"]`);
+      if (!stepEl) continue;
+
+      stepEl.classList.remove('active', 'completed');
+
+      if (i < activeStep) {
+        stepEl.classList.add('completed');
+      } else if (i === activeStep) {
+        stepEl.classList.add('active');
+      }
+    }
+  }
+
+  /**
+   * Go to next step
+   */
+  function nextStep() {
+    if (currentStep === 1) {
+      if (validateStep1()) {
+        showStep(2);
+      }
+    } else if (currentStep === 2) {
+      if (validateStep2()) {
+        showStep(3);
+      }
+    }
+  }
+
+  /**
+   * Go to previous step
+   */
+  function previousStep() {
+    if (currentStep > 1) {
+      showStep(currentStep - 1);
+    }
+  }
+
   // Export public API
   return {
     CONFIG,
@@ -406,7 +470,10 @@ const RegistrationForm = (function() {
     validateStep1,
     validateStep2,
     handleFileUpload,
-    validateStep3
+    validateStep3,
+    showStep,
+    nextStep,
+    previousStep
   };
 
 })();
