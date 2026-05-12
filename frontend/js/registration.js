@@ -129,6 +129,133 @@ const RegistrationForm = (function() {
     }
   }
 
+  /**
+   * Validate Step 1: Personal Information & Payment Method
+   */
+  function validateStep1() {
+    let isValid = true;
+
+    // Full Name
+    const fullName = document.getElementById('full_name').value.trim();
+    if (!fullName) {
+      showError('full_name', 'Please enter your full name as it appears on your ID');
+      isValid = false;
+    } else if (fullName.length < 3) {
+      showError('full_name', 'Full name must be at least 3 characters');
+      isValid = false;
+    } else {
+      showSuccess('full_name', '✓');
+    }
+
+    // Email
+    const email = document.getElementById('email').value.trim();
+    if (!email) {
+      showError('email', 'Please enter your email address');
+      isValid = false;
+    } else if (!isValidEmail(email)) {
+      showError('email', 'Please enter a valid email address');
+      isValid = false;
+    } else {
+      showSuccess('email', '✓');
+    }
+
+    // Mobile Number
+    const mobile = document.getElementById('mobile').value.trim();
+    if (!mobile) {
+      showError('mobile', 'Please enter your mobile number');
+      isValid = false;
+    } else if (!isValidPhone(mobile)) {
+      showError('mobile', 'Please enter a valid Bangladeshi mobile number (e.g., 01712345678)');
+      isValid = false;
+    } else {
+      showSuccess('mobile', '✓');
+    }
+
+    // Address
+    const address = document.getElementById('address').value.trim();
+    if (!address) {
+      showError('address', 'Please enter your full address');
+      isValid = false;
+    } else if (address.length < 10) {
+      showError('address', 'Please enter a complete address (at least 10 characters)');
+      isValid = false;
+    } else {
+      showSuccess('address', '✓');
+    }
+
+    // Date of Birth
+    const dob = document.getElementById('dob').value;
+    if (!dob) {
+      showError('dob', 'Please enter your date of birth');
+      isValid = false;
+    } else {
+      const dobDate = new Date(dob);
+      const today = new Date();
+      if (dobDate > today) {
+        showError('dob', 'Date of birth cannot be in the future');
+        isValid = false;
+      } else {
+        showSuccess('dob', '✓');
+      }
+    }
+
+    // Gender
+    const gender = document.getElementById('gender').value;
+    if (!gender) {
+      showError('gender', 'Please select your gender');
+      isValid = false;
+    } else {
+      showSuccess('gender', '✓');
+    }
+
+    // Nationality
+    const nationality = document.getElementById('nationality').value.trim();
+    if (!nationality) {
+      showError('nationality', 'Please enter your nationality');
+      isValid = false;
+    } else {
+      showSuccess('nationality', '✓');
+    }
+
+    // National ID / Passport Number
+    const idNumber = document.getElementById('id_number').value.trim();
+    if (!idNumber) {
+      showError('id_number', 'Please enter your National ID or Passport number');
+      isValid = false;
+    } else if (idNumber.length < 5) {
+      showError('id_number', 'ID number must be at least 5 characters');
+      isValid = false;
+    } else {
+      showSuccess('id_number', '✓');
+    }
+
+    // Payment Method
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
+    if (!paymentMethod) {
+      showError('payment_method', 'Please select a payment method');
+      isValid = false;
+    } else {
+      showSuccess('payment_method', '✓');
+    }
+
+    // Store valid data
+    if (isValid) {
+      formData.step1 = {
+        full_name: fullName,
+        email: email,
+        mobile: mobile,
+        address: address,
+        dob: dob,
+        gender: gender,
+        nationality: nationality,
+        id_number: idNumber,
+        payment_method: paymentMethod ? paymentMethod.value : null
+      };
+    }
+
+    return isValid;
+  }
+
   // Export public API
   return {
     CONFIG,
@@ -138,7 +265,8 @@ const RegistrationForm = (function() {
     formatFileSize,
     showError,
     showSuccess,
-    clearFieldValidation
+    clearFieldValidation,
+    validateStep1
   };
 
 })();
