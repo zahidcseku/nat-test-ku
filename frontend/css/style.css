@@ -2561,11 +2561,17 @@ video {
   object-fit: cover;
   border-radius: 8px;
   margin-top: 8px;
-  display: none;
+  display: none !important;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .file-preview.show {
-  display: block;
+  display: block !important;
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Validation States */

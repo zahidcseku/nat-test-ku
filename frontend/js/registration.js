@@ -603,12 +603,35 @@ const RegistrationForm = (function() {
     // Send to intake service (intake is a subdirectory under frontend)
     const intakeUrl = 'intake/register.php';
 
+    // Log submission details for debugging
+    console.log('Submitting to:', intakeUrl);
+    console.log('Form data:', {
+      step1: formData.step1,
+      step2: formData.step2,
+      step3: formData.step3,
+      hasPhoto: !!formData.step4.photo_file,
+      hasId: !!formData.step4.id_file,
+      hasReceipt: !!formData.step4.payment_receipt_file
+    });
+
     fetch(intakeUrl, {
       method: 'POST',
       body: formDataToSend
     })
-    .then(response => response.json())
+    .then(response => {
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
+      // Check if response is ok
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return response.json();
+    })
     .then(data => {
+      console.log('Response data:', data);
+
       if (data.success) {
         // Collect submission data for success message
         const submissionData = {
@@ -627,8 +650,12 @@ const RegistrationForm = (function() {
           resetForm();
         }, 5000);
       } else {
-        // Show error message
-        alert('Submission failed: ' + (data.error || 'Unknown error'));
+        // Show error message with details
+        console.error('Submission failed:', data);
+        const errorMsg = data.error || 'Unknown error';
+        const debugInfo = data.debug ? `\n\nDebug info: ${JSON.stringify(data.debug, null, 2)}` : '';
+        alert('Submission failed: ' + errorMsg + debugInfo);
+
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.textContent = 'Submit Application';
@@ -637,11 +664,16 @@ const RegistrationForm = (function() {
     })
     .catch(error => {
       console.error('Submission error:', error);
-      alert('Submission failed. Please try again or contact support.');
+      console.error('Error stack:', error.stack);
+      alert('Submission failed: ' + error.message + '\n\nPlease check the browser console for more details.');
+
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit Application';
       }
+    })
+    .finally(() => {
+      console.log('Submission completed');
     });
 
     return false;

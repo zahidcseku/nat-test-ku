@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intake Service Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        button {
+            background: #1976d2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #1565c0;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Intake Service Test Page</h1>
+
+    <div class="test-section">
+        <h2>1. Test Service Health</h2>
+        <p>Check if the intake service is running and configured correctly.</p>
+        <button onclick="testHealth()">Test Health</button>
+        <pre id="health-result">Click button to test</pre>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test Database Connection</h2>
+        <p>Check if the service can connect to the database.</p>
+        <button onclick="testDatabase()">Test Database</button>
+        <pre id="db-result">Click button to test</pre>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Full Registration</h2>
+        <p>Submit a test registration with all fields (no file).</p>
+        <button onclick="testRegistration()">Test Registration</button>
+        <pre id="reg-result">Click button to test</pre>
+    </div>
+
+    <script>
+        const BASE_URL = 'intake/';
+
+        async function testHealth() {
+            const result = document.getElementById('health-result');
+            result.textContent = 'Testing...';
+
+            try {
+                const response = await fetch(BASE_URL + 'test.php');
+                const data = await response.json();
+
+                let output = '✓ Service is running!\n\n';
+                output += JSON.stringify(data, null, 2);
+                result.textContent = output;
+                result.className = 'success';
+            } catch (error) {
+                result.textContent = '✗ Test failed:\n' + error.message;
+                result.className = 'error';
+            }
+        }
+
+        async function testDatabase() {
+            const result = document.getElementById('db-result');
+            result.textContent = 'Testing...';
+
+            try {
+                const response = await fetch(BASE_URL + 'test.php');
+                const data = await response.json();
+
+                let output = '';
+                if (data.tests.database.connection) {
+                    output = '✓ Database connected!\n';
+                    output += 'Host: ' + data.tests.database.host + '\n';
+                    output += 'Database: ' + data.tests.database.database;
+                    result.className = 'success';
+                } else {
+                    output = '✗ Database connection failed';
+                    result.className = 'error';
+                }
+                result.textContent = output;
+            } catch (error) {
+                result.textContent = '✗ Test failed:\n' + error.message;
+                result.className = 'error';
+            }
+        }
+
+        async function testRegistration() {
+            const result = document.getElementById('reg-result');
+            result.textContent = 'Submitting...';
+            result.className = '';
+
+            const formData = new FormData();
+            formData.append('full_name', 'Test User');
+            formData.append('email', 'test@example.com');
+            formData.append('mobile', '+880171234567');
+            formData.append('address', 'Test Address');
+            formData.append('dob', '1990/01/01');
+            formData.append('gender', 'male');
+            formData.append('nationality', 'Bangladeshi');
+            formData.append('payment_method', 'offline');
+            formData.append('exam_level', 'N5');
+            formData.append('test_date', '2024/12/15');
+            formData.append('website', '');
+
+            try {
+                const response = await fetch(BASE_URL + 'register_debug.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                let output = '';
+                if (data.success) {
+                    output = '✓ Registration successful!\n\n';
+                    output += JSON.stringify(data, null, 2);
+                    result.className = 'success';
+                } else {
+                    output = '✗ Registration failed:\n\n';
+                    output += JSON.stringify(data, null, 2);
+                    result.className = 'error';
+                }
+                result.textContent = output;
+            } catch (error) {
+                result.textContent = '✗ Registration failed:\n' + error.message;
+                result.className = 'error';
+            }
+        }
+    </script>
+</body>
+</html>
