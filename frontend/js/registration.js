@@ -600,8 +600,8 @@ const RegistrationForm = (function() {
     // Add honeypot field (should be empty)
     formDataToSend.append('website', '');
 
-    // Send to intake service
-    const intakeUrl = '../intake/register.php'; // Adjust path as needed
+    // Send to intake service (intake is a subdirectory under frontend)
+    const intakeUrl = 'intake/register.php';
 
     fetch(intakeUrl, {
       method: 'POST',
