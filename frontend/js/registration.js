@@ -329,8 +329,29 @@ const RegistrationForm = (function() {
       if (preview) {
         const reader = new FileReader();
         reader.onload = function(e) {
+          // Set the source and show the preview
           preview.src = e.target.result;
-          preview.classList.add('show');
+
+          // Add error handling for image load
+          preview.onerror = function() {
+            console.error('Failed to load preview image for:', fieldId);
+            preview.style.display = 'none';
+          };
+
+          // Show the preview when image loads successfully
+          preview.onload = function() {
+            preview.classList.add('show');
+          };
+
+          // Fallback: show preview after a short timeout even if onload doesn't fire
+          setTimeout(function() {
+            if (preview.src && !preview.classList.contains('show')) {
+              preview.classList.add('show');
+            }
+          }, 100);
+        };
+        reader.onerror = function() {
+          console.error('Failed to read file:', fieldId);
         };
         reader.readAsDataURL(file);
       }
