@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  deploy-intake:
     runs-on: ubuntu-latest
 
     steps:
@@ -34,7 +34,7 @@ jobs:
           **/mockups/**
           **/tmp/**
           **/*.sh
-        local-dir: intake/
+        local-dir: frontend/intake/
         
 
     - name: Deployment summary
