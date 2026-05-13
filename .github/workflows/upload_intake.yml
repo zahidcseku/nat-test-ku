@@ -1,0 +1,51 @@
+name: Deploy Intake via FTP
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'intake/**'
+      - '.github/workflows/upload_intake.yml'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy Intake via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        server-dir: ${{ secrets.FTP_SERVER_DIR }}/intake/
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          **/.DS_Store
+          **/input.css
+          **/tailwind.config.js
+          **/mockups/**
+          **/tmp/**
+          **/*.sh
+        local-dir: intake/
+        
+
+    - name: Deployment summary
+      run: |
+        echo "## 🎉 Deployment Completed!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### ✅ Your intake has been deployed!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Server:** ${{ secrets.FTP_SERVER }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Directory:** ${{ secrets.FTP_SERVER_DIR }}/intake/" >> $GITHUB_STEP_SUMMARY
+        echo "- **Files:** HTML, CSS, images, data" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🌐 Check your website:" >> $GITHUB_STEP_SUMMARY
+        echo "Visit your website URL to see the changes!" >> $GITHUB_STEP_SUMMARY
