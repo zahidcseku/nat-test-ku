@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registration Successful | NAT-TEST Centre</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+</head>
+<body class="bg-surface font-sans text-[#191c1e] antialiased">
+  <!-- Top Navigation -->
+  <nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto flex justify-between items-center px-8 py-4">
+      <a href="index.html" class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
+          <img src="images/logo_transparent.png" alt="NAT-TEST Centre" class="h-16 w-auto">
+          <img src="images/ku-logo.png" alt="Khulna University" class="h-16 w-auto">
+        </div>
+        <div class="text-sm text-secondary leading-tight">
+          <p class="font-semibold">JAPANESE LANGUAGE NAT-TEST</p>
+          <p>Khulna Test Center (Center No: 476)</p>
+        </div>
+      </a>
+    </div>
+    <div class="bg-surface-container-low h-[1px] opacity-20"></div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="min-h-screen flex items-center justify-center px-8 pt-40 pb-24">
+    <div class="max-w-3xl mx-auto w-full">
+      <div class="bg-white p-10 lg:p-16 rounded-2xl shadow-lg">
+        <!-- Success Icon -->
+        <div class="text-center mb-8">
+          <div class="text-8xl mb-6">✅</div>
+          <h1 class="text-4xl font-bold text-primary mb-4">Registration Received Successfully!</h1>
+          <p class="text-lg text-secondary" id="thank-you-message">Thank you for your registration!</p>
+        </div>
+
+        <!-- Registration Details -->
+        <div class="bg-surface-container-low rounded-lg p-6 mb-6">
+          <h2 class="font-bold text-primary mb-4 text-xl">Your Application Details</h2>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center border-b border-surface-container-highest pb-2">
+              <span class="text-secondary font-medium">Full Name</span>
+              <span class="font-semibold text-primary" id="display-full-name">-</span>
+            </div>
+            <div class="flex justify-between items-center border-b border-surface-container-highest pb-2">
+              <span class="text-secondary font-medium">Email Address</span>
+              <span class="font-semibold text-primary" id="display-email">-</span>
+            </div>
+            <div class="flex justify-between items-center border-b border-surface-container-highest pb-2">
+              <span class="text-secondary font-medium">Exam Level</span>
+              <span class="font-semibold text-primary" id="display-exam-level">-</span>
+            </div>
+            <div class="flex justify-between items-center border-b border-surface-container-highest pb-2">
+              <span class="text-secondary font-medium">Test Date</span>
+              <span class="font-semibold text-primary" id="display-test-date">-</span>
+            </div>
+            <div class="flex justify-between items-center border-b border-surface-container-highest pb-2">
+              <span class="text-secondary font-medium">Payment Method</span>
+              <span class="font-semibold text-primary" id="display-payment-method">-</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-secondary font-medium">Registration ID</span>
+              <span class="font-semibold text-accent" id="display-registration-id">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="bg-primary-container text-primary-dark rounded-lg p-6 mb-6">
+          <h2 class="font-bold text-primary mb-4 text-xl">What Happens Next?</h2>
+          <ol class="space-y-3 list-decimal list-inside">
+            <li class="flex items-start gap-3">
+              <span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">1</span>
+              <span>You'll receive a confirmation email at <strong id="confirm-email">your email</strong> within 24 hours</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">2</span>
+              <span>We'll review your application and documents</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">3</span>
+              <span>You'll receive an approval email or request for corrections</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">4</span>
+              <span>Your admission ticket will be sent via email before the exam</span>
+            </li>
+          </ol>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="text-center mb-8">
+          <p class="text-secondary mb-4">
+            Questions? Contact us at: <a href="mailto:info@nat-test.ku.ac.bd" class="text-primary font-semibold underline">info@nat-test.ku.ac.bd</a>
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="index.html" class="bg-surface-container-high text-primary px-8 py-4 rounded-lg font-semibold hover:bg-surface-container-highest transition-all text-center">
+            <span class="flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined">home</span>
+              Return to Homepage
+            </span>
+          </a>
+          <a href="registration.html" class="bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:opacity-90 transition-all text-center">
+            <span class="flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined">person_add</span>
+              Register Another Candidate
+            </span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white w-full py-12 px-8">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row gap-8 items-start justify-between" style="display: flex; flex-direction: row; flex-wrap: wrap;">
+        <!-- Left: Brand & Copyright -->
+        <div class="flex-shrink-0 space-y-2" style="flex: 1; min-width: 250px;">
+          <div class="font-bold text-primary text-xl">
+            NAT-TEST Center Khulna<br>
+            <a href="https://www.ku.ac.bd" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Khulna University</a>
+          </div>
+          <p class="text-sm leading-relaxed text-secondary">
+            © 2026 NAT-Test Khulna Center (no: 476). Pursuing Academic Excellence.
+          </p>
+        </div>
+
+        <!-- Center: Email Subscription -->
+        <div class="flex-shrink-0 space-y-0" style="flex: 1; min-width: 250px; margin-left: 10%;">
+          <h3 class="font-bold text-base text-primary mb-1">Subscribe for updates</h3>
+          <div class="min-h-[60px] bg-white rounded-lg p-1">
+            <script async data-uid="f60b199b8f" src="https://nat-test-ku.kit.com/f60b199b8f/index.js"></script>
+          </div>
+        </div>
+
+        <!-- Right: Social Media Links -->
+        <div class="flex-shrink-0 flex flex-col items-end gap-3" style="flex: 1; min-width: 250px;">
+          <h3 class="font-bold text-base text-primary">Follow Us</h3>
+          <div class="flex items-center gap-4">
+            <a href="https://www.facebook.com/nihongonattest/" target="_blank" rel="noopener noreferrer" class="hover:opacity-80 transition-opacity" aria-label="Facebook">
+              <svg class="w-8 h-8" viewBox="0 0 24 24" fill="#1877F2">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+            </a>
+            <a href="https://www.youtube.com/channel/UCaFpVcqdSi6IKzA9BRCUpsQ" target="_blank" rel="noopener noreferrer" class="hover:opacity-80 transition-opacity" aria-label="YouTube">
+              <svg class="w-8 h-8" viewBox="0 0 24 24" fill="#FF0000">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/lib/dompurify.js"></script>
+  <script>
+    // Parse URL parameters
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        full_name: params.get('full_name'),
+        email: params.get('email'),
+        exam_level: params.get('exam_level'),
+        test_date: params.get('test_date'),
+        payment_method: params.get('payment_method'),
+        id: params.get('id')
+      };
+    }
+
+    // Populate page with registration data
+    document.addEventListener('DOMContentLoaded', function() {
+      const data = getUrlParams();
+
+      // Sanitize and populate fields
+      if (data.full_name) {
+        document.getElementById('display-full-name').textContent = DOMPurify.sanitize(data.full_name);
+        document.getElementById('thank-you-message').textContent = `Thank you, ${DOMPurify.sanitize(data.full_name)}!`;
+      }
+
+      if (data.email) {
+        document.getElementById('display-email').textContent = DOMPurify.sanitize(data.email);
+        document.getElementById('confirm-email').textContent = DOMPurify.sanitize(data.email);
+      }
+
+      if (data.exam_level) {
+        document.getElementById('display-exam-level').textContent = DOMPurify.sanitize(data.exam_level);
+      }
+
+      if (data.test_date) {
+        document.getElementById('display-test-date').textContent = DOMPurify.sanitize(data.test_date);
+      }
+
+      if (data.payment_method) {
+        const paymentText = data.payment_method === 'online' ? 'Online Payment' : 'Bank Deposit';
+        document.getElementById('display-payment-method').textContent = paymentText;
+      }
+
+      if (data.id) {
+        document.getElementById('display-registration-id').textContent = DOMPurify.sanitize(data.id);
+      }
+    });
+  </script>
+</body>
+</html>

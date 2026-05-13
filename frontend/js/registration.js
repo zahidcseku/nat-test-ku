@@ -695,13 +695,22 @@ const RegistrationForm = (function() {
 
         console.log('✅ Registration verified with ID:', responseData.id);
 
-        // Show success message
-        showSuccessMessage(submissionData);
+        // Redirect to success page with registration data
+        const successUrl = new URL('registration-success.html', window.location.origin);
+        successUrl.searchParams.set('full_name', submissionData.full_name);
+        successUrl.searchParams.set('email', submissionData.email);
+        successUrl.searchParams.set('exam_level', submissionData.exam_level);
+        successUrl.searchParams.set('test_date', submissionData.test_date);
+        successUrl.searchParams.set('payment_method', submissionData.payment_method);
+        successUrl.searchParams.set('id', submissionData.id);
 
-        // Reset form after delay
+        // Redirect to success page
+        window.location.href = successUrl.toString();
+
+        // Reset form after redirect
         setTimeout(() => {
           resetForm();
-        }, 5000);
+        }, 1000);
       } else {
         // Show error message with details
         console.error('Submission failed:', data);
