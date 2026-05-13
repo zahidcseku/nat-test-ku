@@ -557,12 +557,22 @@ const RegistrationForm = (function() {
   /**
    * Submit the form (mock submission)
    */
-  function submitForm() {
+  function submitForm(event) {
+    console.log('submitForm called');
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    console.log('Current formData:', formData);
+
     // Validate all steps
     if (!validateAllSteps()) {
+      console.log('Validation failed');
       alert('Please correct the errors before submitting');
       return false;
     }
+
+    console.log('Validation passed');
 
     // Show loading state
     const submitBtn = document.querySelector('.submit-btn');
@@ -579,7 +589,9 @@ const RegistrationForm = (function() {
     formDataToSend.append('email', formData.step1.email);
     formDataToSend.append('mobile', formData.step1.mobile);
     formDataToSend.append('address', formData.step1.address);
-    formDataToSend.append('dob', formData.step1.dob);
+    // Convert date from YYYY-MM-DD to YYYY/MM/DD for backend
+    const dobFormatted = formData.step1.dob.replace(/-/g, '/');
+    formDataToSend.append('dob', dobFormatted);
     formDataToSend.append('gender', formData.step1.gender);
     formDataToSend.append('nationality', formData.step1.nationality);
 
@@ -588,7 +600,9 @@ const RegistrationForm = (function() {
 
     // Add step 3 data (Exam Details)
     formDataToSend.append('exam_level', formData.step3.exam_level);
-    formDataToSend.append('test_date', formData.step3.test_date);
+    // Convert date from YYYY-MM-DD to YYYY/MM/DD for backend
+    const testDateFormatted = formData.step3.test_date.replace(/-/g, '/');
+    formDataToSend.append('test_date', testDateFormatted);
 
     // Add step 4 files (Document Uploads)
     formDataToSend.append('photo', formData.step4.photo_file);
@@ -598,7 +612,8 @@ const RegistrationForm = (function() {
     }
 
     // Add honeypot field (should be empty)
-    formDataToSend.append('website', '');
+    // Use single space to avoid ModSecurity empty string validation issues
+    formDataToSend.append('website', ' ');
 
     // Send to intake service (intake is a subdirectory under frontend)
     const intakeUrl = 'intake/register.php';
@@ -633,14 +648,31 @@ const RegistrationForm = (function() {
       console.log('Response data:', data);
 
       if (data.success) {
+        // Verify response contains expected data before showing success
+        if (!data.data || !data.data.id) {
+          console.error('Invalid response: Missing registration ID', data);
+          alert('Registration completed but could not verify submission. Please contact support to confirm your registration.');
+          return;
+        }
+
+        // Verify the response contains expected fields
+        const responseData = data.data;
+        if (!responseData.id || !responseData.email || !responseData.exam_level) {
+          console.error('Invalid response: Missing required fields', data);
+          alert('Registration data incomplete. Please contact support to verify your submission.');
+          return;
+        }
+
         // Collect submission data for success message
         const submissionData = {
           ...formData.step1,
           ...formData.step2,
           ...formData.step3,
-          id: data.data?.id,
+          id: responseData.id,
           submitted_at: new Date().toISOString()
         };
+
+        console.log('✅ Registration verified with ID:', responseData.id);
 
         // Show success message
         showSuccessMessage(submissionData);
@@ -655,11 +687,6 @@ const RegistrationForm = (function() {
         const errorMsg = data.error || 'Unknown error';
         const debugInfo = data.debug ? `\n\nDebug info: ${JSON.stringify(data.debug, null, 2)}` : '';
         alert('Submission failed: ' + errorMsg + debugInfo);
-
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Submit Application';
-        }
       }
     })
     .catch(error => {
@@ -667,10 +694,6 @@ const RegistrationForm = (function() {
       console.error('Error stack:', error.stack);
       alert('Submission failed: ' + error.message + '\n\nPlease check the browser console for more details.');
 
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit Application';
-      }
     })
     .finally(() => {
       console.log('Submission completed');
@@ -780,64 +803,6 @@ const RegistrationForm = (function() {
       modal.classList.remove('show');
     }
   }
-
-  /**
-   * Handle payment method selection
-   */
-  function handlePaymentMethodChange() {
-    const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
-    const instructionsDiv = document.getElementById('payment-instructions');
-
-    paymentMethods.forEach(method => {
-      method.addEventListener('change', function() {
-        if (this.checked) {
-          instructionsDiv.classList.remove('hidden');
-
-          if (this.value === 'online') {
-            // Online Payment Instructions
-            instructionsDiv.className = 'mt-6 p-6 bg-primary-container rounded-lg text-white';
-            instructionsDiv.innerHTML = `
-              <h4 class="font-bold text-lg mb-3 text-white">Online Payment Instructions</h4>
-              <p class="mb-4">Click the link below to pay securely using our online payment gateway.</p>
-              <a href="#" class="inline-block bg-white text-primary px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all">
-                Proceed to Online Payment
-              </a>
-            `;
-          } else if (this.value === 'offline') {
-            // Bank Deposit Instructions
-            instructionsDiv.className = 'mt-6 p-6 bg-primary-container rounded-lg text-white';
-            instructionsDiv.innerHTML = `
-              <h4 class="font-bold text-lg mb-3 text-white">Bank Deposit Instructions</h4>
-              <div class="space-y-2 text-white">
-                <p class="text-white"><strong class="text-white">Account Name:</strong> Test Site Director</p>
-                <p class="text-white"><strong class="text-white">Account Number:</strong> 0200025673722</p>
-                <p class="text-white"><strong class="text-white">Bank:</strong> Agrani Bank Plc.</p>
-                <p class="text-white"><strong class="text-white">Branch:</strong> Khulna University</p>
-                <p class="mt-3 text-sm font-semibold text-white">Important: Pay exact amount. Do not use online transfer. Keep payment slip until exam ends.</p>
-              </div>
-            `;
-          }
-        } else {
-          instructionsDiv.classList.add('hidden');
-        }
-      });
-    });
-  }
-
-  /**
-   * Initialize payment method listeners
-   */
-  function initPaymentMethodListeners() {
-    // Call when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', handlePaymentMethodChange);
-    } else {
-      handlePaymentMethodChange();
-    }
-  }
-
-  // Initialize payment method listeners
-  initPaymentMethodListeners();
 
   // Export public API
   return {

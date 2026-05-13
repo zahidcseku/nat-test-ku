@@ -80,12 +80,38 @@ chmod 755 uploads/receipts/
 chmod 755 logs/
 ```
 
-### 5. Test the Endpoint
+### 5. Configure Frontend Path
+
+Update the intake service URL in the frontend to match your directory structure:
+
+**Open:** `frontend/js/registration.js` (around line 604)
+
+**If intake is a subdirectory under frontend:**
+```javascript
+const intakeUrl = 'intake/register.php';
+```
+
+**If intake is at the same level as frontend:**
+```javascript
+const intakeUrl = '../intake/register.php';
+```
+
+**If intake is at the root level:**
+```javascript
+const intakeUrl = '/intake/register.php';
+```
+
+**If intake is on a different domain:**
+```javascript
+const intakeUrl = 'https://your-intake-domain.com/intake/register.php';
+```
+
+### 6. Test the Endpoint
 
 Send a test POST request to verify installation:
 
 ```bash
-curl -X POST https://your-domain.com/intake/register.php \
+curl -X POST https://your-domain.com/frontend/intake/register.php \
   -F "full_name=Test User" \
   -F "email=test@example.com" \
   -F "mobile=+880171234567" \
@@ -139,6 +165,10 @@ intake/
     ├── php_errors.log
     └── activity.log
 ```
+
+**Note:** When deployed, the `intake/` directory is typically placed under `frontend/` on the server, resulting in:
+- `frontend/intake/register.php`
+- `frontend/js/registration.js` (references `intake/register.php`)
 
 ## Security Features
 

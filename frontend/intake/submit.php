@@ -24,6 +24,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
+    // DEBUG: Log incoming request
+    $debugLog = [
+        'timestamp' => date('Y-m-d H:i:s'),
+        'request_method' => $_SERVER['REQUEST_METHOD'],
+        'content_type' => $_SERVER['CONTENT_TYPE'] ?? 'not set',
+        'post_fields' => array_keys($_POST ?? []),
+        'files' => array_keys($_FILES ?? []),
+        'file_count' => count($_FILES ?? []),
+        'post_count' => count($_POST ?? [])
+    ];
+    file_put_contents(__DIR__ . '/logs/debug_request.json', json_encode($debugLog, JSON_PRETTY_PRINT));
+
     // Validate upload directory
     $dirValidation = validateUploadDirectory();
     if (!$dirValidation['valid']) {
@@ -55,13 +67,19 @@ try {
     $validation = validateRegistrationData($postData);
     if (!$validation['valid']) {
         logActivity("Validation failed for IP: " . getRequestIp(), 'warning');
+        file_put_contents(__DIR__ . '/logs/debug_validation.json', json_encode(['valid' => false, 'errors' => $validation['errors']], JSON_PRETTY_PRINT));
         errorResponse('Validation failed', 400, $validation['errors']);
     }
 
     $data = $validation['data'];
 
+    // DEBUG: Log validated data
+    file_put_contents(__DIR__ . '/logs/debug_data.json', json_encode($data, JSON_PRETTY_PRINT));
+
     // Handle file uploads
     $uploadResult = handleFileUploads($filesData);
+    file_put_contents(__DIR__ . '/logs/debug_upload.json', json_encode($uploadResult, JSON_PRETTY_PRINT));
+
     if (!$uploadResult['success'] || !empty($uploadResult['errors'])) {
         // Clean up any uploaded files if there were errors
         foreach ($uploadResult['files'] as $file) {
@@ -135,6 +153,19 @@ try {
     );
 
     $result = $stmt->execute();
+
+    // DEBUG: Log database result
+    file_put_contents(__DIR__ . '/logs/debug_db.json', json_encode([
+        'success' => $result,
+        'insert_id' => $stmt->insert_id,
+        'error' => $stmt->error,
+        'data' => [
+            'id' => $id,
+            'email' => $data['email'],
+            'exam_level' => $data['exam_level']
+        ]
+    ], JSON_PRETTY_PRINT));
+
     if (!$result) {
         logActivity("Execute failed: " . $stmt->error, 'error');
 

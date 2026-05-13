@@ -1,0 +1,2 @@
+# Minimal .htaccess - only prevents directory listing
+Options -Indexes

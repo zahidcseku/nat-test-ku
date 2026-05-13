@@ -119,8 +119,9 @@ Choose your preferred method:
 1. Use FileZilla, Cyberduck, or similar
 2. Connect to your hosting server
 3. Navigate to the public directory (often `public_html` or `www`)
-4. Create an `intake` directory
-5. Upload all files:
+4. Navigate to the `frontend/` directory (or create it if it doesn't exist)
+5. Create an `intake` subdirectory inside `frontend/`
+6. Upload all files to `frontend/intake/`:
    - register.php
    - config.php
    - validate.php
@@ -130,19 +131,32 @@ Choose your preferred method:
    - .env
    - init.sql (optional, for backup)
 
+**Resulting structure:**
+```
+public_html/
+└── frontend/
+    ├── intake/
+    │   ├── register.php
+    │   ├── config.php
+    │   └── ...
+    ├── js/
+    ├── css/
+    └── registration.html
+```
+
 #### Option B: Hosting File Manager
 
 1. Log into hosting control panel
 2. Open File Manager
-3. Navigate to public directory
-4. Create `intake` folder
+3. Navigate to public directory, then to `frontend/`
+4. Create `intake` folder inside `frontend/`
 5. Upload files one by one or as a ZIP
 
 #### Option C: ZIP Upload
 
 1. Create ZIP of intake directory (exclude .git, node_modules, etc.)
-2. Upload ZIP via File Manager
-3. Extract in place
+2. Upload ZIP via File Manager to the `frontend/` directory
+3. Extract in place (creates `frontend/intake/`)
 4. Verify `.htaccess` was extracted (sometimes hidden files are excluded)
 
 ### Step 3: Set Directory Permissions
@@ -178,7 +192,7 @@ chmod -R 755 uploads logs
 2. Test endpoint with cURL (from your local machine):
 
 ```bash
-curl -X POST https://your-domain.com/intake/register.php \
+curl -X POST https://your-domain.com/frontend/intake/register.php \
   -F "full_name=Test User" \
   -F "email=test@example.com" \
   -F "mobile=+880171234567" \
@@ -218,20 +232,30 @@ Expected response:
 
 ### Step 5: Update Frontend
 
-Update the intake service URL in the frontend:
+Update the intake service URL in the frontend to match your directory structure:
 
 1. Open `frontend/js/registration.js`
-2. Find the intakeUrl variable around line 630
-3. Update the path to match your server structure:
+2. Find the intakeUrl variable around line 604
+3. Update the path based on your setup:
 
+**If intake is a subdirectory under frontend (recommended):**
 ```javascript
-const intakeUrl = 'https://your-domain.com/intake/register.php';
+const intakeUrl = 'intake/register.php';
 ```
 
-Or if intake is at the same level as frontend:
-
+**If intake is at the same level as frontend:**
 ```javascript
 const intakeUrl = '../intake/register.php';
+```
+
+**If intake is at the root level:**
+```javascript
+const intakeUrl = '/intake/register.php';
+```
+
+**If intake is on a different domain/subdomain:**
+```javascript
+const intakeUrl = 'https://intake.your-domain.com/register.php';
 ```
 
 ### Step 6: Test End-to-End

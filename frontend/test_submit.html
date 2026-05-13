@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Form Submit</title>
+</head>
+<body>
+    <h1>Test Form Submit</h1>
+
+    <form id="testForm" enctype="multipart/form-data" style="max-width: 500px;">
+        <div>
+            <label>Full Name:</label>
+            <input type="text" name="full_name" value="Test User" required>
+        </div>
+
+        <div>
+            <label>Email:</label>
+            <input type="email" name="email" value="test@test.com" required>
+        </div>
+
+        <div>
+            <label>Mobile:</label>
+            <input type="text" name="mobile" value="+8801712345678" required>
+        </div>
+
+        <div>
+            <label>Address:</label>
+            <input type="text" name="address" value="Test Address" required>
+        </div>
+
+        <div>
+            <label>Date of Birth:</label>
+            <input type="text" name="dob" value="1990/01/01" required>
+        </div>
+
+        <div>
+            <label>Gender:</label>
+            <select name="gender" required>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Nationality:</label>
+            <input type="text" name="nationality" value="Bangladeshi" required>
+        </div>
+
+        <div>
+            <label>Payment Method:</label>
+            <select name="payment_method" required>
+                <option value="offline">Offline</option>
+                <option value="online">Online</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Exam Level:</label>
+            <input type="text" name="exam_level" value="N5" required>
+        </div>
+
+        <div>
+            <label>Test Date:</label>
+            <input type="text" name="test_date" value="2024/12/15" required>
+        </div>
+
+        <div>
+            <label>Photo:</label>
+            <input type="file" name="photo" accept="image/*" required>
+        </div>
+
+        <div>
+            <label>ID Document:</label>
+            <input type="file" name="id_document" accept="image/*,.pdf" required>
+        </div>
+
+        <div>
+            <label>&nbsp;</label>
+            <input type="hidden" name="website" value=" ">
+        </div>
+
+        <button type="submit">Submit Test</button>
+    </form>
+
+    <h2>Response:</h2>
+    <pre id="response">Waiting for submission...</pre>
+
+    <script>
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            const responseDiv = document.getElementById('response');
+            responseDiv.textContent = 'Submitting...';
+
+            try {
+                const response = await fetch('intake/register.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const text = await response.text();
+                responseDiv.textContent = 'Status: ' + response.status + '\n\n' + text.substring(0, 2000);
+
+                if (response.ok) {
+                    try {
+                        const data = JSON.parse(text);
+                        console.log('Success:', data);
+                    } catch (e) {
+                        console.log('Not JSON:', text);
+                    }
+                }
+            } catch (error) {
+                responseDiv.textContent = 'Error: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -50,9 +50,12 @@ function validateMobile($mobile) {
     $mobile = preg_replace('/[^0-9+]/', '', $mobile);
 
     // Bangladesh mobile number format
-    if (preg_match('/^(\+880)?1[3-9]\d{8}$/', $mobile)) {
+    // Accepts: +8801XXXXXXXXX or 01XXXXXXXXX
+    if (preg_match('/^(\+880|0)?1[3-9]\d{8}$/', $mobile)) {
         // Normalize to +880 format
         if (strpos($mobile, '+') !== 0) {
+            // Remove leading 0 if present, then add +880
+            $mobile = ltrim($mobile, '0');
             $mobile = '+880' . $mobile;
         }
 
@@ -117,6 +120,67 @@ function validateDate($dateString) {
         return [
             'valid' => false,
             'error' => 'Date out of valid range',
+            'sanitized' => ''
+        ];
+    }
+
+    // Convert to MySQL DATE format (YYYY-MM-DD)
+    $mysqlDate = sprintf('%04d-%02d-%02d', $year, $month, $day);
+
+    return [
+        'valid' => true,
+        'error' => null,
+        'sanitized' => $mysqlDate
+    ];
+}
+
+/**
+ * Validate test date (future date for exam registration)
+ * Allows dates from today up to 2 years in the future
+ */
+function validateTestDate($dateString) {
+    $dateString = trim($dateString);
+
+    // Check format YYYY/MM/DD
+    if (!preg_match('/^\d{4}\/\d{2}\/\d{2}$/', $dateString)) {
+        return [
+            'valid' => false,
+            'error' => 'Date must be in YYYY/MM/DD format',
+            'sanitized' => ''
+        ];
+    }
+
+    // Parse and validate date
+    $parts = explode('/', $dateString);
+    $year = (int)$parts[0];
+    $month = (int)$parts[1];
+    $day = (int)$parts[2];
+
+    if (!checkdate($month, $day, $year)) {
+        return [
+            'valid' => false,
+            'error' => 'Invalid date',
+            'sanitized' => ''
+        ];
+    }
+
+    // Check reasonable date range for test dates (not in past, within 2 years)
+    $inputDate = strtotime("$year-$month-$day");
+    $minDate = strtotime('today'); // Test dates must be today or future
+    $maxDate = strtotime('+2 years'); // Allow up to 2 years ahead
+
+    if ($inputDate < $minDate) {
+        return [
+            'valid' => false,
+            'error' => 'Test date cannot be in the past',
+            'sanitized' => ''
+        ];
+    }
+
+    if ($inputDate > $maxDate) {
+        return [
+            'valid' => false,
+            'error' => 'Test date too far in the future (maximum 2 years)',
             'sanitized' => ''
         ];
     }
@@ -265,7 +329,7 @@ function validateRegistrationData($data) {
         $sanitized['exam_level'] = $examLevelResult['sanitized'];
     }
 
-    $testDateResult = validateDate($data['test_date'] ?? '');
+    $testDateResult = validateTestDate($data['test_date'] ?? '');
     if (!$testDateResult['valid']) {
         $errors['test_date'] = $testDateResult['error'];
     } else {
