@@ -694,23 +694,47 @@ const RegistrationForm = (function() {
         };
 
         console.log('✅ Registration verified with ID:', responseData.id);
+        console.log('📧 Backend response data:', responseData);
+        console.log('📋 Form data:', {
+          step1: formData.step1,
+          step2: formData.step2,
+          step3: formData.step3
+        });
+        console.log('👤 Specifically full_name:', formData.step1.full_name);
+        console.log('📧 Specifically email from step1:', formData.step1.email);
+        console.log('📧 Specifically email from response:', responseData.email);
 
         // Redirect to success page with registration data
-        const successUrl = new URL('registration-success.html', window.location.origin);
-        successUrl.searchParams.set('full_name', submissionData.full_name);
-        successUrl.searchParams.set('email', submissionData.email);
-        successUrl.searchParams.set('exam_level', submissionData.exam_level);
-        successUrl.searchParams.set('test_date', submissionData.test_date);
-        successUrl.searchParams.set('payment_method', submissionData.payment_method);
-        successUrl.searchParams.set('id', submissionData.id);
+        const params = new URLSearchParams();
+
+        // Use backend response data for fields it returns
+        if (responseData.email) params.set('email', responseData.email);
+        if (responseData.exam_level) params.set('exam_level', responseData.exam_level);
+        if (responseData.test_date) params.set('test_date', responseData.test_date);
+        if (responseData.id) params.set('id', responseData.id);
+
+        // Use form data for fields backend doesn't return
+        if (formData.step1.full_name) {
+          params.set('full_name', formData.step1.full_name);
+          console.log('✅ Setting full_name from form data:', formData.step1.full_name);
+        } else {
+          console.error('❌ full_name not found in formData.step1!');
+        }
+
+        if (formData.step2.payment_method) {
+          params.set('payment_method', formData.step2.payment_method);
+          console.log('✅ Setting payment_method from form data:', formData.step2.payment_method);
+        } else {
+          console.error('❌ payment_method not found in formData.step2!');
+        }
+
+        console.log('🔗 Final Redirect URL parameters:', params.toString());
 
         // Redirect to success page
-        window.location.href = successUrl.toString();
+        window.location.href = 'registration-success.html?' + params.toString();
 
-        // Reset form after redirect
-        setTimeout(() => {
-          resetForm();
-        }, 1000);
+        // Note: Form reset will happen after redirect completes
+        return;
       } else {
         // Show error message with details
         console.error('Submission failed:', data);
