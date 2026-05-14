@@ -26,6 +26,12 @@
       box-shadow: none;
       border-bottom: 2px solid #002147;
     }
+    .ghost-input.invalid {
+      border-bottom: 2px solid #dc2626;
+    }
+    .ghost-input.valid {
+      border-bottom: 2px solid #16a34a;
+    }
     /* Ensure white text in checked payment method boxes */
     input[name="payment_method"]:checked + div {
       color: white !important;
@@ -60,6 +66,26 @@
       background-color: #002147 !important;
       color: white !important;
     }
+    /* Validation messaging */
+    .field-error {
+      color: #dc2626;
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      display: none;
+      font-weight: 500;
+    }
+    .field-error.show {
+      display: block;
+    }
+    .field-success {
+      color: #16a34a;
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      display: none;
+    }
+    .field-success.show {
+      display: block;
+    }
     /* File preview styling */
     .file-preview {
       max-width: 200px;
@@ -81,19 +107,6 @@
 <body class="bg-surface font-sans text-[#191c1e] antialiased">
   <!-- Top Navigation -->
   <nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl">
-    <!-- Language Selector Bar - TBD: See TBD.md for details -->
-    <!--
-    <div class="bg-surface-container-low/50 border-b border-surface-container-highest">
-      <div class="max-w-7xl mx-auto px-8 py-2.5 flex justify-end gap-6 text-[10px] uppercase tracking-[0.2em] font-medium text-secondary">
-        <a href="#" class="text-primary font-bold flex items-center gap-1.5">
-          <span class="w-1 h-1 rounded-full bg-primary"></span>
-          English
-        </a>
-        <a href="#" class="hover:text-primary transition-colors">Bangla</a>
-        <a href="#" class="hover:text-primary transition-colors">Japanese</a>
-      </div>
-    </div>
-    -->
     <div class="max-w-7xl mx-auto flex justify-between items-center px-8 py-4">
       <a href="index.html" class="flex items-center gap-4">
         <div class="flex items-center gap-3">
@@ -690,18 +703,12 @@
     </section>
   </main>
 
-  <!-- Success Modal -->
-  <div class="modal-overlay" id="success-modal">
-    <div class="modal-content">
-      <!-- Content will be populated by JavaScript -->
-    </div>
-  </div>
   <!-- Footer -->
   <footer class="bg-white w-full py-12 px-8">
     <div class="max-w-7xl mx-auto">
-      <div class="flex flex-col md:flex-row gap-8 items-start justify-between" style="display: flex; flex-direction: row; flex-wrap: wrap;">
+      <div class="flex flex-col md:flex-row flex-wrap gap-8 items-start justify-between">
         <!-- Left: Brand & Copyright -->
-        <div class="flex-shrink-0 space-y-2" style="flex: 1; min-width: 250px;">
+        <div class="flex-shrink-0 space-y-2 flex-1 min-w-[250px]">
           <div class="font-bold text-primary text-xl">
             NAT-TEST Center Khulna<br>
             <a href="https://www.ku.ac.bd" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Khulna University</a>
@@ -712,7 +719,7 @@
         </div>
 
         <!-- Center: Email Subscription -->
-        <div class="flex-shrink-0 space-y-0" style="flex: 1; min-width: 250px; margin-left: 10%;">
+        <div class="flex-shrink-0 space-y-0 flex-1 min-w-[250px] lg:ml-[10%]">
           <h3 class="font-bold text-base text-primary mb-1">Subscribe for updates</h3>
           <div class="min-h-[60px] bg-white rounded-lg p-1">
             <script async data-uid="f60b199b8f" src="https://nat-test-ku.kit.com/f60b199b8f/index.js"></script>
@@ -720,7 +727,7 @@
         </div>
 
         <!-- Right: Social Media Links -->
-        <div class="flex-shrink-0 flex flex-col items-end gap-3" style="flex: 1; min-width: 250px;">
+        <div class="flex-shrink-0 flex flex-col items-end gap-3 flex-1 min-w-[250px]">
           <h3 class="font-bold text-base text-primary">Follow Us</h3>
           <div class="flex items-center gap-4">
             <a href="https://www.facebook.com/nihongonattest/" target="_blank" rel="noopener noreferrer" class="hover:opacity-80 transition-opacity" aria-label="Facebook">

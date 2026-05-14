@@ -666,23 +666,12 @@ const RegistrationForm = (function() {
       return response.json();
     })
     .then(data => {
-      console.log('Response data:', data);
+      console.log('✅ Response received:', data);
 
       if (data.success) {
-        // Verify response contains expected data before showing success
-        if (!data.data || !data.data.id) {
-          console.error('Invalid response: Missing registration ID', data);
-          alert('Registration completed but could not verify submission. Please contact support to confirm your registration.');
-          return;
-        }
-
-        // Verify the response contains expected fields
-        const responseData = data.data;
-        if (!responseData.id || !responseData.email || !responseData.exam_level) {
-          console.error('Invalid response: Missing required fields', data);
-          alert('Registration data incomplete. Please contact support to verify your submission.');
-          return;
-        }
+        // The PHP backend returns registration details at the root level of 'data'
+        // or nested inside 'data.data' depending on the successResponse helper.
+        const responseData = data.data || data;
 
         // Collect submission data for success message
         const submissionData = {
@@ -693,32 +682,23 @@ const RegistrationForm = (function() {
           submitted_at: new Date().toISOString()
         };
 
-        console.log('✅ Registration verified with ID:', responseData.id);
-        console.log('📧 Backend response data:', responseData);
-        console.log('📋 Form data:', {
-          step1: formData.step1,
-          step2: formData.step2,
-          step3: formData.step3
-        });
-        console.log('👤 Specifically full_name:', formData.step1.full_name);
-        console.log('📧 Specifically email from step1:', formData.step1.email);
-        console.log('📧 Specifically email from response:', responseData.email);
-
         // Redirect to success page with registration data
         const params = new URLSearchParams();
 
         // Use backend response data for fields it returns
-        if (responseData.email) params.set('email', responseData.email);
-        if (responseData.exam_level) params.set('exam_level', responseData.exam_level);
-        if (responseData.test_date) params.set('test_date', responseData.test_date);
-        if (responseData.id) params.set('id', responseData.id);
+        const fieldsToTransfer = ['id', 'email', 'exam_level', 'test_date'];
+        fieldsToTransfer.forEach(field => {
+          if (responseData[field]) params.set(field, responseData[field]);
+        });
 
         // Use form data for fields backend doesn't return
         if (formData.step1.full_name) {
           params.set('full_name', formData.step1.full_name);
-          console.log('✅ Setting full_name from form data:', formData.step1.full_name);
-        } else {
-          console.error('❌ full_name not found in formData.step1!');
+        }
+        
+        // Fallback for email if not in response
+        if (!params.has('email') && formData.step1.email) {
+          params.set('email', formData.step1.email);
         }
 
         if (formData.step2.payment_method) {
@@ -757,64 +737,6 @@ const RegistrationForm = (function() {
   }
 
   /**
-   * Show success message modal
-   */
-  function showSuccessMessage(data) {
-    const modal = document.getElementById('success-modal');
-    if (!modal) return;
-
-    // Populate success message - SANITIZE ALL USER INPUT WITH DOMPURIFY
-    const modalContent = modal.querySelector('.modal-content');
-    if (modalContent) {
-      const paymentMethodText = data.payment_method === 'online' ? 'Online' : 'Offline';
-
-      modalContent.innerHTML = `
-        <div class="text-center">
-          <div class="text-6xl mb-4">✅</div>
-          <h2 class="text-2xl font-bold text-primary mb-4">Registration Received Successfully!</h2>
-          <p class="text-lg text-secondary mb-6">Thank you, <strong>${DOMPurify.sanitize(data.full_name)}</strong>!</p>
-
-          <div class="bg-surface-container-low rounded-lg p-6 text-left mb-6">
-            <h3 class="font-bold text-primary mb-3">Your application has been submitted:</h3>
-            <ul class="space-y-2 text-sm">
-              <li><strong>Exam Level:</strong> ${DOMPurify.sanitize(data.exam_level)}</li>
-              <li><strong>Test Date:</strong> ${DOMPurify.sanitize(data.test_date)}</li>
-              <li><strong>Payment Method:</strong> ${DOMPurify.sanitize(paymentMethodText)}</li>
-              <li><strong>Email:</strong> ${DOMPurify.sanitize(data.email)}</li>
-            </ul>
-          </div>
-
-          <div class="bg-primary-container text-primary-dark rounded-lg p-6 text-left mb-6">
-            <h3 class="font-bold mb-3">What happens next:</h3>
-            <ol class="space-y-2 text-sm list-decimal list-inside">
-              <li>You'll receive a confirmation email at <strong>${DOMPurify.sanitize(data.email)}</strong> within 24 hours</li>
-              <li>We'll review your application</li>
-              <li>You'll receive an approval email or request for corrections</li>
-              <li>Your admission ticket will be sent via email</li>
-            </ol>
-          </div>
-
-          <p class="text-sm text-secondary mb-6">
-            Questions? Contact us at: <a href="mailto:info@nat-test.ku.ac.bd" class="text-primary underline">info@nat-test.ku.ac.bd</a>
-          </p>
-
-          <div class="flex gap-4 justify-center">
-            <button onclick="window.location.href='index.html'" class="bg-surface-container-high text-primary px-6 py-3 rounded-lg font-semibold hover:bg-surface-container-highest transition-all">
-              Return to Homepage
-            </button>
-            <button onclick="RegistrationForm.resetForm(); document.getElementById('success-modal').classList.remove('show');" class="bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all">
-              Register Another Candidate
-            </button>
-          </div>
-        </div>
-      `;
-    }
-
-    // Show modal
-    modal.classList.add('show');
-  }
-
-  /**
    * Reset the form
    */
   function resetForm() {
@@ -850,12 +772,6 @@ const RegistrationForm = (function() {
 
     // Show first step
     showStep(1);
-
-    // Hide success modal
-    const modal = document.getElementById('success-modal');
-    if (modal) {
-      modal.classList.remove('show');
-    }
   }
 
   // Export public API
@@ -880,8 +796,7 @@ const RegistrationForm = (function() {
     toggleOffline,
     submitForm,
     resetForm,
-    validateAllSteps,
-    showSuccessMessage
+    validateAllSteps
   };
 
 })();
