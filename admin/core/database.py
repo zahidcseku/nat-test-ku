@@ -17,6 +17,8 @@ def get_connection():
     """Context manager for database connections."""
     conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
+    # Enable foreign key support
+    conn.execute("PRAGMA foreign_keys = ON")
     try:
         yield conn
         conn.commit()
@@ -57,10 +59,29 @@ def init_db() -> None:
             )
         """)
 
+        # Exam dates table
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS exam_dates (
+                id TEXT PRIMARY KEY,
+                exam_date TEXT NOT NULL,
+                registration_deadline TEXT NOT NULL
+            )
+        """)
+
+        # Exam levels table (junction table for exam_dates <-> levels)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS exam_levels (
+                exam_date_id TEXT NOT NULL REFERENCES exam_dates(id) ON DELETE CASCADE,
+                level TEXT NOT NULL CHECK(level IN ('1Q', '2Q', '3Q', '4Q', '5Q')),
+                PRIMARY KEY (exam_date_id, level)
+            )
+        """)
+
         # Indexes
         conn.execute("CREATE INDEX IF NOT EXISTS idx_blocks_type ON content_blocks(block_type)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_blocks_active ON content_blocks(is_active)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_blocks_order ON content_blocks(display_order)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_exam_dates_date ON exam_dates(exam_date)")
 
 def backup_database() -> str:
     """Create a backup of the database. Returns backup file path."""

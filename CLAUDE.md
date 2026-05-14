@@ -3,14 +3,26 @@
 Content-managed academic website with registration system. Three independent
 services, coordinated only through JSON contracts and SSH-based sync.
 
+## Directory Structure
+```
+/Users/zahid/projects/NAT_TEST_KU/
+├── admin/            # Streamlit admin interface (local only)
+└── frontend/         # Static website with intake service (deployed to server)
+    └── intake/       # PHP-based intake service (INSIDE frontend directory)
+```
+
+**IMPORTANT:** `/intake/` is INSIDE `/frontend/` at `/frontend/intake/`, NOT at the project root
+
 ## Services
 
-### /intake — FastAPI on Khulna University server
+### /frontend/intake — PHP service on Khulna University server
+- Location: `/frontend/intake/` (INSIDE frontend directory, NOT at root)
 - Single responsibility: receive registration POSTs, write to SQLite inbox
 - Endpoints: POST /register ONLY. No GET, no admin UI, no data exposure.
 - Runs behind HTTPS on a ku.ac.bd subdomain
 - Database: /var/intake/inbox.db (or equivalent path per IT constraints)
 - Rate-limited, honeypot-protected, input-validated
+- Technology: PHP (not FastAPI as previously documented)
 
 ### /admin — Streamlit on developer laptop
 - LOCAL ONLY. Never deployed. Never network-exposed.
