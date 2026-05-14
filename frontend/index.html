@@ -272,7 +272,7 @@
   </nav>
 
   <!-- Main Content -->
-  <main class="pt-[105px]">
+  <main class="pt-[72px]">
 
     <!-- Hero Section -->
     <section class="relative min-h-[100vh] flex items-center overflow-hidden noise-overlay bg-surface">
@@ -305,8 +305,8 @@
           <h1 class="animate-fade-in-up opacity-0 delay-200 font-serif text-5xl md:text-6xl text-primary font-light leading-[0.95] tracking-tight">Your Gateway to Japanese Language Certification</h1>
 
           <!-- Subtext -->
-          <div class="animate-fade-in-up opacity-0 delay-300 text-base md:text-lg text-secondary max-w-lg leading-relaxed font-normal tracking-wide">
-            Official NAT-TEST examination center at Khulna University. Register for upcoming tests and access comprehensive preparation resources.
+          <div class="animate-fade-in-up opacity-0 delay-300 text-secondary text-base leading-relaxed max-w-3xl">
+            <div class="hero-description-content"></div>
           </div>
 
           <!-- CTAs -->
@@ -394,7 +394,7 @@
 
             <!-- Action Links -->
             <div class="flex items-center gap-4">
-              <a href="resources.html" class="group flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-sm hover:bg-white/10 hover:border-white/20 transition-all">
+              <a href="exam-info.html" class="group flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-sm hover:bg-white/10 hover:border-white/20 transition-all">
                 <span class="material-symbols-outlined text-white text-lg">info</span>
                 <span class="text-white text-sm font-medium tracking-wide group-hover:text-white transition-colors">Exam Information</span>
               </a>
@@ -415,19 +415,69 @@
     </section>
 
     <!-- Benefits Section -->
-    <section class="py-32 bg-surface relative overflow-hidden">
+    <section class="py-16 pb-20 bg-surface relative overflow-hidden">
       <!-- Background number -->
       <span class="number-display">02</span>
 
       <div class="max-w-7xl mx-auto px-8">
         <!-- Section header -->
-        <div class="reveal mb-20 flex flex-col md:flex-row md:items-start gap-8">
-          <div class="md:w-2/5">
-            <div class="decorative-line mb-6"></div>
-            <h2 class="font-serif text-3xl md:text-4xl text-primary font-light leading-tight mb-6">Why Choose NAT-TEST Khulna?</h2>
+        <div class="reveal mb-16">
+          <div class="decorative-line mb-6"></div>
+          <h2 class="font-serif text-3xl md:text-4xl text-primary font-light leading-tight">Why Candidates Choose NAT?</h2>
+        </div>
+
+        <!-- Benefits Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Card 1: Frequent Testing -->
+          <div class="benefit-card bg-white rounded-sm p-8 card-elevated">
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0">
+                <span class="material-symbols-outlined text-primary text-3xl">check_circle</span>
+              </div>
+              <div>
+                <h3 class="font-semibold text-primary text-lg mb-2">Frequent Testing Schedule</h3>
+                <p class="text-secondary text-base leading-relaxed benefit-card-1"></p>
+              </div>
+            </div>
           </div>
-          <div class="md:w-3/5 text-secondary text-base leading-relaxed prose prose-sm max-w-none">
-            <p>As an official NAT-TEST examination center, we provide a reliable and convenient testing environment for Japanese language learners in Bangladesh.</p>
+
+          <!-- Card 2: JLPT Equivalence -->
+          <div class="benefit-card bg-white rounded-sm p-8 card-elevated">
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0">
+                <span class="material-symbols-outlined text-primary text-3xl">check_circle</span>
+              </div>
+              <div>
+                <h3 class="font-semibold text-primary text-lg mb-2">JLPT Equivalence</h3>
+                <p class="text-secondary text-base leading-relaxed benefit-card-2"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Rapid Results -->
+          <div class="benefit-card bg-white rounded-sm p-8 card-elevated">
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0">
+                <span class="material-symbols-outlined text-primary text-3xl">check_circle</span>
+              </div>
+              <div>
+                <h3 class="font-semibold text-primary text-lg mb-2">Rapid Results</h3>
+                <p class="text-secondary text-base leading-relaxed benefit-card-3"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Global Recognition -->
+          <div class="benefit-card bg-white rounded-sm p-8 card-elevated">
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0">
+                <span class="material-symbols-outlined text-primary text-3xl">check_circle</span>
+              </div>
+              <div>
+                <h3 class="font-semibold text-primary text-lg mb-2">Global Recognition</h3>
+                <p class="text-secondary text-base leading-relaxed benefit-card-4"></p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -622,6 +672,7 @@
   </script>
 
   <!-- Load dynamic content from admin -->
+  <script src="js/lib/dompurify.js"></script>
   <script src="/content-loader.js"></script>
 
 </body>

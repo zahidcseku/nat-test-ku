@@ -46,8 +46,17 @@ async function loadContent() {
         case 'benefits_heading':
           renderBenefitsHeading(block.content);
           break;
-        case 'benefits_description':
-          renderBenefitsDescription(block.content);
+        case 'benefit_card_1':
+          renderBenefitCard1(block.content);
+          break;
+        case 'benefit_card_2':
+          renderBenefitCard2(block.content);
+          break;
+        case 'benefit_card_3':
+          renderBenefitCard3(block.content);
+          break;
+        case 'benefit_card_4':
+          renderBenefitCard4(block.content);
           break;
         case 'resources_heading':
           renderResourcesHeading(block.content);
@@ -105,7 +114,7 @@ function renderHeroHeadline(content) {
 
 // Hero description
 function renderHeroDescription(content) {
-  const description = document.querySelector('.min-h-\\[100vh\\] .animate-fade-in-up.opacity-0.delay-300.text-base');
+  const description = document.querySelector('.hero-description-content');
   if (description) {
     // Use HTML if available (for links), otherwise use plain text
     if (content.html) {
@@ -191,16 +200,35 @@ function renderBenefitsHeading(content) {
 }
 
 // Benefits description
-function renderBenefitsDescription(content) {
-  const desc = document.querySelector('.py-32.bg-surface .reveal.mb-20 div.text-secondary');
-  if (desc) {
-    // Use HTML if available (for links), otherwise use plain text
-    if (content.html) {
-      desc.innerHTML = content.html;
-    } else {
-      desc.textContent = content.text;
-    }
-    console.log('✓ Updated benefits description');
+function renderBenefitCard1(content) {
+  const card = document.querySelector('.benefit-card-1');
+  if (card) {
+    card.textContent = content.text;
+    console.log('✓ Updated benefit card 1: Frequent Testing');
+  }
+}
+
+function renderBenefitCard2(content) {
+  const card = document.querySelector('.benefit-card-2');
+  if (card) {
+    card.textContent = content.text;
+    console.log('✓ Updated benefit card 2: JLPT Equivalence');
+  }
+}
+
+function renderBenefitCard3(content) {
+  const card = document.querySelector('.benefit-card-3');
+  if (card) {
+    card.textContent = content.text;
+    console.log('✓ Updated benefit card 3: Rapid Results');
+  }
+}
+
+function renderBenefitCard4(content) {
+  const card = document.querySelector('.benefit-card-4');
+  if (card) {
+    card.textContent = content.text;
+    console.log('✓ Updated benefit card 4: Global Recognition');
   }
 }
 

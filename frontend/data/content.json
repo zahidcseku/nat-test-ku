@@ -28,8 +28,8 @@
       "display_order": 3,
       "is_active": true,
       "content": {
-        "text": "Start Your Japanese Language Journey Today\nThe NAT-TEST is more than just an exam; it is a bridge to your future in Japan. Join thousands of successful candidates who have used this certification to unlock new opportunities and achieve their dreams.\n\nThe Japanese Language NAT-TEST is designed, organized, and administered by Senmon Kyouiku Publishing Co., Ltd.",
-        "html": "<p class=\"animate-fade-in-up opacity-0 delay-300 text-base md:text-lg text-secondary max-w-lg leading-relaxed font-normal tracking-wide\">\n            <p><strong>Start Your Japanese Language Journey Today</strong><br>\n              The NAT-TEST is more than just an exam; it is a bridge to your future in Japan. \n              Join thousands of successful candidates who have used this certification to unlock \n              new opportunities and achieve their dreams. \n            </p>\n            <p>\n              The Japanese Language NAT-TEST is designed, organized, and administered by \n              <a href=\"http://www.nat-test.com/en/about.html\"><strong>Senmon Kyouiku Publishing Co., Ltd</strong></a>.\n            </p>\n          </p>"
+        "text": "Start Your Japanese Language Journey Today\nWelcome to the official page for the Japanese Language NAT-TEST Khulna center. As an authorized testing partner, we provide a streamlined platform for students and professionals to certify their Japanese proficiency.\n\nThe NAT-TEST is more than just an exam; it is a bridge to your future in Japan. Join thousands of successful candidates who have used this certification to unlock new opportunities and achieve their dreams.\n\nThe Japanese Language NAT-TEST is designed, organized, and administered by Senmon Kyouiku Publishing Co., Ltd.",
+        "html": "<p class=\"animate-fade-in-up opacity-0 delay-300 text-base md:text-lg text-secondary max-w-lg leading-relaxed font-normal tracking-wide\">\n            <p><strong>Start Your Japanese Language Journey Today</strong></p>\n            <p>Welcome to the official page for the Japanese Language NAT-TEST Khulna center. As an authorized testing partner, we provide a streamlined platform for students and professionals to certify their Japanese proficiency.</p>\n            <p>\n              The NAT-TEST is more than just an exam; it is a bridge to your future in Japan. \n              Join thousands of successful candidates who have used this certification to unlock \n              new opportunities and achieve their dreams. \n            </p>\n            <p>\n              The Japanese Language NAT-TEST is designed, organized, and administered by \n              <a href=\"http://www.nat-test.com/en/about.html\"><strong>Senmon Kyouiku Publishing Co., Ltd</strong></a>.\n            </p>\n          </p>"
       }
     },
     {
@@ -72,26 +72,52 @@
       "display_order": 7,
       "is_active": true,
       "content": {
-        "line1": "Why Candidates",
-        "line2_italic": "Choose NAT",
+        "line1": "Why Candidates Choose NAT?",
+        "line2_italic": "",
         "line2_text": "",
-        "full_html": "Why Candidates<br><span class=\"italic text-secondary\">Choose NAT</span>"
+        "full_html": "Why Candidates Choose NAT?"
       }
     },
     {
       "id": "ae0f5ae3-36f1-47de-9656-cb54447386db",
-      "type": "benefits_description",
+      "type": "benefit_card_1",
       "display_order": 8,
       "is_active": true,
       "content": {
-        "text": "We provide more than just a seat; we offer an ecosystem designed to minimize distractions and maximize performance.",
-        "html": ""
+        "text": "While the JLPT is typically held only twice a year, the NAT-TEST is held six times a year. This allows students to check their progress more frequently and meet tight application deadlines for schools or visas."
+      }
+    },
+    {
+      "id": "b1c2d3e4-f5g6-7890-1234-567890abcdef",
+      "type": "benefit_card_2",
+      "display_order": 9,
+      "is_active": true,
+      "content": {
+        "text": "The format and types of questions are based on the same guidelines as the JLPT. For instance, Level 5 of the NAT-TEST is directly equivalent to the N5 level of the JLPT."
+      }
+    },
+    {
+      "id": "c2d3e4f5-g6h7-8901-2345-678901bcdefg",
+      "type": "benefit_card_3",
+      "display_order": 10,
+      "is_active": true,
+      "content": {
+        "text": "Detailed score reports are issued within three weeks of the exam. This report breaks down your performance by section, making it easy to identify your strengths and weaknesses."
+      }
+    },
+    {
+      "id": "d3e4f5g6-h7i8-9012-3456-789012cdefgh",
+      "type": "benefit_card_4",
+      "display_order": 11,
+      "is_active": true,
+      "content": {
+        "text": "The test has a decades-long record of success and is used by Japanese language schools and educational centers worldwide for performance measurement and guidance counseling."
       }
     },
     {
       "id": "0c80568c-4bc8-44c8-9104-1e121ff4d318",
       "type": "resources_heading",
-      "display_order": 9,
+      "display_order": 12,
       "is_active": true,
       "content": {
         "line1": "Preparation",
@@ -103,7 +129,7 @@
     {
       "id": "b6811689-3b47-41fd-8890-4357122e2c1d",
       "type": "resource_card",
-      "display_order": 10,
+      "display_order": 13,
       "is_active": true,
       "content": {
         "badge_type": "PDF",
@@ -115,7 +141,7 @@
     {
       "id": "9e2fbb86-fe5b-428b-9e6c-703aae78a9ed",
       "type": "resource_card",
-      "display_order": 11,
+      "display_order": 14,
       "is_active": true,
       "content": {
         "badge_type": "CHECKLIST",
@@ -127,7 +153,7 @@
     {
       "id": "7cd12264-d6be-42dd-af7f-74aef4b021ce",
       "type": "resource_card",
-      "display_order": 12,
+      "display_order": 15,
       "is_active": true,
       "content": {
         "badge_type": "PROTOCOL",
@@ -139,7 +165,7 @@
     {
       "id": "4d8c0b94-7b5f-44bd-9255-a7569b55705f",
       "type": "support_heading",
-      "display_order": 13,
+      "display_order": 16,
       "is_active": true,
       "content": {
         "line1": "Need",
@@ -151,7 +177,7 @@
     {
       "id": "002fe535-17b5-429d-8df7-2ec4f33eb1d8",
       "type": "support_description",
-      "display_order": 14,
+      "display_order": 17,
       "is_active": true,
       "content": {
         "text": "Our support team is available Monday through Friday, 8:00 AM to 6:00 PM, to answer any questions regarding registration, accessibility accommodations, or result interpretation.",
@@ -161,7 +187,7 @@
     {
       "id": "1102d2f1-5176-4cda-9c84-08db4f6ec11b",
       "type": "support_contact",
-      "display_order": 15,
+      "display_order": 18,
       "is_active": true,
       "content": {
         "label": "Call us",
@@ -172,7 +198,7 @@
     {
       "id": "0260897e-fc94-4ad6-a925-03d36b64d2c3",
       "type": "support_contact",
-      "display_order": 16,
+      "display_order": 19,
       "is_active": true,
       "content": {
         "label": "Email us",
@@ -183,7 +209,7 @@
     {
       "id": "82ce2f32-8436-4d57-8f7e-810a6550b126",
       "type": "footer_copyright",
-      "display_order": 17,
+      "display_order": 20,
       "is_active": true,
       "content": {
         "text": "\u00a9 2024 National Assessment Test Centre.\nPursuing Academic Excellence."
@@ -192,7 +218,7 @@
     {
       "id": "601ea5bc-4421-45c0-b6eb-331a7d21d4e6",
       "type": "footer_links",
-      "display_order": 18,
+      "display_order": 21,
       "is_active": true,
       "content": {
         "links": [
