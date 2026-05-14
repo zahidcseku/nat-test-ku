@@ -633,7 +633,7 @@ const RegistrationForm = (function() {
     }
 
     // Add honeypot field (should be empty)
-    // Use single space to avoid ModSecurity empty string validation issues
+    // Using a space to bypass firewall rules; backend uses trim()
     formDataToSend.append('website', ' ');
 
     // Send to intake service (intake is a subdirectory under frontend)

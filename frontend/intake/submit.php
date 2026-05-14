@@ -125,7 +125,7 @@ try {
     $receipt = $uploadResult['files']['payment_receipt'] ?? null;
 
     $stmt->bind_param(
-        'sssssssssssssssssssssis',
+        'sssssssssssssissississis',
         $id,
         $data['full_name'],
         $data['email'],
@@ -139,16 +139,16 @@ try {
         $data['test_date'],
         $photo['filename'],
         $photo['storage_path'],
-        $photo['size_bytes'],
+        $p_size,
         $idDoc['filename'],
         $idDoc['storage_path'],
-        $idDoc['size_bytes'],
-        $receipt['filename'] ?? null,
-        $receipt['storage_path'] ?? null,
-        $receipt['size_bytes'] ?? null,
+        $id_size,
+        $r_name,
+        $r_path,
+        $r_size,
         $ipHash,
         $userAgent,
-        $honeypotCheck['tripped'] ? 1 : 0,
+        $hp_tripped,
         $honeypotCheck['value']
     );
 
