@@ -33,6 +33,7 @@
       </a>
       <div class="hidden md:flex items-center gap-10">
         <a href="index.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">Home</a>
+        <a href="exam-info.html" class="text-base font-semibold text-primary border-b-2 border-primary pb-1">NAT-TEST</a>
         <a href="news.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">News</a>
         <a href="registration.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">Registration</a>
         <a href="results.html" class="text-base font-medium text-secondary hover:text-primary transition-colors">Results</a>
@@ -48,11 +49,16 @@
 
     <!-- About Section -->
     <section class="mb-20">
-      <div class="max-w-4xl">
-        <h2 class="text-3xl font-serif text-primary font-semibold mb-6">About the Japanese Language NAT-TEST</h2>
-        <p class="text-secondary text-lg leading-relaxed mb-6">
-          The <strong>Japanese Language NAT-TEST</strong> is an internationally recognized examination designed to measure the Japanese language ability of non-native speakers. Whether you are planning to study in Japan, apply for a work visa, or simply gauge your language progress, the NAT-TEST offers a reliable and high-quality assessment.
-        </p>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        <div>
+          <h2 class="text-3xl font-serif text-primary font-semibold mb-6">About the Japanese Language NAT-TEST</h2>
+          <p class="text-secondary text-lg leading-relaxed mb-6">
+            The <strong>Japanese Language NAT-TEST</strong> is an internationally recognized examination designed to measure the Japanese language ability of non-native speakers. Whether you are planning to study in Japan, apply for a work visa, or simply gauge your language progress, the NAT-TEST offers a reliable and high-quality assessment.
+          </p>
+        </div>
+        <div class="lg:mt-12">
+          <img src="images/jpn1.jpg" alt="Japanese Language Learning" class="w-full h-64 rounded-lg shadow-lg object-cover">
+        </div>
       </div>
     </section>
 
@@ -65,48 +71,50 @@
 
       <!-- Levels Table -->
       <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-        <table class="w-full">
-          <thead>
-            <tr class="bg-primary text-white">
-              <th class="px-6 py-4 text-left font-semibold">Level</th>
-              <th class="px-6 py-4 text-left font-semibold">Difficulty</th>
-              <th class="px-6 py-4 text-left font-semibold">Corresponds to</th>
-              <th class="px-6 py-4 text-left font-semibold">Sections Included</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="border-b border-gray-200">
-              <td class="px-6 py-4 font-semibold text-primary">Level 1</td>
-              <td class="px-6 py-4 text-secondary">Advanced</td>
-              <td class="px-6 py-4 text-secondary">JLPT N1</td>
-              <td class="px-6 py-4 text-secondary text-sm">Language Knowledge (Reading/Vocab/Grammar), Reading & Listening</td>
-            </tr>
-            <tr class="border-b border-gray-200 bg-surface-container-low/30">
-              <td class="px-6 py-4 font-semibold text-primary">Level 2</td>
-              <td class="px-6 py-4 text-secondary">Upper-Intermediate</td>
-              <td class="px-6 py-4 text-secondary">JLPT N2</td>
-              <td class="px-6 py-4 text-secondary text-sm">Language Knowledge (Reading/Vocab/Grammar), Reading & Listening</td>
-            </tr>
-            <tr class="border-b border-gray-200">
-              <td class="px-6 py-4 font-semibold text-primary">Level 3</td>
-              <td class="px-6 py-4 text-secondary">Intermediate</td>
-              <td class="px-6 py-4 text-secondary">JLPT N3</td>
-              <td class="px-6 py-4 text-secondary text-sm">Kanji/Vocabulary, Grammar/Reading & Listening</td>
-            </tr>
-            <tr class="border-b border-gray-200 bg-surface-container-low/30">
-              <td class="px-6 py-4 font-semibold text-primary">Level 4</td>
-              <td class="px-6 py-4 text-secondary">Elementary</td>
-              <td class="px-6 py-4 text-secondary">JLPT N4</td>
-              <td class="px-6 py-4 text-secondary text-sm">Kanji/Vocabulary, Grammar/Reading & Listening</td>
-            </tr>
-            <tr>
-              <td class="px-6 py-4 font-semibold text-primary">Level 5</td>
-              <td class="px-6 py-4 text-secondary">Basic</td>
-              <td class="px-6 py-4 text-secondary">JLPT N5</td>
-              <td class="px-6 py-4 text-secondary text-sm">Kanji/Vocabulary, Grammar/Reading & Listening</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-primary text-white">
+                <th class="px-6 py-3 font-semibold text-sm align-left">Level</th>
+                <th class="px-6 py-3 font-semibold text-sm align-left">Difficulty</th>
+                <th class="px-6 py-3 font-semibold text-sm align-left">Corresponds to</th>
+                <th class="px-6 py-3 font-semibold text-sm align-left">Sections Included</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-gray-200">
+                <td class="px-6 py-3 font-semibold text-primary text-base align-left">Level 1/1Q</td>
+                <td class="px-6 py-3 text-secondary text-base align-left">Advanced</td>
+                <td class="px-6 py-3 text-secondary text-base align-left">JLPT N1</td>
+                <td class="px-6 py-3 text-secondary text-base align-left">Language Knowledge (Reading/Vocab/Grammar), Reading & Listening</td>
+              </tr>
+              <tr class="border-b border-gray-200 bg-surface-container-low/30">
+                <td class="px-6 py-3 font-semibold text-primary text-base align-left">Level 2/2Q</td>
+                <td class="px-6 py-3 text-secondary text-base align-left">Upper-Intermediate</td>
+                <td class="px-6 py-3 text-secondary text-base align-left">JLPT N2</td>
+                <td class="px-6 py-3 text-secondary text-base align-left">Language Knowledge (Reading/Vocab/Grammar), Reading & Listening</td>
+              </tr>
+              <tr class="border-b border-gray-200">
+                <td class="px-6 py-3 font-semibold text-primary text-base align-left">Level 3/3Q</td>
+                <td class="px-6 py-3 text-secondary text-base align-left">Intermediate</td>
+                <td class="px-6 py-3 text-secondary text-base align-left">JLPT N3</td>
+                <td class="px-6 py-3 text-secondary text-base align-left">Kanji/Vocabulary, Grammar/Reading & Listening</td>
+              </tr>
+              <tr class="border-b border-gray-200 bg-surface-container-low/30">
+                <td class="px-6 py-3 font-semibold text-primary text-base align-left">Level 4/4Q</td>
+                <td class="px-6 py-3 text-secondary text-base align-left">Elementary</td>
+                <td class="px-6 py-3 text-secondary text-base align-left">JLPT N4</td>
+                <td class="px-6 py-3 text-secondary text-base align-left">Kanji/Vocabulary, Grammar/Reading & Listening</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-3 font-semibold text-primary text-base align-left">Level 5/5Q</td>
+                <td class="px-6 py-3 text-secondary text-base align-left">Basic</td>
+                <td class="px-6 py-3 text-secondary text-base align-left">JLPT N5</td>
+                <td class="px-6 py-3 text-secondary text-base align-left">Kanji/Vocabulary, Grammar/Reading & Listening</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div class="bg-primary/10 border-l-4 border-primary p-6 rounded-r-lg max-w-4xl">
@@ -247,6 +255,97 @@
         <p class="text-white text-base leading-relaxed">
           Successful candidates will receive a <strong>Certificate of Proficiency</strong> and a detailed score report, which serves as official proof of your Japanese language skills for academic and professional purposes.
         </p>
+      </div>
+    </section>
+
+    <!-- Scoring Details -->
+    <section class="mb-20">
+      <h2 class="text-3xl font-serif text-primary font-semibold mb-8">Scoring Details</h2>
+      <p class="text-secondary text-lg leading-relaxed mb-10 max-w-4xl">
+        Each level has specific scoring sections with maximum scores and minimum passing marks. Candidates must meet both sectional and overall requirements to pass.
+      </p>
+
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[800px]">
+            <thead>
+              <tr class="bg-primary text-white">
+                <th class="px-4 py-3 text-left font-semibold text-sm align-middle">Level</th>
+                <th class="px-4 py-3 text-left font-semibold text-sm align-middle">Scoring Section</th>
+                <th class="px-4 py-3 text-center font-semibold text-sm align-middle">Maximum Score</th>
+                <th class="px-4 py-3 text-center font-semibold text-sm align-middle">Sectional Pass Mark</th>
+                <th class="px-4 py-3 text-center font-semibold text-sm align-middle">Overall Pass Mark</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Level 1 -->
+              <tr class="border-b border-gray-200">
+                <td class="px-4 py-3 font-semibold text-primary text-base align-middle">Level 1/1Q</td>
+                <td class="px-4 py-3 text-secondary text-base align-middle">Language Knowledge/Reading/Listening</td>
+                <td class="px-4 py-3 text-secondary text-center text-base align-middle">60</td>
+                <td class="px-4 py-3 text-secondary text-center text-base align-middle">19</td>
+                <td class="px-4 py-3 text-secondary text-center text-base font-semibold align-middle">100</td>
+              </tr>
+              
+              <!-- Level 2 -->
+              <tr class="border-b border-gray-200">
+                <td class="px-4 py-3 font-semibold text-primary text-base align-middle">Level 2/2Q</td>
+                <td class="px-4 py-3 text-secondary text-base align-middle">Language Knowledge/Reading/Listening</td>
+                <td class="px-4 py-3 text-secondary text-center text-base align-middle">60</td>
+                <td class="px-4 py-3 text-secondary text-center text-base align-middle">19</td>
+                <td class="px-4 py-3 text-secondary text-center text-base font-semibold align-middle">90</td>
+              </tr>
+
+              <!-- Level 3 -->
+              <tr class="border-b border-gray-200">
+                <td class="px-4 py-3 font-semibold text-primary text-base align-middle">Level 3/3Q</td>
+                <td class="px-4 py-3 text-secondary text-base align-middle">Language Knowledge/Reading/Listening</td>
+                <td class="px-4 py-3 text-secondary text-center text-base align-middle">60</td>
+                <td class="px-4 py-3 text-secondary text-center text-base align-middle">19</td>
+                <td class="px-4 py-3 text-secondary text-center text-base font-semibold align-middle">95</td>
+              </tr>
+
+              <!-- Level 4 -->
+              <tr class="border-b border-gray-200">
+                <td class="px-4 py-3 font-semibold text-primary text-base align-middle" rowspan="2">Level 4/4Q</td>
+                <td class="px-4 py-3 text-secondary text-base align-middle">Language Knowledge + Reading</td>
+                <td class="px-4 py-3 text-secondary text-center text-base align-middle">120</td>
+                <td class="px-4 py-3 text-secondary text-center text-base align-middle">38</td>
+                <td class="px-4 py-3 text-secondary text-center text-base font-semibold align-middle" rowspan="2">90</td>
+              </tr>
+              <tr class="border-b border-gray-200 bg-surface-container-low/30">
+                <td class="px-4 py-3 text-secondary text-base align-middle">Listening</td>
+                <td class="px-4 py-3 text-secondary text-center text-base align-middle">60</td>
+                <td class="px-4 py-3 text-secondary text-center text-base align-middle">19</td>
+              </tr>
+
+              <!-- Level 5 -->
+              <tr>
+                <td class="px-4 py-3 font-semibold text-primary text-base align-middle" rowspan="2">Level 5/5Q</td>
+                <td class="px-4 py-3 text-secondary text-base align-middle">Language Knowledge + Reading</td>
+                <td class="px-4 py-3 text-secondary text-center text-base align-middle">120</td>
+                <td class="px-4 py-3 text-secondary text-center text-base align-middle">38</td>
+                <td class="px-4 py-3 text-secondary text-center text-base font-semibold align-middle" rowspan="2">80</td>
+              </tr>
+              <tr class="bg-surface-container-low/30">
+                <td class="px-4 py-3 text-secondary text-base align-middle">Listening</td>
+                <td class="px-4 py-3 text-secondary text-center text-base align-middle">60</td>
+                <td class="px-4 py-3 text-secondary text-center text-base align-middle">19</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="bg-accent/10 border-l-4 border-accent p-6 rounded-r-lg max-w-4xl">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-accent text-2xl">info</span>
+          <div>
+            <p class="text-secondary text-base leading-relaxed">
+              <strong class="text-primary">Note:</strong> Levels 1-3 have separate scoring sections for Language Knowledge and Reading, while Levels 4-5 combine these into a single section. All sectional pass marks are approximately 32% of the maximum score for that section.
+            </p>
+          </div>
+        </div>
       </div>
     </section>
 

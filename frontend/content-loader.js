@@ -19,6 +19,7 @@ async function loadContent() {
     const blocks = data.blocks || [];
 
     console.log('Processing blocks...');
+    let resourceCardCount = 0; // Track which resource card we are rendering
 
     // Render each block type
     blocks.forEach(block => {
@@ -62,7 +63,8 @@ async function loadContent() {
           renderResourcesHeading(block.content);
           break;
         case 'resource_card':
-          renderResourceCard(block.content);
+          resourceCardCount++;
+          renderResourceCard(block.content, resourceCardCount);
           break;
         case 'support_heading':
           renderSupportHeading(block.content);
@@ -96,7 +98,7 @@ async function loadContent() {
 
 // Hero badge
 function renderHeroBadge(content) {
-  const badge = document.querySelector('.min-h-\\[100vh\\] .animate-fade-in-up.opacity-0.delay-100 span.text-primary\\/80.text-\\[10px\\]');
+  const badge = document.querySelector('.hero-badge-text');
   if (badge) {
     badge.textContent = content.text;
     console.log('✓ Updated hero badge');
@@ -105,9 +107,9 @@ function renderHeroBadge(content) {
 
 // Hero headline - preserve HTML structure for styling
 function renderHeroHeadline(content) {
-  const headline = document.querySelector('.min-h-\\[100vh\\] .animate-fade-in-up.opacity-0.delay-200.font-serif.text-5xl');
+  const headline = document.querySelector('.hero-headline-text');
   if (headline && content.full_html) {
-    headline.innerHTML = content.full_html;
+    headline.innerHTML = DOMPurify.sanitize(content.full_html);
     console.log('✓ Updated hero headline');
   }
 }
@@ -118,7 +120,7 @@ function renderHeroDescription(content) {
   if (description) {
     // Use HTML if available (for links), otherwise use plain text
     if (content.html) {
-      description.innerHTML = content.html;
+      description.innerHTML = DOMPurify.sanitize(content.html);
     } else {
       description.textContent = content.text;
     }
@@ -128,7 +130,7 @@ function renderHeroDescription(content) {
 
 // Hero primary CTA
 function renderHeroCtaPrimary(content) {
-  const cta = document.querySelector('.min-h-\\[100vh\\] .animate-fade-in-up.opacity-0.delay-400 .btn-magnetic.bg-primary');
+  const cta = document.querySelector('.hero-cta-primary-link');
   if (cta) {
     cta.href = content.url;
     const span = cta.querySelector('span');
@@ -143,9 +145,8 @@ function renderHeroCtaPrimary(content) {
 
 // Hero secondary CTA
 function renderHeroCtaSecondary(content) {
-  const ctas = document.querySelectorAll('.min-h-\\[100vh\\] .animate-fade-in-up.opacity-0.delay-400 .btn-magnetic');
-  if (ctas.length > 1) {
-    const cta = ctas[1]; // Second button
+  const cta = document.querySelector('.hero-cta-secondary-link');
+  if (cta) {
     cta.href = content.url;
 
     // Open PDFs in a new tab
@@ -166,23 +167,23 @@ function renderHeroCtaSecondary(content) {
 
 // Exam ribbon
 function renderExamRibbon(content) {
-  const dateEl = document.querySelector('.relative.z-20 .bg-primary .font-serif.text-3xl span.font-semibold');
+  const dateEl = document.querySelector('.ribbon-exam-date');
   if (dateEl) {
     dateEl.textContent = content.exam_date;
     console.log('✓ Updated exam date');
   }
 
-  const statusEl = document.querySelector('.relative.z-20 .bg-primary .text-white\\/50.text-sm');
+  const statusEl = document.querySelector('.ribbon-registration-status');
   if (statusEl) {
     statusEl.textContent = content.registration_status;
   }
 
-  const infoLink = document.querySelector('.relative.z-20 .bg-primary a[href*="resources"]');
+  const infoLink = document.querySelector('.ribbon-info-url');
   if (infoLink) {
     infoLink.href = content.exam_info_url;
   }
 
-  const registerLink = document.querySelector('.relative.z-20 .bg-primary a.bg-accent');
+  const registerLink = document.querySelector('.ribbon-registration-url');
   if (registerLink) {
     registerLink.href = content.registration_url;
   }
@@ -192,9 +193,9 @@ function renderExamRibbon(content) {
 
 // Benefits heading - preserve HTML structure
 function renderBenefitsHeading(content) {
-  const heading = document.querySelector('.py-32.bg-surface .reveal.mb-20 .font-serif.text-3xl');
+  const heading = document.querySelector('.benefits-heading');
   if (heading && content.full_html) {
-    heading.innerHTML = content.full_html;
+    heading.innerHTML = DOMPurify.sanitize(content.full_html);
     console.log('✓ Updated benefits heading');
   }
 }
@@ -234,60 +235,64 @@ function renderBenefitCard4(content) {
 
 // Resources heading - preserve HTML structure
 function renderResourcesHeading(content) {
-  const heading = document.querySelector('.py-32.bg-surface-container-low .reveal .font-serif.text-5xl');
+  const heading = document.querySelector('.resources-heading');
   if (heading && content.full_html) {
-    heading.innerHTML = content.full_html;
+    heading.innerHTML = DOMPurify.sanitize(content.full_html);
     console.log('✓ Updated resources heading');
   }
 }
 
-// Resource cards - needs to match by title
-function renderResourceCard(content) {
-  const cards = document.querySelectorAll('.py-32.bg-surface-container-low .space-y-4 .group.block.p-8');
-  cards.forEach(card => {
+// Resource cards - targeted by index to allow title changes
+function renderResourceCard(content, index) {
+  const card = document.querySelector(`.resource-card-${index}`);
+  if (card) {
     const titleEl = card.querySelector('.font-serif.text-xl');
-    if (titleEl && titleEl.textContent === content.title) {
-      // Update badge
-      const badgeEl = card.querySelector('.text-\\[10px\\]');
-      if (badgeEl) badgeEl.textContent = content.badge_type;
+    if (titleEl) {
+        // Update badge
+        const badgeEl = card.querySelector('.text-\\[10px\\]');
+        if (badgeEl) badgeEl.textContent = content.badge_type;
 
-      // Update title
-      titleEl.textContent = content.title;
+        // Update title
+        titleEl.textContent = content.title;
 
-      // Update link
-      card.href = content.url;
+        // Update link
+        card.href = content.url;
 
-      // Open PDFs in a new tab
-      if (content.url && content.url.toLowerCase().endsWith('.pdf')) {
-        card.setAttribute('target', '_blank');
-        card.setAttribute('rel', 'noopener noreferrer');
-      }
+        // Handle target attribute from JSON or PDF auto-detection
+        if (content.target) {
+          card.setAttribute('target', content.target);
+          if (content.target === '_blank') {
+            card.setAttribute('rel', 'noopener noreferrer');
+          }
+        } else if (content.url && content.url.toLowerCase().endsWith('.pdf')) {
+          card.setAttribute('target', '_blank');
+          card.setAttribute('rel', 'noopener noreferrer');
+        }
 
-      // Update icon
-      const iconEl = card.querySelector('.material-symbols-outlined');
-      if (iconEl && content.icon) iconEl.textContent = content.icon;
-
-      console.log('✓ Updated resource card:', content.title);
+        // Update icon
+        const iconEl = card.querySelector('.material-symbols-outlined');
+        if (iconEl && content.icon) iconEl.textContent = content.icon;
+        console.log('✓ Updated resource card:', content.title);
     }
-  });
+  }
 }
 
 // Support heading - preserve HTML structure
 function renderSupportHeading(content) {
-  const heading = document.querySelector('.bg-primary.p-14 .font-serif.text-4xl');
+  const heading = document.querySelector('.support-heading');
   if (heading && content.full_html) {
-    heading.innerHTML = content.full_html;
+    heading.innerHTML = DOMPurify.sanitize(content.full_html);
     console.log('✓ Updated support heading');
   }
 }
 
 // Support description
 function renderSupportDescription(content) {
-  const desc = document.querySelector('.bg-primary.p-14 .text-white\\/60');
+  const desc = document.querySelector('.support-description-content');
   if (desc) {
     // Use HTML if available (for links), otherwise use plain text
     if (content.html) {
-      desc.innerHTML = content.html;
+      desc.innerHTML = DOMPurify.sanitize(content.html);
     } else {
       desc.textContent = content.text;
     }
@@ -297,26 +302,37 @@ function renderSupportDescription(content) {
 
 // Support contact (phone and email)
 function renderSupportContact(content) {
-  const contactGroups = document.querySelectorAll('.bg-primary.p-14 .space-y-6 .flex');
-  contactGroups.forEach(group => {
-    const labelEl = group.querySelector('.text-white\\/60.text-xs');
-    if (labelEl && labelEl.textContent === content.label) {
-      const valueEl = group.querySelector('.text-white.font-medium');
-      if (valueEl) {
-        valueEl.textContent = content.value;
-      }
+  // Find which contact this is based on the label
+  if (content.label === 'Call Us') {
+    const valueEl = document.querySelector('.support-phone-value');
+    const iconEl = document.querySelector('.support-phone-icon');
 
-      const iconEl = group.querySelector('.material-symbols-outlined');
-      if (iconEl && content.icon) iconEl.textContent = content.icon;
-
-      console.log('✓ Updated support contact:', content.label);
+    if (valueEl) {
+      valueEl.textContent = content.value;
     }
-  });
+    if (iconEl && content.icon) {
+      iconEl.textContent = content.icon;
+    }
+    console.log('✓ Updated support contact: Call Us');
+  }
+
+  if (content.label === 'Email Us') {
+    const valueEl = document.querySelector('.support-email-value');
+    const iconEl = document.querySelector('.support-email-icon');
+
+    if (valueEl) {
+      valueEl.textContent = content.value;
+    }
+    if (iconEl && content.icon) {
+      iconEl.textContent = content.icon;
+    }
+    console.log('✓ Updated support contact: Email Us');
+  }
 }
 
 // Footer copyright
 function renderFooterCopyright(content) {
-  const copyright = document.querySelector('footer .text-white\\/50.text-sm.leading-relaxed');
+  const copyright = document.querySelector('.footer-copyright');
   if (copyright) {
     copyright.innerHTML = content.text.replace('\n', '<br>');
     console.log('✓ Updated footer copyright');
@@ -325,13 +341,13 @@ function renderFooterCopyright(content) {
 
 // Footer links
 function renderFooterLinks(content) {
-  const linksContainer = document.querySelector('footer .max-w-7xl .flex.flex-wrap.md\\:justify-end');
+  const linksContainer = document.querySelector('.footer-links-container');
   if (linksContainer && content.links) {
     linksContainer.innerHTML = '';
     content.links.forEach(linkData => {
       const link = document.createElement('a');
       link.href = linkData.url;
-      link.className = 'text-white/50 hover:text-accent transition-colors text-sm tracking-wide';
+      link.className = 'text-secondary hover:text-primary transition-colors text-sm tracking-wide';
       link.textContent = linkData.label;
       linksContainer.appendChild(link);
     });

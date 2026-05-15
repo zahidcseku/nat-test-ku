@@ -60,8 +60,8 @@
       "display_order": 6,
       "is_active": true,
       "content": {
-        "exam_date": "October 14, 2024",
-        "registration_status": "Registration closes in 12 days",
+        "exam_date": "July 11, 2026",
+        "registration_status": "Registration closes in 27 days",
         "exam_info_url": "resources.html",
         "registration_url": "registration.html"
       }
@@ -120,10 +120,10 @@
       "display_order": 12,
       "is_active": true,
       "content": {
-        "line1": "Preparation",
-        "line2_italic": "Resources",
+        "line1": "Preparation Resources",
+        "line2_italic": "",
         "line2_text": "",
-        "full_html": "Preparation<br><span class=\"italic text-secondary\">Resources</span>"
+        "full_html": "Preparation Resources"
       }
     },
     {
@@ -133,7 +133,7 @@
       "is_active": true,
       "content": {
         "badge_type": "PDF",
-        "title": "2024 Candidate Handbook",
+        "title": "Japanese Language Schools in Bangladesh",
         "url": "resources.html",
         "icon": "download"
       }
@@ -144,10 +144,11 @@
       "display_order": 14,
       "is_active": true,
       "content": {
-        "badge_type": "CHECKLIST",
-        "title": "Examination Day Checklist",
-        "url": "resources.html",
-        "icon": "download"
+        "badge_type": "EXTERNAL",
+        "title": "Sample Questions",
+        "url": "https://nat-test.jp/contents/sample.html",
+        "icon": "open_in_new",
+        "target": "_blank"
       }
     },
     {
@@ -156,10 +157,11 @@
       "display_order": 15,
       "is_active": true,
       "content": {
-        "badge_type": "PROTOCOL",
-        "title": "Security & Privacy Protocols",
-        "url": "resources.html",
-        "icon": "description"
+        "badge_type": "EXTERNAL",
+        "title": "Integrity of the Exam",
+        "url": "https://nat-test.jp/en/fairness.html",
+        "icon": "open_in_new",
+        "target": "_blank"
       }
     },
     {
@@ -180,7 +182,7 @@
       "display_order": 17,
       "is_active": true,
       "content": {
-        "text": "Our support team is available Monday through Friday, 8:00 AM to 6:00 PM, to answer any questions regarding registration, accessibility accommodations, or result interpretation.",
+        "text": "Our support team is available Sunday through Thursday, 9:00 AM to 5:00 PM, to answer any questions regarding registration, accessibility accommodations, or result interpretation.",
         "html": ""
       }
     },
@@ -190,9 +192,9 @@
       "display_order": 18,
       "is_active": true,
       "content": {
-        "label": "Call us",
-        "value": "+1 (800) NAT-CORE",
-        "icon": "call"
+        "label": "Call Us",
+        "value": "+8801718310890",
+        "icon": "phone"
       }
     },
     {
@@ -201,9 +203,9 @@
       "display_order": 19,
       "is_active": true,
       "content": {
-        "label": "Email us",
-        "value": "registrar@natcentre.edu",
-        "icon": "mail"
+        "label": "Email Us",
+        "value": "info@nat-test.ku.ac.bd",
+        "icon": "email"
       }
     },
     {
@@ -213,32 +215,6 @@
       "is_active": true,
       "content": {
         "text": "\u00a9 2024 National Assessment Test Centre.\nPursuing Academic Excellence."
-      }
-    },
-    {
-      "id": "601ea5bc-4421-45c0-b6eb-331a7d21d4e6",
-      "type": "footer_links",
-      "display_order": 21,
-      "is_active": true,
-      "content": {
-        "links": [
-          {
-            "label": "Privacy Policy",
-            "url": "#"
-          },
-          {
-            "label": "Terms of Service",
-            "url": "#"
-          },
-          {
-            "label": "Accessibility",
-            "url": "#"
-          },
-          {
-            "label": "Staff Portal",
-            "url": "#"
-          }
-        ]
       }
     }
   ]
