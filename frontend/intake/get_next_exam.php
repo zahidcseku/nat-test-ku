@@ -6,30 +6,23 @@
  * and returns the exam details in JSON format.
  */
 
+// Define service constant to allow config.php inclusion
+define('INTAKE_SERVICE', true);
+
+// Load configuration and database connection
+require_once __DIR__ . '/config.php';
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 
-// Enable error logging for debugging
-ini_set('log_errors', 1);
-ini_set('error_log', __DIR__ . '/logs/php_errors.log');
-
-// Database configuration - inline for this public endpoint
-$DB_HOST = getenv('DB_HOST') ?: 'localhost';
-$DB_NAME = getenv('DB_NAME') ?: 'nat_test_intake';
-$DB_USER = getenv('DB_USER') ?: 'intake_user';
-$DB_PASS = getenv('DB_PASS') ?: '';
-$DB_CHARSET = 'utf8mb4';
-
 try {
-    // Create database connection
-    $conn = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
+    // Create database connection using the same method as register.php
+    $conn = getDbConnection();
 
-    if ($conn->connect_error) {
-        throw new Exception('Database connection failed: ' . $conn->connect_error);
+    if (!$conn) {
+        throw new Exception('Database connection failed');
     }
-
-    $conn->set_charset($DB_CHARSET);
 
     // Get the next exam date (today or future)
     $today = date('Y-m-d');
@@ -112,12 +105,6 @@ try {
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => 'Server error: ' . $e->getMessage(),
-        'debug_info' => [
-            'db_host' => $DB_HOST,
-            'db_name' => $DB_NAME,
-            'db_user' => $DB_USER,
-            'connection_error' => isset($conn) ? $conn->connect_error : 'N/A'
-        ]
+        'error' => 'Server error: ' . $e->getMessage()
     ]);
 }
