@@ -24,8 +24,12 @@ try {
         throw new Exception('Database connection failed');
     }
 
-    // Get the next exam date (today or future)
+    // Get the next exam date (today or future, but not before July 11, 2026)
     $today = date('Y-m-d');
+    $center_opening_date = '2026-07-11';
+
+    // Use the later of today or the center opening date
+    $effective_start_date = (strtotime($today) > strtotime($center_opening_date)) ? $today : $center_opening_date;
 
     $query = "
         SELECT
