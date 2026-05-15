@@ -10,15 +10,22 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 
-// Database configuration
-require_once 'config.php';
+// Database configuration - inline for this public endpoint
+$DB_HOST = getenv('DB_HOST') ?: 'localhost';
+$DB_NAME = getenv('DB_NAME') ?: 'nat_test_intake';
+$DB_USER = getenv('DB_USER') ?: 'intake_user';
+$DB_PASS = getenv('DB_PASS') ?: '';
+$DB_CHARSET = 'utf8mb4';
 
 try {
-    // Get database connection
-    $conn = getDbConnection();
-    if (!$conn) {
+    // Create database connection
+    $conn = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
+
+    if ($conn->connect_error) {
         throw new Exception('Database connection failed');
     }
+
+    $conn->set_charset($DB_CHARSET);
 
     // Get the next exam date (today or future)
     $today = date('Y-m-d');
