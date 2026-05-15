@@ -147,8 +147,8 @@
           <span class="material-symbols-outlined text-xl text-primary">event</span>
           <span class="font-bold text-primary text-sm">Next Test Date</span>
         </div>
-        <p class="text-2xl font-bold text-primary mb-1">Coming Soon</p>
-        <p class="text-xs text-secondary">Test dates will be displayed here once available from the database.</p>
+        <p class="text-2xl font-bold text-primary mb-1" id="next-exam-date">Loading...</p>
+        <p class="text-xs text-secondary" id="next-exam-status">Checking database for available exam dates</p>
       </div>
 
       <!-- Application Fee Notice -->
@@ -427,10 +427,7 @@
                   <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="test_date">Intended Test Date</label>
                   <select class="ghost-input py-3 text-lg bg-white" id="test_date">
                     <option value="">Select Test Date</option>
-                    <!-- PLACEHOLDER: Options will be loaded from database -->
-                    <option value="2026-06-15">June 15, 2026</option>
-                    <option value="2026-07-20">July 20, 2026</option>
-                    <option value="2026-08-17">August 17, 2026</option>
+                    <!-- Options will be loaded from database -->
                   </select>
                   <span class="field-error" id="test_date-error"></span>
                   <span class="field-success" id="test_date-success"></span>
@@ -750,8 +747,10 @@
   <script src="js/lib/dompurify.js"></script>
   <script src="js/registration.js"></script>
   <script>
-    // Initialize form event listeners
+    // Initialize form and load exam dates
     document.addEventListener('DOMContentLoaded', function() {
+      // Load exam dates from database
+      RegistrationForm.loadExamDates();
       // Payment method change handler
       const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
       paymentMethods.forEach(method => {

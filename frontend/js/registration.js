@@ -774,6 +774,83 @@ const RegistrationForm = (function() {
     showStep(1);
   }
 
+  /**
+   * Load exam dates from database
+   */
+  function loadExamDates() {
+    console.log('🔄 Loading exam dates from database...');
+
+    fetch('/intake/get_exam_dates.php')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+        }
+        return response.json();
+      })
+      .then(result => {
+        if (result.success && result.data && result.data.exams.length > 0) {
+          const exams = result.data.exams;
+
+          // Update "Next Test Date" section
+          const nextExamDateEl = document.getElementById('next-exam-date');
+          const nextExamStatusEl = document.getElementById('next-exam-status');
+
+          if (nextExamDateEl && nextExamStatusEl) {
+            const firstExam = exams[0];
+            nextExamDateEl.textContent = firstExam.display;
+            nextExamStatusEl.textContent = 'Registration deadline: ' + new Date(firstExam.deadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+          }
+
+          // Populate test date dropdown
+          const testDateSelect = document.getElementById('test_date');
+          if (testDateSelect) {
+            // Clear existing options and add default
+            while (testDateSelect.firstChild) {
+              testDateSelect.removeChild(testDateSelect.firstChild);
+            }
+
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select Test Date';
+            testDateSelect.appendChild(defaultOption);
+
+            // Add options from database
+            exams.forEach(exam => {
+              const option = document.createElement('option');
+              option.value = exam.value;
+              option.textContent = exam.display;
+              testDateSelect.appendChild(option);
+            });
+          }
+
+          console.log('✅ Loaded ' + exams.length + ' exam dates from database');
+        } else {
+          // No exams available
+          const nextExamDateEl = document.getElementById('next-exam-date');
+          const nextExamStatusEl = document.getElementById('next-exam-status');
+
+          if (nextExamDateEl && nextExamStatusEl) {
+            nextExamDateEl.textContent = 'Coming Soon';
+            nextExamStatusEl.textContent = 'Test dates will be displayed here once available';
+          }
+
+          console.warn('⚠ No exam dates available from database');
+        }
+      })
+      .catch(error => {
+        console.error('❌ Error loading exam dates:', error);
+
+        // Show error state
+        const nextExamDateEl = document.getElementById('next-exam-date');
+        const nextExamStatusEl = document.getElementById('next-exam-status');
+
+        if (nextExamDateEl && nextExamStatusEl) {
+          nextExamDateEl.textContent = 'Unable to load';
+          nextExamStatusEl.textContent = 'Please refresh the page or contact support';
+        }
+      });
+  }
+
   // Export public API
   return {
     CONFIG,
@@ -796,7 +873,8 @@ const RegistrationForm = (function() {
     toggleOffline,
     submitForm,
     resetForm,
-    validateAllSteps
+    validateAllSteps,
+    loadExamDates
   };
 
 })();

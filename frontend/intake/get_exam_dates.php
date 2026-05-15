@@ -1,0 +1,94 @@
+<?php
+/**
+ * Get available exam dates for registration dropdown
+ *
+ * This endpoint returns all upcoming exam dates that are available
+ * for registration, filtered by the center opening date.
+ */
+
+// Define service constant
+define('INTAKE_SERVICE', true);
+
+// Load dependencies
+require_once __DIR__ . '/config.php';
+
+// Set headers
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET');
+
+try {
+    // Get database connection
+    $conn = getDbConnection();
+    if (!$conn) {
+        logActivity("Database connection failed", 'error');
+        errorResponse('Database connection failed', 500);
+    }
+
+    // Get exams on or after center opening date (July 11, 2026)
+    $center_opening_date = '2026-07-11';
+    $today = date('Y-m-d');
+
+    // Only show exams where registration is still open
+    $query = "
+        SELECT
+            ed.id,
+            ed.exam_date,
+            ed.registration_deadline,
+            GROUP_CONCAT(el.level ORDER BY el.level SEPARATOR ',') as levels
+        FROM exam_dates ed
+        LEFT JOIN exam_levels el ON ed.id = el.exam_date_id
+        WHERE ed.exam_date >= ? AND ed.registration_deadline >= ?
+        GROUP BY ed.id, ed.exam_date, ed.registration_deadline
+        ORDER BY ed.exam_date ASC
+    ";
+
+    $stmt = $conn->prepare($query);
+    if (!$stmt) {
+        logActivity("Query preparation failed: " . $conn->error, 'error');
+        errorResponse('Database error', 500);
+    }
+
+    $stmt->bind_param('ss', $center_opening_date, $today);
+    if (!$stmt->execute()) {
+        logActivity("Query execution failed: " . $stmt->error, 'error');
+        errorResponse('Database error', 500);
+    }
+
+    $result = $stmt->get_result();
+    $exams = [];
+
+    while ($row = $result->fetch_assoc()) {
+        // Format exam date for display
+        $exam_date_obj = DateTime::createFromFormat('Y-m-d', $row['exam_date']);
+        if (!$exam_date_obj) {
+            continue;
+        }
+
+        $formatted_date = $exam_date_obj->format('F j, Y');
+
+        // Get available levels for this exam
+        $levels = $row['levels'] ? explode(',', $row['levels']) : [];
+
+        $exams[] = [
+            'id' => $row['id'],
+            'value' => $row['exam_date'],
+            'display' => $formatted_date,
+            'deadline' => $row['registration_deadline'],
+            'levels' => $levels
+        ];
+    }
+
+    $stmt->close();
+    $conn->close();
+
+    // Send success response
+    successResponse([
+        'exams' => $exams,
+        'count' => count($exams)
+    ], 'Exam dates retrieved successfully');
+
+} catch (Exception $e) {
+    logActivity("Exception: " . $e->getMessage(), 'error');
+    errorResponse('Server error', 500);
+}
