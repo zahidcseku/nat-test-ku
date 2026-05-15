@@ -10,6 +10,10 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 
+// Enable error logging for debugging
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/logs/php_errors.log');
+
 // Database configuration - inline for this public endpoint
 $DB_HOST = getenv('DB_HOST') ?: 'localhost';
 $DB_NAME = getenv('DB_NAME') ?: 'nat_test_intake';
@@ -22,7 +26,7 @@ try {
     $conn = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
 
     if ($conn->connect_error) {
-        throw new Exception('Database connection failed');
+        throw new Exception('Database connection failed: ' . $conn->connect_error);
     }
 
     $conn->set_charset($DB_CHARSET);
@@ -45,8 +49,15 @@ try {
     ";
 
     $stmt = $conn->prepare($query);
+    if (!$stmt) {
+        throw new Exception('Query preparation failed: ' . $conn->error);
+    }
+
     $stmt->bind_param('s', $today);
-    $stmt->execute();
+    if (!$stmt->execute()) {
+        throw new Exception('Query execution failed: ' . $stmt->error);
+    }
+
     $result = $stmt->get_result();
     $exam = $result->fetch_assoc();
 
@@ -65,10 +76,16 @@ try {
 
         // Format exam date for display
         $exam_date_obj = DateTime::createFromFormat('Y-m-d', $exam['exam_date']);
+        if (!$exam_date_obj) {
+            throw new Exception('Invalid exam_date format');
+        }
         $formatted_exam_date = $exam_date_obj->format('F j, Y');
 
         // Format registration deadline for display
         $deadline_obj = DateTime::createFromFormat('Y-m-d', $registration_deadline);
+        if (!$deadline_obj) {
+            throw new Exception('Invalid deadline format');
+        }
         $formatted_deadline = $deadline_obj->format('F j, Y');
 
         echo json_encode([
@@ -95,6 +112,12 @@ try {
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => 'Server error: ' . $e->getMessage()
+        'error' => 'Server error: ' . $e->getMessage(),
+        'debug_info' => [
+            'db_host' => $DB_HOST,
+            'db_name' => $DB_NAME,
+            'db_user' => $DB_USER,
+            'connection_error' => isset($conn) ? $conn->connect_error : 'N/A'
+        ]
     ]);
 }
