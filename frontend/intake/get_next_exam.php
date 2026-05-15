@@ -50,7 +50,7 @@ try {
         throw new Exception('Query preparation failed: ' . $conn->error);
     }
 
-    $stmt->bind_param('s', $today);
+    $stmt->bind_param('s', $effective_start_date);
     if (!$stmt->execute()) {
         throw new Exception('Query execution failed: ' . $stmt->error);
     }
@@ -62,12 +62,12 @@ try {
         // Calculate registration status
         $registration_deadline = $exam['registration_deadline'];
         $deadline_timestamp = strtotime($registration_deadline);
-        $today_timestamp = strtotime($today);
+        $effective_timestamp = strtotime($effective_start_date);
 
-        if ($today_timestamp > $deadline_timestamp) {
+        if ($effective_timestamp > $deadline_timestamp) {
             $registration_status = "Registration closed";
         } else {
-            $days_until_deadline = ceil(($deadline_timestamp - $today_timestamp) / (60 * 60 * 24));
+            $days_until_deadline = ceil(($deadline_timestamp - $effective_timestamp) / (60 * 60 * 24));
             $registration_status = "Registration closes in " . $days_until_deadline . " days";
         }
 
