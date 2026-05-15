@@ -6,22 +6,23 @@
  * and returns the exam details in JSON format.
  */
 
-// Define service constant to allow config.php inclusion
+// Define service constant
 define('INTAKE_SERVICE', true);
 
-// Load configuration and database connection
+// Load dependencies
 require_once __DIR__ . '/config.php';
 
+// Set headers
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 
 try {
-    // Create database connection using the same method as register.php
+    // Get database connection
     $conn = getDbConnection();
-
     if (!$conn) {
-        throw new Exception('Database connection failed');
+        logActivity("Database connection failed", 'error');
+        errorResponse('Database connection failed', 500);
     }
 
     // Get the next exam date (today or future, but not before July 11, 2026)
@@ -47,68 +48,65 @@ try {
 
     $stmt = $conn->prepare($query);
     if (!$stmt) {
-        throw new Exception('Query preparation failed: ' . $conn->error);
+        logActivity("Query preparation failed: " . $conn->error, 'error');
+        errorResponse('Database error', 500);
     }
 
     $stmt->bind_param('s', $effective_start_date);
     if (!$stmt->execute()) {
-        throw new Exception('Query execution failed: ' . $stmt->error);
+        logActivity("Query execution failed: " . $stmt->error, 'error');
+        errorResponse('Database error', 500);
     }
 
     $result = $stmt->get_result();
     $exam = $result->fetch_assoc();
 
     if ($exam) {
-        // Calculate registration status
+        // Calculate registration status based on today's date
         $registration_deadline = $exam['registration_deadline'];
         $deadline_timestamp = strtotime($registration_deadline);
-        $effective_timestamp = strtotime($effective_start_date);
+        $today_timestamp = strtotime($today);
 
-        if ($effective_timestamp > $deadline_timestamp) {
+        if ($today_timestamp > $deadline_timestamp) {
             $registration_status = "Registration closed";
         } else {
-            $days_until_deadline = ceil(($deadline_timestamp - $effective_timestamp) / (60 * 60 * 24));
+            $days_until_deadline = ceil(($deadline_timestamp - $today_timestamp) / (60 * 60 * 24));
             $registration_status = "Registration closes in " . $days_until_deadline . " days";
         }
 
         // Format exam date for display
         $exam_date_obj = DateTime::createFromFormat('Y-m-d', $exam['exam_date']);
         if (!$exam_date_obj) {
-            throw new Exception('Invalid exam_date format');
+            logActivity("Invalid exam_date format: " . $exam['exam_date'], 'error');
+            errorResponse('Invalid exam date format', 500);
         }
         $formatted_exam_date = $exam_date_obj->format('F j, Y');
 
         // Format registration deadline for display
         $deadline_obj = DateTime::createFromFormat('Y-m-d', $registration_deadline);
         if (!$deadline_obj) {
-            throw new Exception('Invalid deadline format');
+            logActivity("Invalid deadline format: " . $registration_deadline, 'error');
+            errorResponse('Invalid deadline format', 500);
         }
         $formatted_deadline = $deadline_obj->format('F j, Y');
 
-        echo json_encode([
-            'success' => true,
-            'data' => [
-                'exam_date' => $formatted_exam_date,
-                'registration_deadline' => $formatted_deadline,
-                'registration_status' => $registration_status,
-                'levels' => $exam['levels'] ? explode(',', $exam['levels']) : []
-            ]
-        ]);
+        // Send success response
+        successResponse([
+            'exam_date' => $formatted_exam_date,
+            'registration_deadline' => $formatted_deadline,
+            'registration_status' => $registration_status,
+            'levels' => $exam['levels'] ? explode(',', $exam['levels']) : []
+        ], 'Exam date retrieved successfully');
+
     } else {
         // No upcoming exams found
-        echo json_encode([
-            'success' => false,
-            'message' => 'No upcoming exams scheduled'
-        ]);
+        successResponse([], 'No upcoming exams scheduled');
     }
 
     $stmt->close();
     $conn->close();
 
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Server error: ' . $e->getMessage()
-    ]);
+    logActivity("Exception: " . $e->getMessage(), 'error');
+    errorResponse('Server error', 500);
 }
