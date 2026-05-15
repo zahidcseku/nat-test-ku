@@ -41,9 +41,6 @@ async function loadContent() {
         case 'hero_cta_secondary':
           renderHeroCtaSecondary(block.content);
           break;
-        case 'exam_ribbon':
-          renderExamRibbon(block.content);
-          break;
         case 'benefits_heading':
           renderBenefitsHeading(block.content);
           break;
@@ -78,9 +75,6 @@ async function loadContent() {
         case 'footer_copyright':
           renderFooterCopyright(block.content);
           break;
-        case 'footer_links':
-          renderFooterLinks(block.content);
-          break;
       }
     });
 
@@ -93,6 +87,32 @@ async function loadContent() {
     errorDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #ff4444; color: white; padding: 10px; border-radius: 5px; z-index: 9999;';
     errorDiv.textContent = 'Content loading failed: ' + error.message;
     document.body.appendChild(errorDiv);
+  }
+}
+
+// Load exam dates from database via PHP endpoint
+async function loadExamDates() {
+  console.log('🔄 Loading exam dates from database...');
+
+  try {
+    const response = await fetch('/intake/get_next_exam.php');
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    if (result.success && result.data) {
+      renderExamRibbonFromDB(result.data);
+      console.log('✓ Exam dates loaded from database');
+    } else {
+      console.warn('⚠ No upcoming exams found');
+      renderExamRibbonFallback();
+    }
+
+  } catch (error) {
+    console.error('❌ Error loading exam dates:', error);
+    renderExamRibbonFallback();
   }
 }
 
@@ -165,30 +185,47 @@ function renderHeroCtaSecondary(content) {
   }
 }
 
-// Exam ribbon
-function renderExamRibbon(content) {
+// Exam ribbon from database
+function renderExamRibbonFromDB(data) {
   const dateEl = document.querySelector('.ribbon-exam-date');
   if (dateEl) {
-    dateEl.textContent = content.exam_date;
-    console.log('✓ Updated exam date');
+    dateEl.textContent = data.exam_date;
+    console.log('✓ Updated exam date from database:', data.exam_date);
   }
 
   const statusEl = document.querySelector('.ribbon-registration-status');
   if (statusEl) {
-    statusEl.textContent = content.registration_status;
+    statusEl.textContent = data.registration_status;
+    console.log('✓ Updated registration status from database:', data.registration_status);
   }
 
+  // Update links if needed
   const infoLink = document.querySelector('.ribbon-info-url');
   if (infoLink) {
-    infoLink.href = content.exam_info_url;
+    infoLink.href = 'exam-info.html';
   }
 
   const registerLink = document.querySelector('.ribbon-registration-url');
   if (registerLink) {
-    registerLink.href = content.registration_url;
+    registerLink.href = 'registration.html';
   }
 
-  console.log('✓ Updated exam ribbon');
+  console.log('✓ Updated exam ribbon from database');
+}
+
+// Exam ribbon fallback (no exams available)
+function renderExamRibbonFallback() {
+  const dateEl = document.querySelector('.ribbon-exam-date');
+  if (dateEl) {
+    dateEl.textContent = 'Coming Soon';
+  }
+
+  const statusEl = document.querySelector('.ribbon-registration-status');
+  if (statusEl) {
+    statusEl.textContent = 'Check back later for upcoming exam dates';
+  }
+
+  console.log('✓ Rendered exam ribbon fallback');
 }
 
 // Benefits heading - preserve HTML structure
@@ -339,25 +376,13 @@ function renderFooterCopyright(content) {
   }
 }
 
-// Footer links
-function renderFooterLinks(content) {
-  const linksContainer = document.querySelector('.footer-links-container');
-  if (linksContainer && content.links) {
-    linksContainer.innerHTML = '';
-    content.links.forEach(linkData => {
-      const link = document.createElement('a');
-      link.href = linkData.url;
-      link.className = 'text-secondary hover:text-primary transition-colors text-sm tracking-wide';
-      link.textContent = linkData.label;
-      linksContainer.appendChild(link);
-    });
-    console.log('✓ Updated footer links');
-  }
-}
-
 // Load content when DOM is ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadContent);
+  document.addEventListener('DOMContentLoaded', () => {
+    loadContent();
+    loadExamDates();
+  });
 } else {
   loadContent();
+  loadExamDates();
 }

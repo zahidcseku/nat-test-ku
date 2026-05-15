@@ -55,18 +55,6 @@
       }
     },
     {
-      "id": "3e6740d6-6242-4b57-a766-f29c02e55067",
-      "type": "exam_ribbon",
-      "display_order": 6,
-      "is_active": true,
-      "content": {
-        "exam_date": "July 11, 2026",
-        "registration_status": "Registration closes in 27 days",
-        "exam_info_url": "resources.html",
-        "registration_url": "registration.html"
-      }
-    },
-    {
       "id": "4e083033-eed9-4b5e-b4ab-edac4c81ce4f",
       "type": "benefits_heading",
       "display_order": 7,
@@ -117,7 +105,7 @@
     {
       "id": "0c80568c-4bc8-44c8-9104-1e121ff4d318",
       "type": "resources_heading",
-      "display_order": 12,
+      "display_order": 11,
       "is_active": true,
       "content": {
         "line1": "Preparation Resources",
@@ -129,7 +117,7 @@
     {
       "id": "b6811689-3b47-41fd-8890-4357122e2c1d",
       "type": "resource_card",
-      "display_order": 13,
+      "display_order": 12,
       "is_active": true,
       "content": {
         "badge_type": "PDF",
@@ -141,7 +129,7 @@
     {
       "id": "9e2fbb86-fe5b-428b-9e6c-703aae78a9ed",
       "type": "resource_card",
-      "display_order": 14,
+      "display_order": 13,
       "is_active": true,
       "content": {
         "badge_type": "EXTERNAL",
@@ -154,7 +142,7 @@
     {
       "id": "7cd12264-d6be-42dd-af7f-74aef4b021ce",
       "type": "resource_card",
-      "display_order": 15,
+      "display_order": 14,
       "is_active": true,
       "content": {
         "badge_type": "EXTERNAL",
@@ -167,7 +155,7 @@
     {
       "id": "4d8c0b94-7b5f-44bd-9255-a7569b55705f",
       "type": "support_heading",
-      "display_order": 16,
+      "display_order": 15,
       "is_active": true,
       "content": {
         "line1": "Need",
@@ -179,7 +167,7 @@
     {
       "id": "002fe535-17b5-429d-8df7-2ec4f33eb1d8",
       "type": "support_description",
-      "display_order": 17,
+      "display_order": 16,
       "is_active": true,
       "content": {
         "text": "Our support team is available Sunday through Thursday, 9:00 AM to 5:00 PM, to answer any questions regarding registration, accessibility accommodations, or result interpretation.",
@@ -189,7 +177,7 @@
     {
       "id": "1102d2f1-5176-4cda-9c84-08db4f6ec11b",
       "type": "support_contact",
-      "display_order": 18,
+      "display_order": 17,
       "is_active": true,
       "content": {
         "label": "Call Us",
@@ -200,7 +188,7 @@
     {
       "id": "0260897e-fc94-4ad6-a925-03d36b64d2c3",
       "type": "support_contact",
-      "display_order": 19,
+      "display_order": 18,
       "is_active": true,
       "content": {
         "label": "Email Us",
@@ -211,7 +199,7 @@
     {
       "id": "82ce2f32-8436-4d57-8f7e-810a6550b126",
       "type": "footer_copyright",
-      "display_order": 20,
+      "display_order": 19,
       "is_active": true,
       "content": {
         "text": "\u00a9 2024 National Assessment Test Centre.\nPursuing Academic Excellence."
