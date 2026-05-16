@@ -17,6 +17,14 @@
     .academic-gradient {
       background: linear-gradient(135deg, #000a1e 0%, #002147 100%);
     }
+    /* Custom dropdown arrow for selectors with appearance-none */
+    select.appearance-none {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23002147'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0 center;
+      background-size: 1.25rem;
+      padding-right: 1.5rem;
+    }
   </style>
 </head>
 <body class="bg-surface font-sans text-[#191c1e] antialiased">
@@ -48,32 +56,89 @@
   </nav>
   <!-- Main Content -->
   <main class="pb-20 px-8 max-w-7xl mx-auto pt-40">
+    <!-- Important Notice -->
+    <div class="bg-primary/10 border-2 border-primary p-8 mb-12 rounded-lg shadow-lg">
+      <div class="flex items-start gap-4">
+        <span class="material-symbols-outlined text-primary text-4xl flex-shrink-0">error</span>
+        <div>
+          <h3 class="font-bold text-primary mb-2">Important Notice</h3>
+          <p class="text-primary leading-relaxed font-medium">
+            Results for Khulna Center will be available approximately one week after the first examination date at our center. Please check back after the completion of our inaugural exam period.
+          </p>
+        </div>
+      </div>
+    </div>
+
     <!-- Hero Section -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
       <div class="lg:col-span-7">
-        <h1 class="text-5xl lg:text-6xl text-primary leading-tight mb-6">
-          Access Your National Assessment Performance
+        <!-- Badge -->
+        <div class="mb-6">
+          <span class="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-primary/5 border border-primary/10 backdrop-blur-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+            <span class="text-primary/80 text-[10px] font-semibold tracking-[0.25em] uppercase">Official Score Reports</span>
+          </span>
+        </div>
+
+        <h1 class="text-5xl font-serif text-primary font-semibold leading-tight mb-6">
+          Results Portal
         </h1>
-        <p class="text-lg text-secondary leading-relaxed max-w-xl">
-          Welcome to the secure NAT results portal. Enter your academic credentials below to view your detailed performance metrics and download your official score report.
+        <p class="text-secondary text-lg leading-relaxed max-w-xl">
+          Enter your registration details below to access and download your official NAT-TEST results.
         </p>
         <!-- Login Form -->
-        <div class="mt-12 bg-white p-10 rounded-lg max-w-md">
+        <div class="mt-12 bg-white p-10 rounded-lg max-w-lg">
           <form class="space-y-8" onsubmit="return false;">
-            <div>
-              <label class="block text-xs font-semibold text-secondary uppercase tracking-widest mb-2">Examination ID</label>
-              <input
-                class="w-full border-0 border-b border-outline-variant/40 bg-transparent py-3 px-0 focus:ring-0 focus:border-primary focus:border-b-2 transition-all text-lg outline-none"
-                placeholder="e.g. NAT-2024-8832"
-                type="text"
-              />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <label class="block text-xs font-semibold text-secondary uppercase tracking-widest mb-2">Examination ID</label>
+                <input
+                  class="w-full border-0 border-b border-outline-variant/40 bg-transparent py-3 px-0 focus:ring-0 focus:border-primary focus:border-b-2 transition-all text-lg outline-none"
+                  placeholder="e.g. 26030044230002"
+                  type="text"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-secondary uppercase tracking-widest mb-2">Date of Birth</label>
+                <input
+                  class="w-full border-0 border-b border-outline-variant/40 bg-transparent py-3 px-0 focus:ring-0 focus:border-primary focus:border-b-2 transition-all text-lg outline-none"
+                  type="date"
+                />
+              </div>
             </div>
-            <div>
-              <label class="block text-xs font-semibold text-secondary uppercase tracking-widest mb-2">Date of Birth</label>
-              <input
-                class="w-full border-0 border-b border-outline-variant/40 bg-transparent py-3 px-0 focus:ring-0 focus:border-primary focus:border-b-2 transition-all text-lg outline-none"
-                type="date"
-              />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <label class="block text-xs font-semibold text-secondary uppercase tracking-widest mb-2">Exam Year</label>
+                <select
+                  class="w-full border-0 border-b border-outline-variant/40 bg-transparent py-3 px-0 focus:ring-0 focus:border-primary focus:border-b-2 transition-all text-lg outline-none appearance-none cursor-pointer"
+                >
+                  <option value="">Select Year</option>
+                  <option value="2026">2026</option>
+                  <option value="2025">2025</option>
+                  <option value="2024">2024</option>
+                  <option value="2023">2023</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-secondary uppercase tracking-widest mb-2">Exam Month</label>
+                <select
+                  class="w-full border-0 border-b border-outline-variant/40 bg-transparent py-3 px-0 focus:ring-0 focus:border-primary focus:border-b-2 transition-all text-lg outline-none appearance-none cursor-pointer"
+                >
+                  <option value="">Select Month</option>
+                  <option value="January">January</option>
+                  <option value="February">February</option>
+                  <option value="March">March</option>
+                  <option value="April">April</option>
+                  <option value="May">May</option>
+                  <option value="June">June</option>
+                  <option value="July">July</option>
+                  <option value="August">August</option>
+                  <option value="September">September</option>
+                  <option value="October">October</option>
+                  <option value="November">November</option>
+                  <option value="December">December</option>
+                </select>
+              </div>
             </div>
             <button
               class="w-full academic-gradient text-white py-4 rounded-lg font-semibold text-lg hover:opacity-90 transition-all flex items-center justify-center gap-2 group"
@@ -92,17 +157,16 @@
       <!-- Side Info Section -->
       <div class="lg:col-span-5 grid grid-cols-1 gap-6">
         <!-- Image Card -->
-        <div class="h-64 rounded-lg overflow-hidden relative group">
+        <div class="h-64 rounded-lg overflow-hidden shadow-lg">
           <img
-            alt="Library interior"
-            class="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
-            src="https://images.unsplash.com/photo-1568667256549-094345857637?q=80&w=2074&auto=format&fit=crop"
+            alt="Japanese language learning"
+            class="w-full h-full object-cover group-hover:scale-105 transition-all duration-700"
+            src="images/jpn2.jpg"
           />
-          <div class="absolute inset-0 bg-primary/20"></div>
         </div>
         <!-- Interpretation Guide -->
         <div class="bg-surface-container-low p-8 rounded-lg">
-          <h3 class="text-2xl text-primary font-bold mb-4">Understanding Your Scores</h3>
+          <h3 class="text-3xl font-serif text-primary font-semibold mb-4">Understanding Your Scores</h3>
           <div class="space-y-6">
             <div class="flex gap-4">
               <div class="text-primary mt-1">
@@ -136,31 +200,6 @@
             Download Full Scoring Manual
             <span class="material-symbols-outlined text-sm">download</span>
           </button>
-        </div>
-      </div>
-    </div>
-    <!-- Secondary Information -->
-    <div class="mt-24 grid grid-cols-1 md:grid-cols-3 gap-12 border-t border-outline-variant/15 pt-16">
-      <div class="md:col-start-1">
-        <h2 class="text-3xl text-primary font-bold mb-4">Need Assistance?</h2>
-        <p class="text-secondary leading-relaxed">Our help desk is available Monday through Friday for issues regarding missing results or data corrections.</p>
-      </div>
-      <div class="md:col-start-2 space-y-4">
-        <div class="p-4 bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-all cursor-pointer">
-          <span class="block font-bold text-primary">Student Support Line</span>
-          <span class="text-sm text-secondary">+1 (800) 555-0199</span>
-        </div>
-        <div class="p-4 bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-all cursor-pointer">
-          <span class="block font-bold text-primary">Email Inquiries</span>
-          <span class="text-sm text-secondary">support@natcentre.edu</span>
-        </div>
-      </div>
-      <div class="md:col-start-3">
-        <div class="bg-primary-container p-8 rounded-lg text-white">
-          <span class="material-symbols-outlined text-4xl mb-4">description</span>
-          <h4 class="text-xl font-bold mb-2">Verify Certificate</h4>
-          <p class="text-white/70 text-sm mb-6">Third-party institutions can verify student credentials using the unique secure key found on the score sheet.</p>
-          <a href="#" class="text-white font-semibold underline decoration-white/30 hover:decoration-white transition-all text-sm">Open Verification Tool</a>
         </div>
       </div>
     </div>
