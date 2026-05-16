@@ -35,12 +35,11 @@ try {
             ed.id,
             ed.exam_date,
             ed.registration_deadline,
-            ed.registration_opening,
             GROUP_CONCAT(el.level ORDER BY el.level SEPARATOR ',') as levels
         FROM exam_dates ed
         LEFT JOIN exam_levels el ON ed.id = el.exam_date_id
         WHERE ed.exam_date >= ?
-        GROUP BY ed.id, ed.exam_date, ed.registration_deadline, ed.registration_opening
+        GROUP BY ed.id, ed.exam_date, ed.registration_deadline
         ORDER BY ed.exam_date ASC
     ";
 
@@ -63,15 +62,18 @@ try {
         // Format dates
         $exam_date_obj = DateTime::createFromFormat('Y-m-d', $row['exam_date']);
         $deadline_obj = DateTime::createFromFormat('Y-m-d', $row['registration_deadline']);
-        $opening_obj = DateTime::createFromFormat('Y-m-d', $row['registration_opening']);
 
         // Format month and day for display
         $exam_month = $exam_date_obj->format('F');
         $exam_day = $exam_date_obj->format('j');
-        $deadline_day = $deadline_obj->format('F j');
+        $deadline_month = $deadline_obj->format('F');
+        $deadline_day = $deadline_obj->format('j');
         $deadline_year = $deadline_obj->format('Y');
-        $opening_month = $opening_obj->format('F');
-        $opening_day = $opening_obj->format('j');
+
+        // Calculate opening date (approximately 2 months before exam)
+        $opening_timestamp = strtotime($row['exam_date'] . ' -2 months');
+        $opening_month = date('F', $opening_timestamp);
+        $opening_day = date('j', $opening_timestamp);
 
         // Get available levels
         $levels = $row['levels'] ? explode(',', $row['levels']) : [];
@@ -100,7 +102,7 @@ try {
             'exam_day' => $exam_day,
             'registration_opening_month' => $opening_month,
             'registration_opening_day' => $opening_day,
-            'registration_deadline_month' => $deadline_obj->format('F'),
+            'registration_deadline_month' => $deadline_month,
             'registration_deadline_day' => $deadline_day,
             'registration_deadline_year' => $deadline_year,
             'levels' => $formatted_levels
