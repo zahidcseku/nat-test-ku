@@ -25,11 +25,11 @@ try {
         errorResponse('Database connection failed', 500);
     }
 
-    // Get exams on or after center opening date (July 11, 2026)
+    // Get exams for current system year (2026) from center opening date
     $center_opening_date = '2026-07-11';
-    $today = date('Y-m-d');
+    $current_year = date('Y');
 
-    // Query to get exam dates with levels
+    // Query to get exam dates with levels for current year
     $query = "
         SELECT
             ed.id,
@@ -38,7 +38,7 @@ try {
             GROUP_CONCAT(el.level ORDER BY el.level SEPARATOR ',') as levels
         FROM exam_dates ed
         LEFT JOIN exam_levels el ON ed.id = el.exam_date_id
-        WHERE ed.exam_date >= ?
+        WHERE ed.exam_date >= ? AND YEAR(ed.exam_date) = ?
         GROUP BY ed.id, ed.exam_date, ed.registration_deadline
         ORDER BY ed.exam_date ASC
     ";
@@ -49,7 +49,7 @@ try {
         errorResponse('Database error', 500);
     }
 
-    $stmt->bind_param('s', $center_opening_date);
+    $stmt->bind_param('ss', $center_opening_date, $current_year);
     if (!$stmt->execute()) {
         logActivity("Query execution failed: " . $stmt->error, 'error');
         errorResponse('Database error', 500);
@@ -57,6 +57,12 @@ try {
 
     $result = $stmt->get_result();
     $exams = [];
+
+    // Get current date and center opening date
+    $current_date = date('Y-m-d');
+    $current_month = date('n'); // 1-12
+    $current_year = date('Y');
+    $center_opening = '2026-07-11';
 
     while ($row = $result->fetch_assoc()) {
         // Format dates
@@ -66,14 +72,49 @@ try {
         // Format month and day for display
         $exam_month = $exam_date_obj->format('F');
         $exam_day = $exam_date_obj->format('j');
+        $exam_month_num = $exam_date_obj->format('n'); // 1-12
+        $exam_year = $exam_date_obj->format('Y');
         $deadline_month = $deadline_obj->format('F');
         $deadline_day = $deadline_obj->format('j');
         $deadline_year = $deadline_obj->format('Y');
+        $deadline_date = $row['registration_deadline'];
 
-        // Calculate opening date (approximately 2 months before exam)
-        $opening_timestamp = strtotime($row['exam_date'] . ' -2 months');
-        $opening_month = date('F', $opening_timestamp);
-        $opening_day = date('j', $opening_timestamp);
+        // Determine registration status
+        $status = '';
+        $link = '';
+
+        if ($current_date < $center_opening) {
+            // Before center opening - all closed
+            $status = 'Closed';
+            $link = 'https://nat-test.jp/contents/result.html';
+        } else {
+            // After center opening
+            if ($exam_year < $current_year || ($exam_year == $current_year && $exam_month_num < $current_month)) {
+                // Past months
+                $status = 'Closed';
+                $link = 'https://nat-test.jp/contents/result.html';
+            } elseif ($exam_year == $current_year && $exam_month_num == $current_month) {
+                // Current month - check if past deadline
+                if ($current_date > $deadline_date) {
+                    $status = 'Registration Closed';
+                    $link = '';
+                } elseif ($exam_month_num <= $current_month + 2) {
+                    $status = 'Open';
+                    $link = 'registration.html';
+                } else {
+                    $status = 'Opening Soon';
+                    $link = '';
+                }
+            } elseif ($exam_month_num <= $current_month + 2 && $exam_year == $current_year) {
+                // Within 3 months window
+                $status = 'Open';
+                $link = 'registration.html';
+            } else {
+                // Future months
+                $status = 'Opening Soon';
+                $link = '';
+            }
+        }
 
         // Get available levels
         $levels = $row['levels'] ? explode(',', $row['levels']) : [];
@@ -100,12 +141,12 @@ try {
             'exam_date' => $row['exam_date'],
             'exam_month' => $exam_month,
             'exam_day' => $exam_day,
-            'registration_opening_month' => $opening_month,
-            'registration_opening_day' => $opening_day,
             'registration_deadline_month' => $deadline_month,
             'registration_deadline_day' => $deadline_day,
             'registration_deadline_year' => $deadline_year,
-            'levels' => $formatted_levels
+            'levels' => $formatted_levels,
+            'status' => $status,
+            'link' => $link
         ];
     }
 

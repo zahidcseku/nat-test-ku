@@ -85,27 +85,14 @@
       </a>
     </div>
 
-    <!-- Schedule Table -->
+    <!-- Schedule Grid -->
     <div id="schedule-content" class="hidden">
-      <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-        <!-- Table Header -->
-        <div class="bg-primary text-white">
-          <div class="grid grid-cols-12 gap-4 px-6 py-4 text-sm font-semibold tracking-wider uppercase">
-            <div class="col-span-2">Test Dates</div>
-            <div class="col-span-3">Registration Opening</div>
-            <div class="col-span-3">Registration Closing</div>
-            <div class="col-span-4">Available Levels</div>
-          </div>
-        </div>
-
-        <!-- Table Body -->
-        <div id="schedule-rows" class="divide-y divide-outline-variant/20">
-          <!-- Rows will be inserted here by JavaScript -->
-        </div>
+      <div id="schedule-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Exam cards will be inserted here by JavaScript -->
       </div>
 
       <!-- Legend -->
-      <div class="mt-8 bg-surface-container-low rounded-lg p-6">
+      <div class="mt-12 bg-surface-container-low rounded-lg p-6">
         <h3 class="font-semibold text-primary mb-3">Level Information</h3>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
           <div><span class="font-medium">1Q:</span> Basic Level</div>
@@ -124,7 +111,7 @@
       const loadingState = document.getElementById('loading-state');
       const errorState = document.getElementById('error-state');
       const scheduleContent = document.getElementById('schedule-content');
-      const scheduleRows = document.getElementById('schedule-rows');
+      const scheduleGrid = document.getElementById('schedule-grid');
 
       try {
         const response = await fetch('intake/get_schedule.php');
@@ -135,86 +122,120 @@
           loadingState.classList.add('hidden');
           scheduleContent.classList.remove('hidden');
 
-          // Generate table rows using DOM methods
+          // Generate exam cards
           const allLevels = ['1Q', '2Q', '3Q', '4Q', '5Q'];
 
           data.data.exams.forEach(exam => {
-            const row = document.createElement('div');
-            row.className = 'grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-surface-container-low/50 transition-colors';
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden';
 
-            // Test dates column
-            const testDatesCol = document.createElement('div');
-            testDatesCol.className = 'col-span-2';
-            const monthDiv = document.createElement('div');
-            monthDiv.className = 'text-primary font-semibold';
-            monthDiv.textContent = exam.exam_month;
-            const dayDiv = document.createElement('div');
-            dayDiv.className = 'text-2xl font-bold text-primary';
-            dayDiv.textContent = exam.exam_day;
-            testDatesCol.appendChild(monthDiv);
-            testDatesCol.appendChild(dayDiv);
+            // Card header with exam date
+            const header = document.createElement('div');
+            header.className = 'bg-primary text-white px-6 py-4 text-center relative';
 
-            // Opening dates column
-            const openingCol = document.createElement('div');
-            openingCol.className = 'col-span-3';
-            const openingLabel = document.createElement('div');
-            openingLabel.className = 'text-secondary text-sm';
-            openingLabel.textContent = 'Opening';
-            const openingDate = document.createElement('div');
-            openingDate.className = 'text-primary font-medium';
-            openingDate.textContent = exam.registration_opening_month + ' ' + exam.registration_opening_day;
-            openingCol.appendChild(openingLabel);
-            openingCol.appendChild(openingDate);
+            const examMonth = document.createElement('div');
+            examMonth.className = 'text-sm font-medium uppercase tracking-wider mb-1';
+            examMonth.textContent = exam.exam_month;
+            const examDay = document.createElement('div');
+            examDay.className = 'text-4xl font-bold';
+            examDay.textContent = exam.exam_day;
 
-            // Deadline column
+            header.appendChild(examMonth);
+            header.appendChild(examDay);
+
+            // Add link indicator if clickable
+            if (exam.link && exam.link !== '') {
+              const linkIndicator = document.createElement('div');
+              linkIndicator.className = 'absolute top-2 right-2 bg-white/20 rounded-full p-1';
+              linkIndicator.innerHTML = '<span class="material-symbols-outlined text-sm">open_in_new</span>';
+              header.appendChild(linkIndicator);
+            }
+
+            // Card body with 2-column layout
+            const body = document.createElement('div');
+            body.className = 'p-6';
+
+            const infoGrid = document.createElement('div');
+            infoGrid.className = 'grid grid-cols-2 gap-4 mb-6';
+
+            // Column 1: Registration Deadline
             const deadlineCol = document.createElement('div');
-            deadlineCol.className = 'col-span-3';
+            deadlineCol.className = 'text-center border-r border-outline-variant/20';
             const deadlineLabel = document.createElement('div');
-            deadlineLabel.className = 'text-secondary text-sm';
-            deadlineLabel.textContent = 'Deadline';
+            deadlineLabel.className = 'text-xs font-semibold text-secondary uppercase tracking-wider mb-2';
+            deadlineLabel.textContent = 'Registration Deadline';
             const deadlineDate = document.createElement('div');
-            deadlineDate.className = 'text-primary font-medium';
+            deadlineDate.className = 'text-primary font-semibold';
             deadlineDate.textContent = exam.registration_deadline_month + ' ' + exam.registration_deadline_day + ', ' + exam.registration_deadline_year;
             deadlineCol.appendChild(deadlineLabel);
             deadlineCol.appendChild(deadlineDate);
 
-            // Levels column
-            const levelsCol = document.createElement('div');
-            levelsCol.className = 'col-span-4';
+            // Column 2: Status
+            const statusCol = document.createElement('div');
+            statusCol.className = 'text-center';
+            const statusLabel = document.createElement('div');
+            statusLabel.className = 'text-xs font-semibold text-secondary uppercase tracking-wider mb-2';
+            statusLabel.textContent = 'Status';
+
+            // Determine status badge style
+            let statusBadgeClass = '';
+            let statusText = exam.status;
+
+            if (exam.status === 'Open') {
+              statusBadgeClass = 'bg-primary-container text-on-primary-container px-4 py-2 rounded-full';
+            } else if (exam.status === 'Closed') {
+              statusBadgeClass = 'bg-error-container text-on-error-container px-4 py-2 rounded-full';
+            } else if (exam.status === 'Registration Closed') {
+              statusBadgeClass = 'bg-error-container text-on-error-container px-4 py-2 rounded-full';
+            } else {
+              statusBadgeClass = 'bg-surface-container-highest text-secondary px-4 py-2 rounded-full';
+            }
+
+            const statusBadge = document.createElement('div');
+            statusBadge.className = statusBadgeClass + ' text-sm font-semibold';
+            statusBadge.textContent = statusText;
+            statusCol.appendChild(statusLabel);
+            statusCol.appendChild(statusBadge);
+
+            infoGrid.appendChild(deadlineCol);
+            infoGrid.appendChild(statusCol);
+
+            // Available levels section
+            const levelsSection = document.createElement('div');
+            levelsSection.className = 'border-t border-outline-variant/20 pt-4';
+
+            const levelsLabel = document.createElement('div');
+            levelsLabel.className = 'text-xs font-semibold text-secondary uppercase tracking-wider mb-3 text-center';
+            levelsLabel.textContent = 'Available Levels';
+
             const levelsContainer = document.createElement('div');
-            levelsContainer.className = 'flex items-center gap-1';
+            levelsContainer.className = 'flex justify-center gap-2';
 
             allLevels.forEach(level => {
               const isAvailable = exam.levels.includes(level);
               const levelBadge = document.createElement('span');
-              levelBadge.className = 'w-8 h-8 rounded flex items-center justify-center text-sm font-medium ' + (isAvailable ? 'bg-primary text-white' : 'bg-outline-variant/20 text-outline');
+              levelBadge.className = 'w-10 h-10 rounded flex items-center justify-center text-sm font-medium ' + (isAvailable ? 'bg-primary text-white' : 'bg-outline-variant/20 text-outline');
               levelBadge.textContent = level;
               levelsContainer.appendChild(levelBadge);
-
-              // Add spacer except after last item
-              if (level !== '5Q') {
-                const spacer = document.createElement('span');
-                spacer.className = 'w-2';
-                levelsContainer.appendChild(spacer);
-              }
             });
 
-            levelsCol.appendChild(levelsContainer);
+            levelsSection.appendChild(levelsLabel);
+            levelsSection.appendChild(levelsContainer);
 
-            // Append all columns to row
-            row.appendChild(testDatesCol);
-            row.appendChild(openingCol);
-            row.appendChild(deadlineCol);
-            row.appendChild(levelsCol);
+            body.appendChild(infoGrid);
+            body.appendChild(levelsSection);
 
-            scheduleRows.appendChild(row);
+            card.appendChild(header);
+            card.appendChild(body);
+
+            scheduleGrid.appendChild(card);
           });
         } else {
           // No exams found
           loadingState.classList.add('hidden');
           scheduleContent.classList.remove('hidden');
-          scheduleRows.innerHTML = `
-            <div class="px-6 py-12 text-center">
+          scheduleGrid.innerHTML = `
+            <div class="col-span-full px-6 py-12 text-center">
               <span class="material-symbols-outlined text-5xl text-secondary mb-4">event_busy</span>
               <p class="text-lg text-secondary">No exam schedules available at this time.</p>
               <p class="text-secondary mt-2">Please check back later or contact us for more information.</p>
