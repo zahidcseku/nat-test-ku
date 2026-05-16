@@ -25,8 +25,7 @@ try {
         errorResponse('Database connection failed', 500);
     }
 
-    // Get exams for current system year (2026) from center opening date
-    $center_opening_date = '2026-07-11';
+    // Get all exams for current system year (2026)
     $current_year = date('Y');
 
     // Query to get exam dates with levels for current year
@@ -38,7 +37,7 @@ try {
             GROUP_CONCAT(el.level ORDER BY el.level SEPARATOR ',') as levels
         FROM exam_dates ed
         LEFT JOIN exam_levels el ON ed.id = el.exam_date_id
-        WHERE ed.exam_date >= ? AND YEAR(ed.exam_date) = ?
+        WHERE YEAR(ed.exam_date) = ?
         GROUP BY ed.id, ed.exam_date, ed.registration_deadline
         ORDER BY ed.exam_date ASC
     ";
@@ -49,7 +48,7 @@ try {
         errorResponse('Database error', 500);
     }
 
-    $stmt->bind_param('ss', $center_opening_date, $current_year);
+    $stmt->bind_param('s', $current_year);
     if (!$stmt->execute()) {
         logActivity("Query execution failed: " . $stmt->error, 'error');
         errorResponse('Database error', 500);
