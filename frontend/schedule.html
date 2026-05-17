@@ -92,20 +92,20 @@
 
     <!-- Schedule Grid -->
     <div id="schedule-content" class="hidden">
-      <div id="schedule-grid" class="grid grid-cols-4 gap-6">
+      <div id="schedule-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Exam cards will be inserted here by JavaScript - exactly 12 cards for 2026 -->
       </div>
 
       <!-- Legend -->
       <div class="mt-12 bg-surface-container-low rounded-lg p-6">
         <h3 class="font-semibold text-primary mb-3">Level Information</h3>
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
-          <div><span class="font-medium">1Q:</span> Basic Level</div>
-          <div><span class="font-medium">2Q:</span> Elementary Level</div>
-          <div><span class="font-medium">3Q:</span> Intermediate Level</div>
-          <div><span class="font-medium">4Q:</span> Upper Intermediate</div>
-          <div><span class="font-medium">5Q:</span> Advanced Level</div>
-        </div>
+        <p class="text-sm text-secondary leading-relaxed">
+          <span class="font-medium text-primary">1Q:</span> Basic Level &nbsp;&bull;&nbsp;
+          <span class="font-medium text-primary">2Q:</span> Elementary Level &nbsp;&bull;&nbsp;
+          <span class="font-medium text-primary">3Q:</span> Intermediate Level &nbsp;&bull;&nbsp;
+          <span class="font-medium text-primary">4Q:</span> Upper Intermediate &nbsp;&bull;&nbsp;
+          <span class="font-medium text-primary">5Q:</span> Advanced Level
+        </p>
       </div>
     </div>
   </main>
