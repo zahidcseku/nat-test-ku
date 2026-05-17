@@ -92,7 +92,7 @@
 
     <!-- Schedule Grid -->
     <div id="schedule-content" class="hidden">
-      <div id="schedule-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div id="schedule-grid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         <!-- Exam cards will be inserted here by JavaScript - exactly 12 cards for 2026 -->
       </div>
 
@@ -136,7 +136,7 @@
 
             // Card header with exam date
             const header = document.createElement('div');
-            header.className = 'bg-primary text-white px-6 py-4 text-center relative';
+            header.className = 'bg-primary text-white px-6 py-4 text-center';
 
             const examMonth = document.createElement('div');
             examMonth.className = 'text-sm font-medium uppercase tracking-wider mb-1';
@@ -147,14 +147,6 @@
 
             header.appendChild(examMonth);
             header.appendChild(examDay);
-
-            // Add link indicator if clickable
-            if (exam.link && exam.link !== '') {
-              const linkIndicator = document.createElement('div');
-              linkIndicator.className = 'absolute top-2 right-2 bg-white/20 rounded-full p-1';
-              linkIndicator.innerHTML = '<span class="material-symbols-outlined text-sm">open_in_new</span>';
-              header.appendChild(linkIndicator);
-            }
 
             // Card body with 2-column layout
             const body = document.createElement('div');
