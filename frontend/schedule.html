@@ -179,7 +179,9 @@
               const badge = document.createElement('span');
 
               if (exam.status === 'Open') {
-                badge.className = 'bg-green-600 text-white px-4 py-2 rounded-full text-sm font-bold';
+                badge.className = 'px-4 py-2 rounded-full text-sm font-bold';
+                badge.style.backgroundColor = '#16a34a';
+                badge.style.color = 'white';
                 badge.textContent = 'OPEN';
               } else if (exam.status === 'Closed') {
                 badge.className = 'bg-error-container text-on-error-container px-4 py-2 rounded-full text-sm font-bold';
