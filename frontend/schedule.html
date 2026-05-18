@@ -127,12 +127,27 @@
           loadingState.classList.add('hidden');
           scheduleContent.classList.remove('hidden');
 
+          // Debug logging
+          console.log('Schedule data:', data.data.exams);
+
           // Generate exam cards
           const allLevels = ['1Q', '2Q', '3Q', '4Q', '5Q'];
 
           data.data.exams.forEach(exam => {
             const card = document.createElement('div');
             card.className = 'bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden';
+
+            // Make card clickable if it has a link and status is Open
+            if (exam.link && exam.link !== '' && exam.status === 'Open') {
+              card.style.cursor = 'pointer';
+              card.addEventListener('click', function() {
+                if (exam.link.startsWith('http')) {
+                  window.open(exam.link, '_blank');
+                } else {
+                  window.location.href = exam.link;
+                }
+              });
+            }
 
             // Card header with exam date
             const header = document.createElement('div');
@@ -184,6 +199,9 @@
               } else if (exam.status === 'Registration Closed') {
                 badge.className = 'bg-error-container text-on-error-container px-4 py-2 rounded-full text-sm font-bold';
                 badge.textContent = 'REGISTRATION CLOSED';
+              } else if (exam.status === 'Opening Soon') {
+                badge.className = 'bg-surface-container-highest text-secondary px-4 py-2 rounded-full text-sm font-bold';
+                badge.textContent = 'OPENING SOON';
               }
 
               statusBadge.appendChild(badge);

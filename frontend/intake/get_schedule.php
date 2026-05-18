@@ -93,9 +93,9 @@ try {
                 if ($current_timestamp > $deadline_timestamp) {
                     // This exam's deadline has passed, shift window forward
                     // Remove this exam from open_exams and add the next one
-                    $open_exams = array_filter($open_exams, function($idx) use ($exam_index) {
+                    $open_exams = array_values(array_filter($open_exams, function($idx) use ($exam_index) {
                         return $idx !== $exam_index;
-                    });
+                    }));
 
                     // Add the next exam after the current window
                     $max_index = max($open_exams);
@@ -106,9 +106,6 @@ try {
                 }
             }
         }
-
-        // Re-index array
-        $open_exams = array_values($open_exams);
     }
 
     $exams = [];
