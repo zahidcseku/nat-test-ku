@@ -55,18 +55,66 @@ try {
     }
 
     $result = $stmt->get_result();
-    $exams = [];
-
-    // Get current date and center opening date
+    $all_exams = [];
     $current_date = date('Y-m-d');
     $current_month = date('n'); // 1-12
     $current_year = date('Y');
     $center_opening = '2026-07-11';
 
-    // Count exams from center opening
-    $exam_count = 0;
-
+    // First, fetch all exams to determine the 3-month window
     while ($row = $result->fetch_assoc()) {
+        $all_exams[] = $row;
+    }
+
+    // Find the first exam on or after center opening
+    $first_open_exam_index = -1;
+    foreach ($all_exams as $index => $exam) {
+        $exam_timestamp = strtotime($exam['exam_date']);
+        $center_opening_timestamp = strtotime($center_opening);
+        if ($exam_timestamp >= $center_opening_timestamp) {
+            $first_open_exam_index = $index;
+            break;
+        }
+    }
+
+    // Determine which 3 exams should be open based on current date
+    $open_exams = [];
+    if ($first_open_exam_index >= 0) {
+        // Start with first 3 exams after center opening
+        $open_exams = [$first_open_exam_index, $first_open_exam_index + 1, $first_open_exam_index + 2];
+
+        // Check if we need to shift the window forward
+        // Find the first open exam whose registration deadline has passed
+        foreach ($open_exams as $exam_index) {
+            if (isset($all_exams[$exam_index])) {
+                $deadline_timestamp = strtotime($all_exams[$exam_index]['registration_deadline']);
+                $current_timestamp = strtotime($current_date);
+
+                if ($current_timestamp > $deadline_timestamp) {
+                    // This exam's deadline has passed, shift window forward
+                    // Remove this exam from open_exams and add the next one
+                    $open_exams = array_filter($open_exams, function($idx) use ($exam_index) {
+                        return $idx !== $exam_index;
+                    });
+
+                    // Add the next exam after the current window
+                    $max_index = max($open_exams);
+                    if (isset($all_exams[$max_index + 1])) {
+                        $open_exams[] = $max_index + 1;
+                    }
+                    break; // Only shift one exam at a time
+                }
+            }
+        }
+
+        // Re-index array
+        $open_exams = array_values($open_exams);
+    }
+
+    $exams = [];
+
+    // Process each exam with the updated logic
+    foreach ($all_exams as $index => $row) {
         // Format dates
         $exam_date_obj = DateTime::createFromFormat('Y-m-d', $row['exam_date']);
         $deadline_obj = DateTime::createFromFormat('Y-m-d', $row['registration_deadline']);
@@ -91,6 +139,7 @@ try {
         $center_opening_timestamp = strtotime($center_opening);
         $two_weeks_ago = strtotime('-2 weeks', $current_timestamp);
         $deadline_timestamp = strtotime($deadline_date);
+        $two_weeks_after_exam = strtotime('+2 weeks', $exam_date_timestamp);
 
         if ($exam_date_timestamp < $center_opening_timestamp) {
             // Exam is before center opening
@@ -107,39 +156,25 @@ try {
                 $status = 'Opening Soon';
                 $link = '';
             }
-        } elseif ($exam_date_timestamp < $current_timestamp) {
-            // Exam date has passed (but after center opening) - closed
-            $status = 'Closed';
-            $link = 'https://nat-test.jp/contents/result.html';
-        } else {
-            // Exam date is on or after center opening - check registration status
-            // First 3 exams from center opening are open
-            if ($exam_count < 3) {
-                $status = 'Open';
-                $link = 'registration.html';
+        } elseif ($current_timestamp > $two_weeks_after_exam) {
+            // More than 2 weeks after exam - show results, no badge
+            $status = '';
+            $link = 'https://nat-test.ku.ac.bd/results.html';
+        } elseif (in_array($index, $open_exams)) {
+            // This exam is in the current 3-month registration window
+            if ($current_timestamp > $deadline_timestamp) {
+                // Registration deadline has passed but still in window
+                $status = 'Closed';
+                $link = '';
             } else {
-                // Check if current date passed 2 weeks after exam date
-                $two_weeks_after_exam = strtotime('+2 weeks', $exam_date_timestamp);
-
-                if ($current_timestamp > $two_weeks_after_exam) {
-                    // More than 2 weeks after exam - show results, no badge
-                    $status = '';
-                    $link = 'https://nat-test.ku.ac.bd/results.html';
-                } elseif ($current_timestamp > $deadline_timestamp) {
-                    // Registration deadline passed but not 2 weeks after exam
-                    $status = 'Closed';
-                    $link = '';
-                } else {
-                    // Registration still open
-                    $status = 'Open';
-                    $link = 'registration.html';
-                }
+                // Registration is open
+                $status = 'Open';
+                $link = 'https://nat-test.ku.ac.bd/registration.html';
             }
-        }
-
-        // Increment exam count for exams on/after center opening
-        if ($exam_date_timestamp >= $center_opening_timestamp) {
-            $exam_count++;
+        } else {
+            // Future exams not in the 3-month window
+            $status = 'Opening Soon';
+            $link = '';
         }
 
         // Get available levels

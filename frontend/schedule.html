@@ -190,12 +190,13 @@
               infoGrid.appendChild(statusBadge);
             }
 
-            // Results link for exams that meet criteria (before center opening + more than 2 weeks ago)
+            // Results link for exams that meet criteria
             if (exam.link && exam.link !== '' && (!exam.status || exam.status === '')) {
               const resultsLink = document.createElement('div');
               resultsLink.className = 'text-center pt-2';
               const link = document.createElement('a');
               link.href = exam.link;
+              link.target = exam.link.startsWith('http') ? '_blank' : '_self';
               link.className = 'text-primary font-semibold text-sm hover:underline';
               link.textContent = 'Results →';
               resultsLink.appendChild(link);
