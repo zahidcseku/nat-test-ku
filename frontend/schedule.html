@@ -137,18 +137,6 @@
             const card = document.createElement('div');
             card.className = 'bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden';
 
-            // Make card clickable if it has a link and status is Open
-            if (exam.link && exam.link !== '' && exam.status === 'Open') {
-              card.style.cursor = 'pointer';
-              card.addEventListener('click', function() {
-                if (exam.link.startsWith('http')) {
-                  window.open(exam.link, '_blank');
-                } else {
-                  window.location.href = exam.link;
-                }
-              });
-            }
-
             // Card header with exam date
             const header = document.createElement('div');
             header.className = 'bg-primary text-white px-6 py-4 text-center';
@@ -206,6 +194,18 @@
 
               statusBadge.appendChild(badge);
               infoGrid.appendChild(statusBadge);
+
+              // Add Register now link for Open exams
+              if (exam.status === 'Open' && exam.link && exam.link !== '') {
+                const registerLink = document.createElement('div');
+                registerLink.className = 'text-center pt-2';
+                const link = document.createElement('a');
+                link.href = exam.link;
+                link.className = 'text-green-600 font-semibold text-sm hover:underline';
+                link.textContent = 'Register now →';
+                registerLink.appendChild(link);
+                infoGrid.appendChild(registerLink);
+              }
             }
 
             // Results link for exams that meet criteria
