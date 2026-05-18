@@ -167,18 +167,18 @@
             deadlineCol.appendChild(deadlineLabel);
             deadlineCol.appendChild(deadlineDate);
 
+            infoGrid.appendChild(deadlineCol);
+
             // Status badge for closed dates
             if (exam.status === 'Closed' || exam.status === 'Registration Closed') {
               const statusBadge = document.createElement('div');
               statusBadge.className = 'text-center';
               const badge = document.createElement('span');
-              badge.className = 'bg-error text-on-error px-4 py-2 rounded-full text-sm font-bold';
+              badge.className = 'bg-error-container text-on-error-container px-4 py-2 rounded-full text-sm font-bold';
               badge.textContent = 'CLOSED';
               statusBadge.appendChild(badge);
               infoGrid.appendChild(statusBadge);
             }
-
-            infoGrid.appendChild(deadlineCol);
 
             // Available levels section
             const levelsSection = document.createElement('div');

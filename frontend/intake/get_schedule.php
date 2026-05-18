@@ -82,34 +82,26 @@ try {
         $status = '';
         $link = '';
 
-        if ($current_date < $center_opening) {
-            // Before center opening - all closed
+        // Check if exam date has passed
+        $exam_date_timestamp = strtotime($row['exam_date']);
+        $current_timestamp = strtotime($current_date);
+
+        if ($exam_date_timestamp < $current_timestamp) {
+            // Exam date has passed - closed
             $status = 'Closed';
             $link = 'https://nat-test.jp/contents/result.html';
         } else {
-            // After center opening
-            if ($exam_year < $current_year || ($exam_year == $current_year && $exam_month_num < $current_month)) {
-                // Past months
-                $status = 'Closed';
-                $link = 'https://nat-test.jp/contents/result.html';
-            } elseif ($exam_year == $current_year && $exam_month_num == $current_month) {
-                // Current month - check if past deadline
-                if ($current_date > $deadline_date) {
-                    $status = 'Registration Closed';
-                    $link = '';
-                } elseif ($exam_month_num <= $current_month + 2) {
-                    $status = 'Open';
-                    $link = 'registration.html';
-                } else {
-                    $status = 'Opening Soon';
-                    $link = '';
-                }
-            } elseif ($exam_month_num <= $current_month + 2 && $exam_year == $current_year) {
-                // Within 3 months window
+            // Exam date is in the future - check registration status
+            if ($current_date > $deadline_date) {
+                // Registration deadline has passed
+                $status = 'Registration Closed';
+                $link = '';
+            } elseif ($exam_month_num <= $current_month + 2) {
+                // Within 3 months window - registration open
                 $status = 'Open';
                 $link = 'registration.html';
             } else {
-                // Future months
+                // Future months beyond 3 months
                 $status = 'Opening Soon';
                 $link = '';
             }
