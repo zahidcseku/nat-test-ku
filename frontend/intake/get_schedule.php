@@ -92,17 +92,13 @@ try {
         $two_weeks_ago = strtotime('-2 weeks', $current_timestamp);
         $deadline_timestamp = strtotime($deadline_date);
 
-        if ($exam_date_timestamp < $center_opening_timestamp && $exam_date_timestamp < $two_weeks_ago) {
-            // Exam was before center opening and more than 2 weeks ago - show results, no badge
-            $status = '';
-            $link = 'https://nat-test.jp/contents/result.html';
-        } elseif ($exam_date_timestamp < $current_timestamp) {
-            // Exam date has passed - closed
-            $status = 'Closed';
-            $link = 'https://nat-test.jp/contents/result.html';
-        } elseif ($exam_date_timestamp < $center_opening_timestamp) {
-            // Exam date is before center opening but within 2 weeks
-            if ($current_timestamp > $deadline_timestamp) {
+        if ($exam_date_timestamp < $center_opening_timestamp) {
+            // Exam is before center opening
+            if ($exam_date_timestamp < $two_weeks_ago) {
+                // Exam was before center opening and more than 2 weeks ago - show results, no badge
+                $status = '';
+                $link = 'https://nat-test.jp/contents/result.html';
+            } elseif ($current_timestamp > $deadline_timestamp) {
                 // Registration deadline has passed
                 $status = 'Registration Closed';
                 $link = '';
@@ -111,6 +107,10 @@ try {
                 $status = 'Opening Soon';
                 $link = '';
             }
+        } elseif ($exam_date_timestamp < $current_timestamp) {
+            // Exam date has passed (but after center opening) - closed
+            $status = 'Closed';
+            $link = 'https://nat-test.jp/contents/result.html';
         } else {
             // Exam date is on or after center opening - check registration status
             // First 3 exams from center opening are open
