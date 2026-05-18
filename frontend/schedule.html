@@ -139,10 +139,10 @@
             header.className = 'bg-primary text-white px-6 py-4 text-center';
 
             const examMonth = document.createElement('div');
-            examMonth.className = 'text-sm font-medium uppercase tracking-wider mb-1';
+            examMonth.className = 'text-sm font-bold uppercase tracking-wider mb-1';
             examMonth.textContent = exam.exam_month;
             const examDay = document.createElement('div');
-            examDay.className = 'text-3xl font-bold';
+            examDay.className = 'text-4xl font-black';
             examDay.textContent = exam.exam_day;
 
             header.appendChild(examMonth);
@@ -167,35 +167,18 @@
             deadlineCol.appendChild(deadlineLabel);
             deadlineCol.appendChild(deadlineDate);
 
-            // Column 2: Status
-            const statusCol = document.createElement('div');
-            statusCol.className = 'text-center';
-            const statusLabel = document.createElement('div');
-            statusLabel.className = 'text-xs font-semibold text-secondary uppercase tracking-wider mb-2';
-            statusLabel.textContent = 'Status';
-
-            // Determine status badge style
-            let statusBadgeClass = '';
-            let statusText = exam.status;
-
-            if (exam.status === 'Open') {
-              statusBadgeClass = 'bg-primary-container text-on-primary-container px-4 py-2 rounded-full';
-            } else if (exam.status === 'Closed') {
-              statusBadgeClass = 'bg-error-container text-on-error-container px-4 py-2 rounded-full';
-            } else if (exam.status === 'Registration Closed') {
-              statusBadgeClass = 'bg-error-container text-on-error-container px-4 py-2 rounded-full';
-            } else {
-              statusBadgeClass = 'bg-surface-container-highest text-secondary px-4 py-2 rounded-full';
+            // Status badge for closed dates
+            if (exam.status === 'Closed' || exam.status === 'Registration Closed') {
+              const statusBadge = document.createElement('div');
+              statusBadge.className = 'text-center';
+              const badge = document.createElement('span');
+              badge.className = 'bg-error text-on-error px-4 py-2 rounded-full text-sm font-bold';
+              badge.textContent = 'CLOSED';
+              statusBadge.appendChild(badge);
+              infoGrid.appendChild(statusBadge);
             }
 
-            const statusBadge = document.createElement('div');
-            statusBadge.className = statusBadgeClass + ' text-sm font-semibold';
-            statusBadge.textContent = statusText;
-            statusCol.appendChild(statusLabel);
-            statusCol.appendChild(statusBadge);
-
             infoGrid.appendChild(deadlineCol);
-            infoGrid.appendChild(statusCol);
 
             // Available levels section
             const levelsSection = document.createElement('div');
@@ -206,16 +189,16 @@
             levelsLabel.textContent = 'Available Levels';
 
             const levelsContainer = document.createElement('div');
-            levelsContainer.className = 'flex justify-center flex-wrap gap-2';
+            levelsContainer.className = 'text-center';
 
-            allLevels.forEach(level => {
-              const isAvailable = exam.levels.includes(level);
-              const levelBadge = document.createElement('span');
-              levelBadge.className = 'w-8 h-8 rounded flex items-center justify-center text-xs font-medium ' + (isAvailable ? 'bg-primary text-white' : 'bg-outline-variant/20 text-outline');
-              levelBadge.textContent = level;
-              levelsContainer.appendChild(levelBadge);
-            });
+            const levelsText = document.createElement('div');
+            levelsText.className = 'text-sm font-medium text-primary';
 
+            // Filter available levels and join with /
+            const availableLevels = allLevels.filter(level => exam.levels.includes(level));
+            levelsText.textContent = availableLevels.join('/');
+
+            levelsContainer.appendChild(levelsText);
             levelsSection.appendChild(levelsLabel);
             levelsSection.appendChild(levelsContainer);
 
