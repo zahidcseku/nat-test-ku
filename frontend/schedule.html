@@ -134,6 +134,18 @@
             const card = document.createElement('div');
             card.className = 'bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden';
 
+            // Make card clickable if it has a link
+            if (exam.link && exam.link !== '') {
+              card.style.cursor = 'pointer';
+              card.addEventListener('click', function() {
+                if (exam.link.startsWith('http')) {
+                  window.open(exam.link, '_blank');
+                } else {
+                  window.location.href = exam.link;
+                }
+              });
+            }
+
             // Card header with exam date
             const header = document.createElement('div');
             header.className = 'bg-primary text-white px-6 py-4 text-center';
@@ -169,13 +181,23 @@
 
             infoGrid.appendChild(deadlineCol);
 
-            // Status badge for closed dates
-            if (exam.status === 'Closed' || exam.status === 'Registration Closed') {
+            // Status badge (only if status exists and is not empty)
+            if (exam.status && exam.status !== '') {
               const statusBadge = document.createElement('div');
               statusBadge.className = 'text-center';
               const badge = document.createElement('span');
-              badge.className = 'bg-error-container text-on-error-container px-4 py-2 rounded-full text-sm font-bold';
-              badge.textContent = 'CLOSED';
+
+              if (exam.status === 'Open') {
+                badge.className = 'bg-primary-container text-on-primary-container px-4 py-2 rounded-full text-sm font-bold';
+                badge.textContent = 'OPEN';
+              } else if (exam.status === 'Closed') {
+                badge.className = 'bg-error-container text-on-error-container px-4 py-2 rounded-full text-sm font-bold';
+                badge.textContent = 'CLOSED';
+              } else if (exam.status === 'Registration Closed') {
+                badge.className = 'bg-error-container text-on-error-container px-4 py-2 rounded-full text-sm font-bold';
+                badge.textContent = 'REGISTRATION CLOSED';
+              }
+
               statusBadge.appendChild(badge);
               infoGrid.appendChild(statusBadge);
             }
