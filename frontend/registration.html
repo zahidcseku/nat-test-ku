@@ -411,13 +411,8 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                 <div class="flex flex-col gap-2">
                   <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="exam_level">Exam Level</label>
-                  <select class="ghost-input py-3 text-lg bg-white" id="exam_level">
-                    <option value="">Select Exam Level</option>
-                    <option value="1Q">1Q - Basic Level</option>
-                    <option value="2Q">2Q - Elementary Level</option>
-                    <option value="3Q">3Q - Intermediate Level</option>
-                    <option value="4Q">4Q - Upper Intermediate Level</option>
-                    <option value="5Q">5Q - Advanced Level</option>
+                  <select class="ghost-input py-3 text-lg bg-white" id="exam_level" disabled>
+                    <option value="">Select Test Date First</option>
                   </select>
                   <span class="field-error" id="exam_level-error"></span>
                   <span class="field-success" id="exam_level-success"></span>
@@ -750,6 +745,34 @@
     document.addEventListener('DOMContentLoaded', function() {
       // Load exam dates from database
       RegistrationForm.loadExamDates();
+
+      // Test date change handler - populate exam levels
+      const testDateSelect = document.getElementById('test_date');
+      if (testDateSelect) {
+        testDateSelect.addEventListener('change', function() {
+          const selectedDate = this.value;
+          if (selectedDate) {
+            RegistrationForm.populateExamLevels(selectedDate);
+          } else {
+            // Clear and disable exam levels if no date selected
+            const examLevelSelect = document.getElementById('exam_level');
+            if (examLevelSelect) {
+              // Remove all options
+              while (examLevelSelect.firstChild) {
+                examLevelSelect.removeChild(examLevelSelect.firstChild);
+              }
+              // Add default option
+              const defaultOption = document.createElement('option');
+              defaultOption.value = '';
+              defaultOption.textContent = 'Select Test Date First';
+              examLevelSelect.appendChild(defaultOption);
+              // Disable the dropdown
+              examLevelSelect.disabled = true;
+            }
+          }
+        });
+      }
+
       // Payment method change handler
       const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
       paymentMethods.forEach(method => {

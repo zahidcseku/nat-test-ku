@@ -18,6 +18,7 @@ const RegistrationForm = (function() {
 
   // State management
   let currentStep = 1;
+  let examDatesData = []; // Store exam dates with levels
   let formData = {
     step1: {},
     step2: {},
@@ -791,6 +792,9 @@ const RegistrationForm = (function() {
         if (result.success && result.data && result.data.exams.length > 0) {
           const exams = result.data.exams;
 
+          // Store exam data for later use in populating levels
+          examDatesData = exams;
+
           // Update "Next Test Date" section
           const nextExamDateEl = document.getElementById('next-exam-date');
           const nextExamStatusEl = document.getElementById('next-exam-status');
@@ -819,6 +823,8 @@ const RegistrationForm = (function() {
               const option = document.createElement('option');
               option.value = exam.value;
               option.textContent = exam.display;
+              // Store exam ID as data attribute for level lookup
+              option.setAttribute('data-exam-id', exam.id);
               testDateSelect.appendChild(option);
             });
           }
@@ -851,6 +857,54 @@ const RegistrationForm = (function() {
       });
   }
 
+  /**
+   * Populate exam levels dropdown based on selected test date
+   */
+  function populateExamLevels(selectedExamDate) {
+    const examLevelSelect = document.getElementById('exam_level');
+    if (!examLevelSelect) return;
+
+    // Clear existing options and add default
+    while (examLevelSelect.firstChild) {
+      examLevelSelect.removeChild(examLevelSelect.firstChild);
+    }
+
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select Exam Level';
+    examLevelSelect.appendChild(defaultOption);
+
+    // Find the exam data for the selected date
+    const selectedExam = examDatesData.find(exam => exam.value === selectedExamDate);
+
+    if (selectedExam && selectedExam.levels && selectedExam.levels.length > 0) {
+      // Add available levels from database
+      const levelLabels = {
+        '1Q': '1Q - Basic Level',
+        '2Q': '2Q - Elementary Level',
+        '3Q': '3Q - Intermediate Level',
+        '4Q': '4Q - Upper Intermediate Level',
+        '5Q': '5Q - Advanced Level'
+      };
+
+      selectedExam.levels.forEach(level => {
+        const option = document.createElement('option');
+        option.value = level;
+        option.textContent = levelLabels[level] || level;
+        examLevelSelect.appendChild(option);
+      });
+
+      // Enable the dropdown
+      examLevelSelect.disabled = false;
+
+      console.log('✅ Loaded ' + selectedExam.levels.length + ' levels for exam date: ' + selectedExamDate);
+    } else {
+      // No levels available or no exam selected
+      examLevelSelect.disabled = true;
+      console.warn('⚠ No levels available for selected exam date');
+    }
+  }
+
   // Export public API
   return {
     CONFIG,
@@ -874,7 +928,8 @@ const RegistrationForm = (function() {
     submitForm,
     resetForm,
     validateAllSteps,
-    loadExamDates
+    loadExamDates,
+    populateExamLevels
   };
 
 })();
