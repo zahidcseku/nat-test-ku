@@ -1,0 +1,52 @@
+{
+  "resources": [
+    {
+      "id": 1,
+      "title": "Japanese NAT-Test Pamphlet",
+      "description": "Detailed description of the test. • 16 Pages",
+      "type": "pdf",
+      "url": "resources/test_pamphlet_2026.pdf",
+      "icon": "picture_as_pdf"
+    },
+    {
+      "id": 2,
+      "title": "Sample exam question",
+      "description": "External Link • Managed by SENMON KYOUIKU",
+      "type": "link",
+      "url": "https://nat-test.jp/contents/sample.html",
+      "icon": "link"
+    },
+    {
+      "id": 3,
+      "title": "Photo specification for the application form",
+      "description": "Requirement of acceptable photos for the application form.",
+      "type": "pdf",
+      "url": "resources/photo_specs.pdf",
+      "icon": "picture_as_pdf"
+    },
+    {
+      "id": 4,
+      "title": "Offline application form",
+      "description": "Application form for those who prefer to apply offline.",
+      "type": "pdf",
+      "url": "resources/offline_application_formV5.pdf",
+      "icon": "picture_as_pdf"
+    },
+    {
+      "id": 5,
+      "title": "Japanese Language NAT-TEST Code of Honor",
+      "description": "The Japanese Language NAT-TEST Code of Honor is the set of ethical principles that all test takers, users and administrators of the NAT-TEST are obligated to follow. We kindly ask for your cooperation.",
+      "type": "link",
+      "url": "https://nat-test.jp/en/fairness.html",
+      "icon": "link"
+    },
+    {
+      "id": 6,
+      "title": "Japanese Language School in Bangladesh",
+      "description": "Information about Japanese language schools in Bangladesh.",
+      "type": "link",
+      "url": "resources/Japanese_Language_School_BD.pdf",
+      "icon": "picture_as_pdf"
+    }
+  ]
+}
