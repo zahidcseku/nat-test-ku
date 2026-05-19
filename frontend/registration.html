@@ -410,15 +410,6 @@
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                 <div class="flex flex-col gap-2">
-                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="exam_level">Exam Level</label>
-                  <select class="ghost-input py-3 text-lg bg-white" id="exam_level" disabled>
-                    <option value="">Select Test Date First</option>
-                  </select>
-                  <span class="field-error" id="exam_level-error"></span>
-                  <span class="field-success" id="exam_level-success"></span>
-                </div>
-
-                <div class="flex flex-col gap-2">
                   <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="test_date">Intended Test Date</label>
                   <select class="ghost-input py-3 text-lg bg-white" id="test_date">
                     <option value="">Select Test Date</option>
@@ -426,6 +417,15 @@
                   </select>
                   <span class="field-error" id="test_date-error"></span>
                   <span class="field-success" id="test_date-success"></span>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="exam_level">Exam Level</label>
+                  <select class="ghost-input py-3 text-lg bg-white" id="exam_level" disabled>
+                    <option value="">Select Test Date First</option>
+                  </select>
+                  <span class="field-error" id="exam_level-error"></span>
+                  <span class="field-success" id="exam_level-success"></span>
                 </div>
               </div>
 

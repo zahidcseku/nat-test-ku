@@ -29,7 +29,7 @@ try {
     $center_opening_date = '2026-07-11';
     $today = date('Y-m-d');
 
-    // Only show exams where registration is still open
+    // Get all exams (we'll filter to 3 in PHP)
     $query = "
         SELECT
             ed.id,
@@ -38,7 +38,7 @@ try {
             GROUP_CONCAT(el.level ORDER BY el.level SEPARATOR ',') as levels
         FROM exam_dates ed
         LEFT JOIN exam_levels el ON ed.id = el.exam_date_id
-        WHERE ed.exam_date >= ? AND ed.registration_deadline >= ?
+        WHERE ed.exam_date >= ?
         GROUP BY ed.id, ed.exam_date, ed.registration_deadline
         ORDER BY ed.exam_date ASC
     ";
@@ -49,16 +49,47 @@ try {
         errorResponse('Database error', 500);
     }
 
-    $stmt->bind_param('ss', $center_opening_date, $today);
+    $stmt->bind_param('s', $center_opening_date);
     if (!$stmt->execute()) {
         logActivity("Query execution failed: " . $stmt->error, 'error');
         errorResponse('Database error', 500);
     }
 
     $result = $stmt->get_result();
-    $exams = [];
+    $all_exams = [];
 
+    // Fetch all exams first
     while ($row = $result->fetch_assoc()) {
+        $all_exams[] = $row;
+    }
+
+    $exams = [];
+    $exams_to_show = [];
+
+    // If no exams found, return empty
+    if (!empty($all_exams)) {
+        // Find the starting point: first exam with deadline >= today
+        $start_index = 0;
+        $found_upcoming = false;
+        for ($i = 0; $i < count($all_exams); $i++) {
+            if ($all_exams[$i]['registration_deadline'] >= $today) {
+                $start_index = $i;
+                $found_upcoming = true;
+                break;
+            }
+        }
+
+        // If all deadlines have passed, start from the beginning (show first 3)
+        if (!$found_upcoming) {
+            $start_index = 0;
+        }
+
+        // Get 3 exams starting from the first one with upcoming deadline
+        $exams_to_show = array_slice($all_exams, $start_index, 3);
+    }
+
+    // Process only the 3 exams to show
+    foreach ($exams_to_show as $row) {
         // Format exam date for display
         $exam_date_obj = DateTime::createFromFormat('Y-m-d', $row['exam_date']);
         if (!$exam_date_obj) {
