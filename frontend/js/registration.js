@@ -943,7 +943,7 @@ const RegistrationForm = (function() {
    * Populate exam levels checkboxes for multi-level selection
    */
   function populateExamLevelsCheckboxes(testDate) {
-    const container = document.getElementById('exam_levels_checkboxes');
+    let container = document.getElementById('exam_levels_checkboxes');
     if (!container) return;
 
     container.innerHTML = '';
