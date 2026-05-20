@@ -203,8 +203,13 @@ if (!defined('ADMIN_ACCESS')) {
             <a href="<?php echo BASE_URL; ?>/dashboard.php" <?php echo ($currentPage ?? '') === 'dashboard' ? 'class="active"' : ''; ?>>Dashboard</a>
             <a href="<?php echo BASE_URL; ?>/pages/registrations.php" <?php echo ($currentPage ?? '') === 'registrations' ? 'class="active"' : ''; ?>>Registrations</a>
             <a href="<?php echo BASE_URL; ?>/pages/exam-dates.php" <?php echo ($currentPage ?? '') === 'exam-dates' ? 'class="active"' : ''; ?>>Exam Dates</a>
-            <a href="<?php echo BASE_URL; ?>/pages/content.php" <?php echo ($currentPage ?? '') === 'content' ? 'class="active"' : ''; ?>>Content</a>
             <a href="<?php echo BASE_URL; ?>/pages/participants.php" <?php echo ($currentPage ?? '') === 'participants' ? 'class="active"' : ''; ?>>Participants</a>
+            <a href="<?php echo BASE_URL; ?>/pages/admission-tickets.php" <?php echo ($currentPage ?? '') === 'admission-tickets' ? 'class="active"' : ''; ?>>Tickets</a>
+            <a href="<?php echo BASE_URL; ?>/pages/emails.php" <?php echo ($currentPage ?? '') === 'emails' ? 'class="active"' : ''; ?>>Emails</a>
+            <a href="<?php echo BASE_URL; ?>/pages/content.php" <?php echo ($currentPage ?? '') === 'content' ? 'class="active"' : ''; ?>>Content</a>
+            <?php if (isSuperAdmin()): ?>
+            <a href="<?php echo BASE_URL; ?>/pages/users.php" <?php echo ($currentPage ?? '') === 'users' ? 'class="active"' : ''; ?>>Users</a>
+            <?php endif; ?>
         </nav>
 
         <div class="user-menu">

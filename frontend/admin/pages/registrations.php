@@ -25,9 +25,13 @@ $params = [];
 $types = '';
 
 if (!empty($status)) {
-    $where[] = 'r.status = ?';
-    $params[] = $status;
-    $types .= 's';
+    if ($status === 'pending') {
+        $where[] = '(r.approved IS NULL OR r.approved = 0)';
+    } elseif ($status === 'approved') {
+        $where[] = 'r.approved = 1';
+    } elseif ($status === 'rejected') {
+        $where[] = 'r.approved = 0'; // For now, rejected is same as pending
+    }
 }
 
 if (!empty($examDate)) {
@@ -43,13 +47,13 @@ if (!empty($examLevel)) {
 }
 
 if (!empty($dateFrom)) {
-    $where[] = 'DATE(r.submitted_at) >= ?';
+    $where[] = 'DATE(r.created_at) >= ?';
     $params[] = $dateFrom;
     $types .= 's';
 }
 
 if (!empty($dateTo)) {
-    $where[] = 'DATE(r.submitted_at) <= ?';
+    $where[] = 'DATE(r.created_at) <= ?';
     $params[] = $dateTo;
     $types .= 's';
 }
@@ -97,13 +101,20 @@ $statusCounts = [
     'rejected' => 0
 ];
 
-$stmt = $conn->prepare("SELECT status, COUNT(*) as count FROM registrations GROUP BY status");
+// Get status counts based on approved column
+$stmt = $conn->prepare("
+    SELECT
+        COUNT(*) as all_count,
+        SUM(CASE WHEN approved IS NULL OR approved = 0 THEN 1 ELSE 0 END) as pending_count,
+        SUM(CASE WHEN approved = 1 THEN 1 ELSE 0 END) as approved_count
+    FROM registrations
+");
 $stmt->execute();
-$result = $stmt->get_result();
-while ($row = $result->fetch_assoc()) {
-    $statusCounts[$row['status']] = $row['count'];
-    $statusCounts['all'] += $row['count'];
-}
+$result = $stmt->get_result()->fetch_assoc();
+$statusCounts['all'] = $result['all_count'];
+$statusCounts['pending'] = $result['pending_count'];
+$statusCounts['approved'] = $result['approved_count'];
+$statusCounts['rejected'] = 0; // Will be implemented later
 
 require_once __DIR__ . '/../templates/header.php';
 ?>
@@ -215,18 +226,23 @@ require_once __DIR__ . '/../templates/header.php';
                         <td style="padding: 12px 16px; font-size: 14px;"><?php echo e(formatDate($reg['test_date'])); ?></td>
                         <td style="padding: 12px 16px;">
                             <?php
+                            // Determine status from approved column
+                            $status = 'pending';
+                            if ($reg['approved'] == 1) {
+                                $status = 'approved';
+                            }
                             $statusColors = [
                                 'pending' => '#ed8936',
                                 'approved' => '#48bb78',
                                 'rejected' => '#f56565'
                             ];
                             ?>
-                            <span style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; background: <?php echo $statusColors[$reg['status']]; ?>20; color: <?php echo $statusColors[$reg['status']]; ?>;">
-                                <?php echo e(ucfirst($reg['status'])); ?>
+                            <span style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; background: <?php echo $statusColors[$status]; ?>20; color: <?php echo $statusColors[$status]; ?>;">
+                                <?php echo e(ucfirst($status)); ?>
                             </span>
                         </td>
                         <td style="padding: 12px 16px; font-size: 14px; color: #718096;">
-                            <?php echo e(date('M j, Y', strtotime($reg['submitted_at']))); ?>
+                            <?php echo e(date('M j, Y', strtotime($reg['created_at']))); ?>
                         </td>
                         <td style="padding: 12px 16px; text-align: center;">
                             <a href="<?php echo BASE_URL; ?>/pages/registration-detail.php?id=<?php echo e($reg['id']); ?>"

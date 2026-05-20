@@ -41,12 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setFlashMessage('Invalid CSRF token', 'error');
     } elseif ($action === 'approve') {
         // Update status
-        $stmt = $conn->prepare("UPDATE registrations SET status = 'approved', reviewed_at = NOW() WHERE id = ?");
+        $stmt = $conn->prepare("UPDATE registrations SET approved = 1, approved_at = NOW() WHERE id = ?");
         $stmt->bind_param('i', $id);
         $stmt->execute();
 
         // Log audit
-        logAudit('approve_registration', 'registrations', $id, ['status' => 'pending'], ['status' => 'approved']);
+        logAudit('approve_registration', 'registrations', $id, ['approved' => 0], ['approved' => 1]);
 
         // Send confirmation email
         $emailBody = renderEmailTemplate('confirmation', $registration);
@@ -57,19 +57,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
 
     } elseif ($action === 'reject') {
-        // Update status
-        $stmt = $conn->prepare("UPDATE registrations SET status = 'rejected', rejection_reasons = ?, reviewed_at = NOW() WHERE id = ?");
-        $stmt->bind_param('si', $reasons, $id);
-        $stmt->execute();
-
-        // Log audit
-        logAudit('reject_registration', 'registrations', $id, ['status' => 'pending'], ['status' => 'rejected', 'reasons' => $reasons]);
-
-        // Send rejection email
-        $emailBody = renderEmailTemplate('rejection', $registration, $reasons);
-        sendEmail($registration['email'], 'NAT-TEST Registration Action Required', $emailBody, $id, 'rejection');
-
-        setFlashMessage('Registration rejected and email sent with reasons', 'success');
+        // For rejection, we'll keep approved = 0 but could add notes
+        // For now, let's just redirect with a message since rejection tracking needs schema update
+        setFlashMessage('Rejection tracking requires schema updates. Please contact applicant directly.', 'error');
         header('Location: ' . BASE_URL . '/pages/registrations.php');
         exit;
     }
@@ -187,7 +177,7 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                 </div>
                 <div>
                     <div style="font-size: 12px; color: #718096; margin-bottom: 4px;">Submitted</div>
-                    <div style="font-size: 15px; color: #1a202c;"><?php echo e(date('F j, Y g:i A', strtotime($registration['submitted_at']))); ?></div>
+                    <div style="font-size: 15px; color: #1a202c;"><?php echo e(date('F j, Y g:i A', strtotime($registration['created_at']))); ?></div>
                 </div>
             </div>
         </div>
@@ -202,8 +192,8 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                 <!-- Photo -->
                 <div>
                     <div style="font-size: 14px; font-weight: 500; color: #1a202c; margin-bottom: 8px;">Student Photo</div>
-                    <?php if ($registration['photo_path']): ?>
-                        <img src="<?php echo e($registration['photo_path']); ?>"
+                    <?php if (!empty($registration['photo_storage_path'])): ?>
+                        <img src="<?php echo e($registration['photo_storage_path']); ?>"
                              alt="Student Photo"
                              style="max-width: 200px; border: 2px solid #e2e8f0; border-radius: 8px;">
                     <?php else: ?>
@@ -214,7 +204,7 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                 <!-- ID Document -->
                 <div>
                     <div style="font-size: 14px; font-weight: 500; color: #1a202c; margin-bottom: 8px;">ID Document</div>
-                    <?php if ($registration['id_document_path']): ?>
+                    <?php if (!empty($registration['id_document_path'])): ?>
                         <a href="<?php echo e($registration['id_document_path']); ?>" target="_blank"
                            class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px;">
                             📄 View ID Document
@@ -227,7 +217,7 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                 <!-- Payment Receipt -->
                 <div>
                     <div style="font-size: 14px; font-weight: 500; color: #1a202c; margin-bottom: 8px;">Payment Receipt</div>
-                    <?php if ($registration['payment_receipt_path']): ?>
+                    <?php if (!empty($registration['payment_receipt_path'])): ?>
                         <a href="<?php echo e($registration['payment_receipt_path']); ?>" target="_blank"
                            class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px;">
                             💰 View Payment Receipt

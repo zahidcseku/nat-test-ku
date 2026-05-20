@@ -16,7 +16,7 @@ $examDate = $_GET['exam_date'] ?? '';
 $examLevel = $_GET['exam_level'] ?? '';
 
 // Build query
-$where = ['r.status = "approved"'];
+$where = ['r.approved = 1'];
 $params = [];
 $types = '';
 
@@ -54,7 +54,7 @@ $stmt = $conn->prepare("
     SELECT DISTINCT ed.exam_date
     FROM exam_dates ed
     INNER JOIN registrations r ON r.test_date = ed.exam_date
-    WHERE r.status = 'approved'
+    WHERE r.approved = 1
     ORDER BY ed.exam_date ASC
 ");
 $stmt->execute();
@@ -152,10 +152,10 @@ require_once __DIR__ . '/../templates/header.php';
                         <td style="padding: 12px 16px; font-size: 14px;"><?php echo e($participant['exam_level']); ?></td>
                         <td style="padding: 12px 16px; font-size: 14px;"><?php echo e(formatDate($participant['test_date'])); ?></td>
                         <td style="padding: 12px 16px; font-size: 14px; color: #718096;">
-                            <?php echo e(date('M j, Y', strtotime($participant['reviewed_at']))); ?>
+                            <?php echo e(date('M j, Y', strtotime($participant['approved_at']))); ?>
                         </td>
                         <td style="padding: 12px 16px; text-align: center;">
-                            <?php if ($participant['admission_ticket_path']): ?>
+                            <?php if (!empty($participant['admission_ticket_sent'])): ?>
                                 <span style="color: #48bb78; font-size: 13px;">✓ Sent</span>
                             <?php else: ?>
                                 <span style="color: #ed8936; font-size: 13px;">Pending</span>

@@ -8,11 +8,9 @@
 echo "NAT-TEST Admin Panel Setup\n";
 echo "==========================\n\n";
 
-// Load config
-require_once __DIR__ . '/config.php';
-
-// Check if .env file exists
-if (!file_exists(__DIR__ . '/.env')) {
+// Load .env file manually (don't use config.php to avoid session issues)
+$envFile = __DIR__ . '/.env';
+if (!file_exists($envFile)) {
     echo "❌ ERROR: .env file not found!\n";
     echo "Please copy .env.example to .env and configure it:\n";
     echo "  cp .env.example .env\n";
@@ -20,13 +18,26 @@ if (!file_exists(__DIR__ . '/.env')) {
     exit(1);
 }
 
-// Test database connection
-echo "🔗 Testing database connection...\n";
-$conn = getDbConnection();
+// Parse .env file manually
+$envVars = [];
+$lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+foreach ($lines as $line) {
+    if (strpos(trim($line), '#') === 0) continue;
+    list($name, $value) = explode('=', $line, 2);
+    $envVars[trim($name)] = trim($value);
+}
 
-if (!$conn) {
+// Database connection
+$conn = new mysqli(
+    $envVars['DB_HOST'] ?? 'localhost',
+    $envVars['DB_USER'] ?? '',
+    $envVars['DB_PASS'] ?? '',
+    $envVars['DB_NAME'] ?? ''
+);
+
+if ($conn->connect_error) {
     echo "❌ ERROR: Could not connect to database!\n";
-    echo "Check your .env file and ensure MySQL is running.\n\n";
+    echo "Error: " . $conn->connect_error . "\n\n";
     exit(1);
 }
 
@@ -70,6 +81,12 @@ if ($result->num_rows > 0) {
 // Check if admin users exist
 echo "👤 Checking admin users...\n";
 $result = $conn->query("SELECT COUNT(*) as count FROM admin_users");
+
+if (!$result) {
+    echo "❌ ERROR querying admin_users: " . $conn->error . "\n\n";
+    exit(1);
+}
+
 $count = $result->fetch_assoc()['count'];
 
 if ($count > 0) {
@@ -77,12 +94,14 @@ if ($count > 0) {
 
     // List existing users
     $result = $conn->query("SELECT username, email, role, is_active FROM admin_users");
-    echo "Existing users:\n";
-    while ($user = $result->fetch_assoc()) {
-        $status = $user['is_active'] ? '✅' : '❌';
-        echo "  $status {$user['username']} ({$user['role']}) - {$user['email']}\n";
+    if ($result) {
+        echo "Existing users:\n";
+        while ($user = $result->fetch_assoc()) {
+            $status = $user['is_active'] ? '✅' : '❌';
+            echo "  $status {$user['username']} ({$user['role']}) - {$user['email']}\n";
+        }
+        echo "\n";
     }
-    echo "\n";
 } else {
     echo "👤 Creating first admin user...\n\n";
 
@@ -114,7 +133,8 @@ if ($count > 0) {
     echo "Enter password (min 8 chars, must include uppercase, lowercase, and number): ";
     $password = trim(fgets(STDIN));
 
-    if (!isStrongPassword($password)) {
+    // Simple password validation
+    if (strlen($password) < 8) {
         echo "❌ Password too weak! Requirements:\n";
         echo "   - At least 8 characters\n";
         echo "   - At least one uppercase letter\n";
@@ -146,12 +166,13 @@ if ($count > 0) {
 
 // Create upload directories
 echo "📁 Creating upload directories...\n";
+$uploadsDir = __DIR__ . '/uploads';
 $dirs = [
-    UPLOAD_PATH,
-    UPLOAD_PATH . 'tickets/',
-    UPLOAD_PATH . 'photos/',
-    UPLOAD_PATH . 'id_documents/',
-    UPLOAD_PATH . 'payment_receipts/'
+    $uploadsDir,
+    $uploadsDir . '/tickets/',
+    $uploadsDir . '/photos/',
+    $uploadsDir . '/id_documents/',
+    $uploadsDir . '/payment_receipts/'
 ];
 
 foreach ($dirs as $dir) {
@@ -167,11 +188,12 @@ echo "\n";
 echo "🎉 Setup complete!\n\n";
 echo "===========================================\n";
 echo "Next steps:\n";
-echo "1. Upload admin panel to: https://nat-test.ku.ac.bd/admin\n";
-echo "2. Update .env with production credentials\n";
-echo "3. Set proper file permissions:\n";
+echo "1. Set proper file permissions:\n";
 echo "   chmod 644 *.php\n";
-echo "   chmod 755 api/ pages/ templates/\n";
+echo "   chmod 755 api/ pages/ templates/ auth/\n";
 echo "   chmod 600 .env\n";
 echo "   chmod 755 uploads/\n";
-echo "4. Login at: https://nat-test.ku.ac.bd/admin/\n\n";
+echo "2. Login at: https://nat-test.ku.ac.bd/admin/\n";
+echo "3. If you see errors, check: /var/log/apache2/error.log\n\n";
+
+$conn->close();

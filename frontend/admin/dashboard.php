@@ -25,20 +25,18 @@ if ($conn) {
     $result = $conn->query("SELECT COUNT(*) as count FROM registrations");
     $stats['total'] = $result->fetch_assoc()['count'];
 
-    // Pending registrations
-    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM registrations WHERE status = 'pending'");
+    // Pending registrations (not yet reviewed - approved is NULL or 0)
+    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM registrations WHERE approved IS NULL OR approved = 0");
     $stmt->execute();
     $stats['pending'] = $stmt->get_result()->fetch_assoc()['count'];
 
     // Approved registrations
-    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM registrations WHERE status = 'approved'");
+    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM registrations WHERE approved = 1");
     $stmt->execute();
     $stats['approved'] = $stmt->get_result()->fetch_assoc()['count'];
 
-    // Rejected registrations
-    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM registrations WHERE status = 'rejected'");
-    $stmt->execute();
-    $stats['rejected'] = $stmt->get_result()->fetch_assoc()['count'];
+    // Rejected registrations (for now, same as pending since we need to add rejection tracking)
+    $stats['rejected'] = 0; // Will need to add rejection tracking to schema
 
     // Revenue (BDT 4,000 per approved registration)
     $stats['revenue'] = $stats['approved'] * 4000;
