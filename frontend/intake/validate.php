@@ -322,11 +322,67 @@ function validateRegistrationData($data) {
     }
 
     // Step 3: Exam Details
-    $examLevelResult = validateRequired($data['exam_level'] ?? '', 'Exam level', 1, 50);
-    if (!$examLevelResult['valid']) {
-        $errors['exam_level'] = $examLevelResult['error'];
+    // Validate exam_levels (array of selected levels)
+    if (!isset($data['exam_levels']) || !is_array($data['exam_levels'])) {
+        $errors['exam_levels'] = 'Exam levels must be submitted as an array';
     } else {
-        $sanitized['exam_level'] = $examLevelResult['sanitized'];
+        $levels = $data['exam_levels'];
+
+        // Remove any empty values
+        $levels = array_filter($levels, function($level) {
+            return !empty(trim($level));
+        });
+
+        // Re-index array
+        $levels = array_values($levels);
+
+        // Validate minimum 1 level
+        if (count($levels) < 1) {
+            $errors['exam_levels'] = 'Please select at least one exam level';
+        }
+
+        // Validate maximum 5 levels
+        if (count($levels) > 5) {
+            $errors['exam_levels'] = 'Cannot select more than 5 levels';
+        }
+
+        // Validate each level value
+        $validLevels = ['1Q', '2Q', '3Q', '4Q', '5Q'];
+        foreach ($levels as $level) {
+            $level = trim($level);
+            if (!in_array($level, $validLevels, true)) {
+                $errors['exam_levels'] = "Invalid level selected: $level";
+                break;
+            }
+        }
+
+        // Convert to comma-separated string for storage
+        if (!isset($errors['exam_levels'])) {
+            $sanitized['exam_level'] = implode(',', $levels);
+            $sanitized['exam_levels_array'] = $levels;
+        }
+    }
+
+    // Validate total_amount
+    if (!isset($data['total_amount'])) {
+        $errors['total_amount'] = 'Total amount is required';
+    } else {
+        $amount = intval($data['total_amount']);
+        $levelCount = isset($sanitized['exam_levels_array']) ? count($sanitized['exam_levels_array']) : 0;
+        $expectedAmount = $levelCount * 4000;
+
+        // First, validate amount is greater than zero (always check)
+        if ($amount <= 0) {
+            $errors['total_amount'] = 'Total amount must be greater than zero';
+        }
+        // Then, verify calculation matches (only if levels are valid)
+        elseif ($levelCount > 0 && $amount !== $expectedAmount) {
+            $errors['total_amount'] = "Amount mismatch. Expected: $expectedAmount, Got: $amount";
+        }
+
+        if (!isset($errors['total_amount'])) {
+            $sanitized['total_amount'] = $amount;
+        }
     }
 
     $testDateResult = validateTestDate($data['test_date'] ?? '');
