@@ -38,8 +38,11 @@ if ($conn) {
     // Rejected registrations (for now, same as pending since we need to add rejection tracking)
     $stats['rejected'] = 0; // Will need to add rejection tracking to schema
 
-    // Revenue (BDT 4,000 per approved registration)
-    $stats['revenue'] = $stats['approved'] * 4000;
+    // Revenue (sum of total_amount for approved registrations)
+    $stmt = $conn->prepare("SELECT SUM(total_amount) as total FROM registrations WHERE approved = 1");
+    $stmt->execute();
+    $revenueResult = $stmt->get_result()->fetch_assoc();
+    $stats['revenue'] = $revenueResult['total'] ?? 0;
 
     // Recent activity (last 10 actions)
     $stmt = $conn->prepare("
