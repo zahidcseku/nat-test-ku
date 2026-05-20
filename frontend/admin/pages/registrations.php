@@ -77,7 +77,7 @@ $query = "
     FROM registrations r
     LEFT JOIN exam_dates ed ON r.test_date = ed.exam_date
     WHERE $whereClause
-    ORDER BY r.submitted_at DESC
+    ORDER BY r.created_at DESC
     LIMIT 50
 ";
 
