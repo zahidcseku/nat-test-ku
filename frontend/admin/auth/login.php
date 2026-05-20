@@ -4,13 +4,18 @@
  * Processes login form submissions
  */
 
+// Require config first (this will start the session)
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../functions.php';
 
-// Redirect if already logged in
+// Redirect if already logged in - but prevent redirect loop
 if (isLoggedIn()) {
-    header('Location: ' . BASE_URL . '/dashboard.php');
-    exit;
+    // Check if we're already trying to access dashboard to prevent loop
+    $currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    if (strpos($currentPath, 'dashboard.php') === false) {
+        header('Location: ' . BASE_URL . '/dashboard.php');
+        exit;
+    }
 }
 
 $error = '';
