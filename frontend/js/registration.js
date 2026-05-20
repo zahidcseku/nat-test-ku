@@ -264,28 +264,6 @@ const RegistrationForm = (function() {
   function validateStep2() {
     let isValid = true;
 
-    // Payment Method Selection
-    const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
-    if (!paymentMethod) {
-      showError('payment_method', 'Please select a payment method');
-      isValid = false;
-    } else {
-      showSuccess('payment_method', '✓');
-      // Store valid data
-      formData.step2 = {
-        payment_method: paymentMethod.value
-      };
-    }
-
-    return isValid;
-  }
-
-  /**
-   * Validate Step 3: Exam Details
-   */
-  function validateStep3() {
-    let isValid = true;
-
     // Validate exam levels selection (checkboxes instead of dropdown)
     if (selectedLevels.length < CONFIG.MIN_LEVELS) {
       const errorEl = document.getElementById('exam_levels-error');
@@ -317,10 +295,32 @@ const RegistrationForm = (function() {
 
     // Store valid data
     if (isValid) {
-      formData.step3 = {
+      formData.step2 = {
         exam_levels: selectedLevels,
         test_date: testDate,
         total_amount: totalAmount
+      };
+    }
+
+    return isValid;
+  }
+
+  /**
+   * Validate Step 3: Payment Method
+   */
+  function validateStep3() {
+    let isValid = true;
+
+    // Payment Method Selection
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
+    if (!paymentMethod) {
+      showError('payment_method', 'Please select a payment method');
+      isValid = false;
+    } else {
+      showSuccess('payment_method', '✓');
+      // Store valid data
+      formData.step3 = {
+        payment_method: paymentMethod.value
       };
     }
 
@@ -518,8 +518,8 @@ const RegistrationForm = (function() {
       const step2Valid = validateStep2();
       console.log('Step 2 validation result:', step2Valid);
       if (step2Valid) {
-        console.log('Moving to step 3');
-        showStep(3);
+        console.log('Showing level confirmation');
+        return showLevelConfirmation();
       } else {
         console.log('Step 2 validation failed');
       }
@@ -528,8 +528,8 @@ const RegistrationForm = (function() {
       const step3Valid = validateStep3();
       console.log('Step 3 validation result:', step3Valid);
       if (step3Valid) {
-        console.log('Showing level confirmation');
-        return showLevelConfirmation();
+        console.log('Moving to step 4');
+        showStep(4);
       } else {
         console.log('Step 3 validation failed');
       }
@@ -641,10 +641,7 @@ const RegistrationForm = (function() {
     formDataToSend.append('gender', formData.step1.gender);
     formDataToSend.append('nationality', formData.step1.nationality);
 
-    // Add step 2 data (Payment Method)
-    formDataToSend.append('payment_method', formData.step2.payment_method);
-
-    // Add step 3 data (Exam Details)
+    // Add step 2 data (Exam Details)
     // Add selected levels as array
     if (selectedLevels && selectedLevels.length > 0) {
       selectedLevels.forEach(level => {
@@ -656,8 +653,11 @@ const RegistrationForm = (function() {
     formDataToSend.append('total_amount', totalAmount);
 
     // Convert date from YYYY-MM-DD to YYYY/MM/DD for backend
-    const testDateFormatted = formData.step3.test_date.replace(/-/g, '/');
+    const testDateFormatted = formData.step2.test_date.replace(/-/g, '/');
     formDataToSend.append('test_date', testDateFormatted);
+
+    // Add step 3 data (Payment Method)
+    formDataToSend.append('payment_method', formData.step3.payment_method);
 
     // Add step 4 files (Document Uploads)
     formDataToSend.append('photo', formData.step4.photo_file);
@@ -679,6 +679,7 @@ const RegistrationForm = (function() {
       step1: formData.step1,
       step2: formData.step2,
       step3: formData.step3,
+      step4: formData.step4,
       hasPhoto: !!formData.step4.photo_file,
       hasId: !!formData.step4.id_file,
       hasReceipt: !!formData.step4.payment_receipt_file
@@ -735,11 +736,11 @@ const RegistrationForm = (function() {
           params.set('email', formData.step1.email);
         }
 
-        if (formData.step2.payment_method) {
-          params.set('payment_method', formData.step2.payment_method);
-          console.log('✅ Setting payment_method from form data:', formData.step2.payment_method);
+        if (formData.step3.payment_method) {
+          params.set('payment_method', formData.step3.payment_method);
+          console.log('✅ Setting payment_method from form data:', formData.step3.payment_method);
         } else {
-          console.error('❌ payment_method not found in formData.step2!');
+          console.error('❌ payment_method not found in formData.step3!');
         }
 
         console.log('🔗 Final Redirect URL parameters:', params.toString());
@@ -1126,8 +1127,8 @@ const RegistrationForm = (function() {
       paymentLevels.textContent = 'For ' + selectedLevels.length + ' selected level(s)';
     }
 
-    // Advance to step 4 after confirmation
-    showStep(4);
+    // Advance to step 3 (Payment Method) after confirmation
+    showStep(3);
   }
 
   // Export public API

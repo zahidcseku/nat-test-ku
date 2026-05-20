@@ -215,12 +215,12 @@
               <div class="flex-1 h-[1px] bg-surface-container-highest mx-2"></div>
               <div class="flex flex-col items-center">
                 <div data-progress-step="2" class="progress-step w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-sm font-bold ring-8 ring-surface">2</div>
-                <span class="text-xs mt-2 text-secondary">Payment</span>
+                <span class="text-xs mt-2 text-secondary">Exam Details</span>
               </div>
               <div class="flex-1 h-[1px] bg-surface-container-highest mx-2"></div>
               <div class="flex flex-col items-center">
                 <div data-progress-step="3" class="progress-step w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-sm font-bold ring-8 ring-surface">3</div>
-                <span class="text-xs mt-2 text-secondary">Exam Details</span>
+                <span class="text-xs mt-2 text-secondary">Payment</span>
               </div>
               <div class="flex-1 h-[1px] bg-surface-container-highest mx-2"></div>
               <div class="flex flex-col items-center">
@@ -235,7 +235,7 @@
             <div id="step-1" class="form-step active space-y-10">
               <div>
                 <h2 class="text-2xl font-bold text-primary mb-2">Personal Information</h2>
-                <p class="text-secondary">Please provide your personal details and payment preference</p>
+                <p class="text-secondary">Please provide your personal details</p>
               </div>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
@@ -297,14 +297,93 @@
               <!-- Navigation -->
               <div class="flex justify-end pt-4">
                 <button onclick="RegistrationForm.nextStep()" class="bg-primary text-white px-10 py-4 rounded-lg font-bold text-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3">
-                  Proceed to Payment
+                  Proceed to Exam Details
                   <span class="material-symbols-outlined">arrow_forward</span>
                 </button>
               </div>
             </div>
 
-            <!-- Step 2: Payment Method -->
+            <!-- Step 2: Exam Details -->
             <div id="step-2" class="form-step space-y-10">
+              <div>
+                <h2 class="text-2xl font-bold text-primary mb-2">Exam Details</h2>
+                <p class="text-secondary">Select your examination level and preferred test date</p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                <div class="flex flex-col gap-2">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="test_date">Intended Test Date</label>
+                  <select class="ghost-input py-3 text-lg bg-white" id="test_date">
+                    <option value="">Select Test Date</option>
+                    <!-- Options will be loaded from database -->
+                  </select>
+                  <span class="field-error" id="test_date-error"></span>
+                  <span class="field-success" id="test_date-success"></span>
+                </div>
+
+                <div id="exam_levels_container" class="flex flex-col gap-2 opacity-50">
+                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase">
+                    Exam Levels <span class="text-secondary font-normal">(Select one or more)</span>
+                  </label>
+                  <div id="exam_levels_checkboxes" class="grid grid-cols-5 gap-3">
+                    <p class="text-secondary col-span-5 text-sm">Select a test date first to see available levels</p>
+                  </div>
+
+                  <!-- Live Fee Display -->
+                  <div id="fee_summary" class="mt-4 p-4 bg-primary-container rounded-lg hidden">
+                    <div class="flex items-center justify-between">
+                      <span class="text-white font-semibold">Levels Selected:</span>
+                      <span id="fee_count" class="text-white font-bold">0</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-2">
+                      <span class="text-white font-semibold">Total Fee:</span>
+                      <span id="fee_total" class="text-white font-bold text-xl">0 BDT</span>
+                    </div>
+                    <div class="text-white/80 text-sm mt-2">
+                      (4000 BDT × <span id="fee_multiplier">0</span> levels)
+                    </div>
+                  </div>
+
+                  <span class="field-error" id="exam_levels-error"></span>
+                  <span class="field-success" id="exam_levels-success"></span>
+                </div>
+              </div>
+
+              <!-- Navigation -->
+              <div class="flex justify-between pt-4">
+                <button onclick="RegistrationForm.previousStep()" class="text-primary font-semibold text-sm hover:underline underline-offset-8 transition-all flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm">arrow_back</span>
+                  Previous Step
+                </button>
+                <button onclick="RegistrationForm.nextStep()" class="bg-primary text-white px-10 py-4 rounded-lg font-bold text-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3">
+                  Proceed to Payment
+                  <span class="material-symbols-outlined">arrow_forward</span>
+                </button>
+              </div>
+
+              <!-- Level Confirmation Modal -->
+              <div id="level_confirmation_modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg p-8 max-w-md mx-4">
+                  <h3 class="text-xl font-bold text-primary mb-4">Confirm Your Selection</h3>
+                  <div class="space-y-2 mb-6">
+                    <p class="text-secondary">You've selected <strong id="confirm_levels_count">0</strong> level(s):</p>
+                    <p id="confirm_levels_list" class="text-primary font-semibold text-lg"></p>
+                    <p class="text-lg font-bold text-primary mt-4">Total Fee: <span id="confirm_total">0</span> BDT</p>
+                  </div>
+                  <div class="flex gap-4">
+                    <button id="cancel_confirm_btn" type="button" class="flex-1 px-6 py-3 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-surface-container-low">
+                      Go Back
+                    </button>
+                    <button id="confirm_selection_btn" type="button" class="flex-1 px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90">
+                      Confirm & Continue
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3: Payment Method -->
+            <div id="step-3" class="form-step space-y-10">
               <div>
                 <h2 class="text-2xl font-bold text-primary mb-2">Payment Method</h2>
                 <p class="text-secondary">Select your preferred payment method</p>
@@ -404,88 +483,9 @@
                   Previous Step
                 </button>
                 <button onclick="RegistrationForm.nextStep()" class="bg-primary text-white px-10 py-4 rounded-lg font-bold text-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3">
-                  Proceed to Exam Details
-                  <span class="material-symbols-outlined">arrow_forward</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Step 3: Exam Details -->
-            <div id="step-3" class="form-step space-y-10">
-              <div>
-                <h2 class="text-2xl font-bold text-primary mb-2">Exam Details</h2>
-                <p class="text-secondary">Select your examination level and preferred test date</p>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                <div class="flex flex-col gap-2">
-                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="test_date">Intended Test Date</label>
-                  <select class="ghost-input py-3 text-lg bg-white" id="test_date">
-                    <option value="">Select Test Date</option>
-                    <!-- Options will be loaded from database -->
-                  </select>
-                  <span class="field-error" id="test_date-error"></span>
-                  <span class="field-success" id="test_date-success"></span>
-                </div>
-
-                <div id="exam_levels_container" class="flex flex-col gap-2 opacity-50">
-                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase">
-                    Exam Levels <span class="text-secondary font-normal">(Select one or more)</span>
-                  </label>
-                  <div id="exam_levels_checkboxes" class="grid grid-cols-5 gap-3">
-                    <p class="text-secondary col-span-5 text-sm">Select a test date first to see available levels</p>
-                  </div>
-
-                  <!-- Live Fee Display -->
-                  <div id="fee_summary" class="mt-4 p-4 bg-primary-container rounded-lg hidden">
-                    <div class="flex items-center justify-between">
-                      <span class="text-white font-semibold">Levels Selected:</span>
-                      <span id="fee_count" class="text-white font-bold">0</span>
-                    </div>
-                    <div class="flex items-center justify-between mt-2">
-                      <span class="text-white font-semibold">Total Fee:</span>
-                      <span id="fee_total" class="text-white font-bold text-xl">0 BDT</span>
-                    </div>
-                    <div class="text-white/80 text-sm mt-2">
-                      (4000 BDT × <span id="fee_multiplier">0</span> levels)
-                    </div>
-                  </div>
-
-                  <span class="field-error" id="exam_levels-error"></span>
-                  <span class="field-success" id="exam_levels-success"></span>
-                </div>
-              </div>
-
-              <!-- Navigation -->
-              <div class="flex justify-between pt-4">
-                <button onclick="RegistrationForm.previousStep()" class="text-primary font-semibold text-sm hover:underline underline-offset-8 transition-all flex items-center gap-2">
-                  <span class="material-symbols-outlined text-sm">arrow_back</span>
-                  Previous Step
-                </button>
-                <button onclick="RegistrationForm.nextStep()" class="bg-primary text-white px-10 py-4 rounded-lg font-bold text-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3">
                   Proceed to Uploads
                   <span class="material-symbols-outlined">arrow_forward</span>
                 </button>
-              </div>
-
-              <!-- Level Confirmation Modal -->
-              <div id="level_confirmation_modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div class="bg-white rounded-lg p-8 max-w-md mx-4">
-                  <h3 class="text-xl font-bold text-primary mb-4">Confirm Your Selection</h3>
-                  <div class="space-y-2 mb-6">
-                    <p class="text-secondary">You've selected <strong id="confirm_levels_count">0</strong> level(s):</p>
-                    <p id="confirm_levels_list" class="text-primary font-semibold text-lg"></p>
-                    <p class="text-lg font-bold text-primary mt-4">Total Fee: <span id="confirm_total">0</span> BDT</p>
-                  </div>
-                  <div class="flex gap-4">
-                    <button id="cancel_confirm_btn" type="button" class="flex-1 px-6 py-3 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-surface-container-low">
-                      Go Back
-                    </button>
-                    <button id="confirm_selection_btn" type="button" class="flex-1 px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90">
-                      Confirm & Continue
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
 
