@@ -47,13 +47,13 @@ if (!empty($examLevel)) {
 }
 
 if (!empty($dateFrom)) {
-    $where[] = 'DATE(r.created_at) >= ?';
+    $where[] = 'DATE(r.submitted_at) >= ?';
     $params[] = $dateFrom;
     $types .= 's';
 }
 
 if (!empty($dateTo)) {
-    $where[] = 'DATE(r.created_at) <= ?';
+    $where[] = 'DATE(r.submitted_at) <= ?';
     $params[] = $dateTo;
     $types .= 's';
 }
@@ -77,7 +77,7 @@ $query = "
     FROM registrations r
     LEFT JOIN exam_dates ed ON r.test_date = ed.exam_date
     WHERE $whereClause
-    ORDER BY r.created_at DESC
+    ORDER BY r.submitted_at DESC
     LIMIT 50
 ";
 
@@ -242,7 +242,7 @@ require_once __DIR__ . '/../templates/header.php';
                             </span>
                         </td>
                         <td style="padding: 12px 16px; font-size: 14px; color: #718096;">
-                            <?php echo e(date('M j, Y', strtotime($reg['created_at']))); ?>
+                            <?php echo e(date('M j, Y', strtotime($reg['submitted_at']))); ?>
                         </td>
                         <td style="padding: 12px 16px; text-align: center;">
                             <div style="display: flex; gap: 6px; justify-content: center;">

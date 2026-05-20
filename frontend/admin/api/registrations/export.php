@@ -42,13 +42,13 @@ if (!empty($examLevel)) {
 }
 
 if (!empty($dateFrom)) {
-    $where[] = 'DATE(r.created_at) >= ?';
+    $where[] = 'DATE(r.submitted_at) >= ?';
     $params[] = $dateFrom;
     $types .= 's';
 }
 
 if (!empty($dateTo)) {
-    $where[] = 'DATE(r.created_at) <= ?';
+    $where[] = 'DATE(r.submitted_at) <= ?';
     $params[] = $dateTo;
     $types .= 's';
 }
@@ -70,11 +70,11 @@ $query = "
         r.test_date,
         r.payment_method,
         r.approved,
-        r.created_at,
+        r.submitted_at,
         r.approved_at
     FROM registrations r
     WHERE $whereClause
-    ORDER BY r.created_at DESC
+    ORDER BY r.submitted_at DESC
 ";
 
 $stmt = $conn->prepare($query);
@@ -105,7 +105,7 @@ fputcsv($output, [
     'Test Date',
     'Payment Method',
     'Approved',
-    'Created At',
+    'Submitted At',
     'Approved At'
 ]);
 
@@ -130,7 +130,7 @@ foreach ($registrations as $reg) {
         $reg['test_date'],
         $reg['payment_method'],
         $approvedStatus,
-        $reg['created_at'],
+        $reg['submitted_at'],
         $reg['approved_at']
     ]);
 }

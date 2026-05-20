@@ -257,7 +257,7 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                 </div>
                 <div>
                     <div style="font-size: 12px; color: #718096; margin-bottom: 4px;">Submitted</div>
-                    <div style="font-size: 15px; color: #1a202c;"><?php echo e(date('F j, Y g:i A', strtotime($registration['created_at']))); ?></div>
+                    <div style="font-size: 15px; color: #1a202c;"><?php echo e(date('F j, Y g:i A', strtotime($registration['submitted_at']))); ?></div>
                 </div>
             </div>
         </div>
@@ -385,9 +385,8 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                     <div>
                         <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Payment Method *</label>
                         <select name="payment_method" required style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
-                            <option value="bkash" <?php echo $registration['payment_method'] === 'bkash' ? 'selected'': ''; ?>>bKash</option>
-                            <option value="nagad" <?php echo $registration['payment_method'] === 'nagad' ? 'selected' : ''; ?>>Nagad</option>
-                            <option value="bank" <?php echo $registration['payment_method'] === 'bank' ? 'selected' : ''; ?>>Bank Deposit</option>
+                            <option value="online" <?php echo $registration['payment_method'] === 'online' ? 'selected' : ''; ?>>Online Payment</option>
+                            <option value="offline" <?php echo $registration['payment_method'] === 'offline' ? 'selected' : ''; ?>>Offline Payment</option>
                         </select>
                     </div>
 
