@@ -287,3 +287,16 @@ function validateFileUpload($file, $allowedTypes = null) {
 function generateTicketNumber() {
     return 'NT' . date('Y') . strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 8));
 }
+
+// Convert filesystem path to web URL for intake uploads
+function intakePathToUrl($filesystemPath) {
+    if (empty($filesystemPath)) {
+        return '';
+    }
+
+    // Convert filesystem path to web URL
+    $url = str_replace('/home/nattest/public_html/', 'https://nat-test.ku.ac.bd/', $filesystemPath);
+    $url = str_replace('/frontend/intake/', '/intake/', $url);
+
+    return $url;
+}

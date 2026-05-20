@@ -193,9 +193,10 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                 <div>
                     <div style="font-size: 14px; font-weight: 500; color: #1a202c; margin-bottom: 8px;">Student Photo</div>
                     <?php if (!empty($registration['photo_storage_path'])): ?>
-                        <img src="<?php echo e($registration['photo_storage_path']); ?>"
+                        <img src="<?php echo e(intakePathToUrl($registration['photo_storage_path'])); ?>"
                              alt="Student Photo"
-                             style="max-width: 200px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                             style="max-width: 200px; border: 2px solid #e2e8f0; border-radius: 8px;"
+                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\'%3EImage not found%3C/text%3E%3C/svg%3E'">
                     <?php else: ?>
                         <p style="color: #f56565; font-size: 14px;">No photo uploaded</p>
                     <?php endif; ?>
@@ -204,8 +205,8 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                 <!-- ID Document -->
                 <div>
                     <div style="font-size: 14px; font-weight: 500; color: #1a202c; margin-bottom: 8px;">ID Document</div>
-                    <?php if (!empty($registration['id_document_path'])): ?>
-                        <a href="<?php echo e($registration['id_document_path']); ?>" target="_blank"
+                    <?php if (!empty($registration['id_storage_path'])): ?>
+                        <a href="<?php echo e(intakePathToUrl($registration['id_storage_path'])); ?>" target="_blank"
                            class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px;">
                             📄 View ID Document
                         </a>
@@ -217,8 +218,8 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                 <!-- Payment Receipt -->
                 <div>
                     <div style="font-size: 14px; font-weight: 500; color: #1a202c; margin-bottom: 8px;">Payment Receipt</div>
-                    <?php if (!empty($registration['payment_receipt_path'])): ?>
-                        <a href="<?php echo e($registration['payment_receipt_path']); ?>" target="_blank"
+                    <?php if (!empty($registration['payment_receipt_storage_path'])): ?>
+                        <a href="<?php echo e(intakePathToUrl($registration['payment_receipt_storage_path'])); ?>" target="_blank"
                            class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px;">
                             💰 View Payment Receipt
                         </a>

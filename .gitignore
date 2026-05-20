@@ -2,13 +2,10 @@
 .env
 frontend/media/
 # Ignore all files in frontend/data/ by default
-frontend/data/*
-!frontend/data/content.json
 frontend/mockups/*
 tmp/
 
 .DS_Store/
-admin/
 frontend/.DS_Store/
 admin/pages/__pycache__/
 dev_resources/
