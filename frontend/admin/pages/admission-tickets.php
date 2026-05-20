@@ -7,7 +7,7 @@
 require_once __DIR__ . '/../auth/middleware.php';
 
 $pageTitle = 'Admission Tickets';
-$currentPage = 'participants';
+$currentPage = 'admission-tickets';
 
 $conn = getDbConnection();
 
