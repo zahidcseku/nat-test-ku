@@ -9,7 +9,11 @@ require_once __DIR__ . '/../auth/middleware.php';
 $pageTitle = 'Review Registration';
 $currentPage = 'registrations';
 
-$id = $_GET['id'] ?? 0;
+$id = $_GET['id'] ?? '';
+
+if (empty($id)) {
+    die('Registration ID is required');
+}
 
 $conn = getDbConnection();
 
@@ -24,13 +28,15 @@ $stmt = $conn->prepare("
     LEFT JOIN exam_dates ed ON r.test_date = ed.exam_date
     WHERE r.id = ?
 ");
-$stmt->bind_param('i', $id);
+$stmt->bind_param('s', $id);
 $stmt->execute();
 $registration = $stmt->get_result()->fetch_assoc();
 
 if (!$registration) {
     die('Registration not found');
 }
+
+// Handle form actions
 
 // Handle form actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -54,6 +60,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'payment_method' => $_POST['payment_method'] ?? ''
         ];
 
+        // Validate required fields
+        $required = ['full_name', 'email', 'mobile', 'address', 'dob', 'gender', 'nationality', 'exam_level', 'test_date', 'payment_method'];
+        foreach ($required as $field) {
+            if (empty($updateFields[$field])) {
+                setFlashMessage("Field '$field' is required", 'error');
+                header('Location: ' . BASE_URL . '/pages/registration-detail.php?id=' . $id);
+                exit;
+            }
+        }
+
         // Store old values for audit
         $oldValues = [];
         foreach ($updateFields as $field => $value) {
@@ -66,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $params = [];
 
         foreach ($updateFields as $field => $value) {
-            if (!empty($value)) {
+            if (strlen($value) > 0) {
                 $setClause[] = "$field = ?";
                 $params[] = $value;
                 $types .= 's';
@@ -75,24 +91,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!empty($setClause)) {
             $params[] = $id; // Add ID for WHERE clause
-            $types .= 'i';
+            $types .= 's';
 
             $sql = "UPDATE registrations SET " . implode(', ', $setClause) . " WHERE id = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param($types, ...$params);
 
-            if ($stmt->execute()) {
-                // Get updated values for audit
-                $newValues = $updateFields;
-
-                // Log audit
-                logAudit('update_registration', 'registrations', $id, $oldValues, $newValues);
-
-                setFlashMessage('Registration information updated successfully', 'success');
-                header('Location: ' . BASE_URL . '/pages/registration-detail.php?id=' . $id);
-                exit;
+            if (!$stmt) {
+                setFlashMessage('Failed to prepare statement: ' . $conn->error, 'error');
             } else {
-                setFlashMessage('Failed to update registration: ' . $conn->error, 'error');
+                $stmt->bind_param($types, ...$params);
+
+                if ($stmt->execute()) {
+                    // Get updated values for audit
+                    $newValues = $updateFields;
+
+                    // Log audit
+                    logAudit('update_registration', 'registrations', $id, $oldValues, $newValues);
+
+                    setFlashMessage('Registration information updated successfully', 'success');
+                    header('Location: ' . BASE_URL . '/pages/registration-detail.php?id=' . $id);
+                    exit;
+                } else {
+                    setFlashMessage('Failed to update registration: ' . $stmt->error, 'error');
+                }
             }
         } else {
             setFlashMessage('No changes to update', 'error');
@@ -101,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'approve') {
         // Update status
         $stmt = $conn->prepare("UPDATE registrations SET approved = 1, approved_at = NOW() WHERE id = ?");
-        $stmt->bind_param('i', $id);
+        $stmt->bind_param('s', $id);
         $stmt->execute();
 
         // Log audit
