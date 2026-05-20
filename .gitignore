@@ -4,6 +4,7 @@ frontend/media/
 # Ignore all files in frontend/data/ by default
 frontend/mockups/*
 tmp/
+admin/
 
 .DS_Store/
 frontend/.DS_Store/
