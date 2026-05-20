@@ -41,8 +41,8 @@ if (!empty($examDate)) {
 }
 
 if (!empty($examLevel)) {
-    $where[] = 'r.exam_level = ?';
-    $params[] = $examLevel;
+    $where[] = 'r.exam_level LIKE ?';
+    $params[] = "%$examLevel%";
     $types .= 's';
 }
 
