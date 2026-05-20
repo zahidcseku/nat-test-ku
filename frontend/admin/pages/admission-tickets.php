@@ -53,8 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['tickets_zip'])) {
                     $stmt = $conn->prepare("
                         SELECT id, full_name, email, exam_level
                         FROM registrations
-                        WHERE test_date = ? AND status = 'approved'
-                        AND admission_ticket_path IS NULL
+                        WHERE test_date = ? AND approved = 1
                     ");
                     $stmt->bind_param('s', $examDate);
                     $stmt->execute();
@@ -92,23 +91,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['tickets_zip'])) {
                             // Generate ticket number
                             $ticketNumber = generateTicketNumber();
 
-                            // Update registration
-                            $stmt = $conn->prepare("
-                                UPDATE registrations
-                                SET admission_ticket_path = ?,
-                                    ticket_number = ?,
-                                    admission_ticket_emailed_at = NOW()
-                                WHERE id = ?
-                            ");
-                            $webPath = str_replace(UPLOAD_PATH, '/uploads/', $ticketPath);
-                            $stmt->bind_param('ssi', $webPath, $ticketNumber, $registration['id']);
-                            $stmt->execute();
-
+                            // For now, just save ticket record without updating registrations table
                             // Save ticket record
                             $stmt = $conn->prepare("
                                 INSERT INTO admission_tickets (registration_id, exam_date_id, ticket_number, file_path, created_by)
                                 VALUES (?, ?, ?, ?, ?)
                             ");
+                            $webPath = '/uploads/tickets/' . date('Y-m-d') . '/' . $registration['id'] . '_ticket.pdf';
                             $stmt->bind_param('iissi', $registration['id'], $examDateId, $ticketNumber, $webPath, $_SESSION['user_id']);
                             $stmt->execute();
 
@@ -147,10 +136,11 @@ $stmt = $conn->prepare("
     SELECT
         ed.id,
         ed.exam_date,
-        COUNT(CASE WHEN r.status = 'approved' THEN 1 END) as approved_count,
-        COUNT(CASE WHEN r.status = 'approved' AND r.admission_ticket_path IS NOT NULL THEN 1 END) as tickets_sent
+        COUNT(CASE WHEN r.approved = 1 THEN 1 END) as approved_count,
+        COUNT(CASE WHEN at.id IS NOT NULL THEN 1 END) as tickets_sent
     FROM exam_dates ed
     LEFT JOIN registrations r ON r.test_date = ed.exam_date
+    LEFT JOIN admission_tickets at ON at.registration_id = r.id
     WHERE ed.exam_date >= CURDATE()
     GROUP BY ed.id, ed.exam_date
     HAVING approved_count > 0

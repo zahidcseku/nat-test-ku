@@ -32,13 +32,72 @@ if (!$registration) {
     die('Registration not found');
 }
 
-// Handle approval/rejection
+// Handle form actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $reasons = $_POST['rejection_reasons'] ?? '';
 
     if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
         setFlashMessage('Invalid CSRF token', 'error');
+    } elseif ($action === 'update') {
+        // Handle registration information update
+        $updateFields = [
+            'full_name' => $_POST['full_name'] ?? '',
+            'email' => $_POST['email'] ?? '',
+            'mobile' => $_POST['mobile'] ?? '',
+            'address' => $_POST['address'] ?? '',
+            'dob' => $_POST['dob'] ?? '',
+            'gender' => $_POST['gender'] ?? '',
+            'nationality' => $_POST['nationality'] ?? '',
+            'exam_level' => $_POST['exam_level'] ?? '',
+            'test_date' => $_POST['test_date'] ?? '',
+            'payment_method' => $_POST['payment_method'] ?? ''
+        ];
+
+        // Store old values for audit
+        $oldValues = [];
+        foreach ($updateFields as $field => $value) {
+            $oldValues[$field] = $registration[$field] ?? '';
+        }
+
+        // Build update query
+        $setClause = [];
+        $types = '';
+        $params = [];
+
+        foreach ($updateFields as $field => $value) {
+            if (!empty($value)) {
+                $setClause[] = "$field = ?";
+                $params[] = $value;
+                $types .= 's';
+            }
+        }
+
+        if (!empty($setClause)) {
+            $params[] = $id; // Add ID for WHERE clause
+            $types .= 'i';
+
+            $sql = "UPDATE registrations SET " . implode(', ', $setClause) . " WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param($types, ...$params);
+
+            if ($stmt->execute()) {
+                // Get updated values for audit
+                $newValues = $updateFields;
+
+                // Log audit
+                logAudit('update_registration', 'registrations', $id, $oldValues, $newValues);
+
+                setFlashMessage('Registration information updated successfully', 'success');
+                header('Location: ' . BASE_URL . '/pages/registration-detail.php?id=' . $id);
+                exit;
+            } else {
+                setFlashMessage('Failed to update registration: ' . $conn->error, 'error');
+            }
+        } else {
+            setFlashMessage('No changes to update', 'error');
+        }
+
     } elseif ($action === 'approve') {
         // Update status
         $stmt = $conn->prepare("UPDATE registrations SET approved = 1, approved_at = NOW() WHERE id = ?");
@@ -229,6 +288,106 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                 </div>
             </div>
         </div>
+
+        <!-- Edit Registration Form -->
+        <div id="edit" style="background: white; border-radius: 12px; padding: 24px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;">
+                <h2 style="font-size: 18px; font-weight: 600; color: #1a202c; margin: 0;">
+                    ✏️ Edit Registration Information
+                </h2>
+                <button type="button" onclick="toggleEditForm()" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">
+                    Show/Hide Form
+                </button>
+            </div>
+
+            <form id="editForm" method="POST" style="display: none; margin-top: 16px;">
+                <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                <input type="hidden" name="action" value="update">
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Full Name *</label>
+                        <input type="text" name="full_name" value="<?php echo e($registration['full_name']); ?>" required
+                               style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Email *</label>
+                        <input type="email" name="email" value="<?php echo e($registration['email']); ?>" required
+                               style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Mobile *</label>
+                        <input type="text" name="mobile" value="<?php echo e($registration['mobile']); ?>" required
+                               style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Date of Birth *</label>
+                        <input type="date" name="dob" value="<?php echo e($registration['dob']); ?>" required
+                               style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Gender *</label>
+                        <select name="gender" required style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+                            <option value="male" <?php echo $registration['gender'] === 'male' ? 'selected' : ''; ?>>Male</option>
+                            <option value="female" <?php echo $registration['gender'] === 'female' ? 'selected' : ''; ?>>Female</option>
+                            <option value="other" <?php echo $registration['gender'] === 'other' ? 'selected' : ''; ?>>Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Nationality *</label>
+                        <input type="text" name="nationality" value="<?php echo e($registration['nationality']); ?>" required
+                               style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Exam Level *</label>
+                        <select name="exam_level" required style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+                            <?php foreach (['1Q', '2Q', '3Q', '4Q', '5Q'] as $level): ?>
+                                <option value="<?php echo e($level); ?>" <?php echo $registration['exam_level'] === $level ? 'selected' : ''; ?>>
+                                    <?php echo e($level); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Test Date *</label>
+                        <input type="date" name="test_date" value="<?php echo e($registration['test_date']); ?>" required
+                               style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Payment Method *</label>
+                        <select name="payment_method" required style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+                            <option value="bkash" <?php echo $registration['payment_method'] === 'bkash' ? 'selected'': ''; ?>>bKash</option>
+                            <option value="nagad" <?php echo $registration['payment_method'] === 'nagad' ? 'selected' : ''; ?>>Nagad</option>
+                            <option value="bank" <?php echo $registration['payment_method'] === 'bank' ? 'selected' : ''; ?>>Bank Deposit</option>
+                        </select>
+                    </div>
+
+                    <div style="grid-column: span 2;">
+                        <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Address *</label>
+                        <textarea name="address" rows="3" required
+                                  style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; resize: vertical;"><?php echo e($registration['address']); ?></textarea>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-size: 14px; font-weight: 600;"
+                            onclick="return confirmUpdate()">
+                        💾 Save Changes
+                    </button>
+                    <button type="button" onclick="toggleEditForm()" class="btn btn-secondary" style="padding: 10px 20px; font-size: 14px;">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Sidebar: Actions -->
@@ -292,6 +451,28 @@ function renderEmailTemplate($type, $data, $reasons = '') {
 </div>
 
 <script>
+// Auto-open edit form if URL has #edit hash
+if (window.location.hash === '#edit') {
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleEditForm();
+    });
+}
+
+function toggleEditForm() {
+    const form = document.getElementById('editForm');
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+        // Scroll to form if it was just opened
+        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        form.style.display = 'none';
+    }
+}
+
+function confirmUpdate() {
+    return confirm('Are you sure you want to update this registration information?\n\nThe changes will be logged in the audit trail.');
+}
+
 function confirmApprove() {
     const checks = ['check_photo', 'check_id', 'check_payment', 'check_info'];
     const allChecked = checks.every(id => document.getElementById(id).checked);

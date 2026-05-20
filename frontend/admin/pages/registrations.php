@@ -245,10 +245,16 @@ require_once __DIR__ . '/../templates/header.php';
                             <?php echo e(date('M j, Y', strtotime($reg['created_at']))); ?>
                         </td>
                         <td style="padding: 12px 16px; text-align: center;">
-                            <a href="<?php echo BASE_URL; ?>/pages/registration-detail.php?id=<?php echo e($reg['id']); ?>"
-                               class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">
-                                Review
-                            </a>
+                            <div style="display: flex; gap: 6px; justify-content: center;">
+                                <a href="<?php echo BASE_URL; ?>/pages/registration-detail.php?id=<?php echo e($reg['id']); ?>"
+                                   class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">
+                                    👁️ View
+                                </a>
+                                <a href="<?php echo BASE_URL; ?>/pages/registration-detail.php?id=<?php echo e($reg['id']); ?>#edit"
+                                   class="btn btn-primary" style="padding: 6px 12px; font-size: 13px;">
+                                    ✏️ Edit
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 <?php endforeach; ?>
