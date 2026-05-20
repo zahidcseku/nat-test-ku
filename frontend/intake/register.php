@@ -107,12 +107,12 @@ try {
     $stmt = $conn->prepare("
         INSERT INTO registrations (
             id, full_name, email, mobile, address, dob, gender, nationality,
-            payment_method, exam_level, test_date,
+            payment_method, exam_level, total_amount, test_date,
             photo_filename, photo_storage_path, photo_size_bytes,
             id_filename, id_storage_path, id_size_bytes,
             payment_receipt_filename, payment_receipt_storage_path, payment_receipt_size_bytes,
             ip_hash, user_agent, honeypot_tripped, honeypot_value
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     if (!$stmt) {
@@ -133,7 +133,7 @@ try {
     $hp_tripped = $honeypotCheck['tripped'] ? 1 : 0;
 
     $stmt->bind_param(
-        'sssssssssssssissississis',
+        'sssssssssssisissississis',
         $id,
         $data['full_name'],
         $data['email'],
@@ -144,6 +144,7 @@ try {
         $data['nationality'],
         $data['payment_method'],
         $data['exam_level'],
+        $data['total_amount'],
         $data['test_date'],
         $photo['filename'],
         $photo['storage_path'],
@@ -233,12 +234,21 @@ try {
     logActivity("Registration submitted: ID=$id, Email={$data['email']}, IP=$ipHash");
 
     // Send success response
-    successResponse([
+    $responseData = [
         'id' => $id,
         'email' => $data['email'],
         'exam_level' => $data['exam_level'],
-        'test_date' => $data['test_date']
-    ], 'Registration submitted successfully');
+        'test_date' => $data['test_date'],
+        'total_amount' => $data['total_amount']
+    ];
+
+    // Include multi-level registration details if applicable
+    if (isset($data['exam_levels']) && is_array($data['exam_levels'])) {
+        $responseData['exam_levels'] = $data['exam_levels'];
+        $responseData['level_count'] = count($data['exam_levels']);
+    }
+
+    successResponse($responseData, 'Registration submitted successfully');
 
 } catch (Exception $e) {
     logActivity("Exception: " . $e->getMessage(), 'error');
