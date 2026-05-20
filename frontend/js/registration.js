@@ -982,7 +982,10 @@ const RegistrationForm = (function() {
             checkboxDiv.appendChild(label);
             container.appendChild(checkboxDiv);
           });
-          document.getElementById('exam_levels_container').classList.remove('opacity-50');
+          const container = document.getElementById('exam_levels_container');
+          if (container) {
+            container.classList.remove('opacity-50');
+          }
         } else {
           container.innerHTML = '';
           const errorMsg = document.createElement('p');
@@ -1050,7 +1053,7 @@ const RegistrationForm = (function() {
     if (!errorEl || !successEl) return false;
 
     if (selectedLevels.length < CONFIG.MIN_LEVELS) {
-      errorEl.textContent = 'Please select at least ' + CONFIG.MIN_LEVELS + ' level';
+      errorEl.textContent = 'Please select at least ' + CONFIG.MIN_LEVELS + ' level(s)';
       errorEl.classList.add('show');
       successEl.classList.remove('show');
       return false;
@@ -1076,11 +1079,25 @@ const RegistrationForm = (function() {
     const totalEl = document.getElementById('confirm_total');
 
     countEl.textContent = selectedLevels.length;
-    listEl.textContent = selectedLevels.sort().join(', ');
+    // Validate API response values before displaying - ensure they match expected format (1Q-5Q)
+    const validLevels = selectedLevels.filter(level => {
+      const isValid = /^([1-5]Q)$/.test(level);
+      if (!isValid) {
+        console.warn('Invalid level format received from API:', level);
+      }
+      return isValid;
+    });
+
+    if (validLevels.length === 0) {
+      console.error('No valid levels found in selection');
+      return false;
+    }
+
+    listEl.textContent = validLevels.sort().join(', ');
     totalEl.textContent = totalAmount.toLocaleString('en-BD');
 
     modal.classList.remove('hidden');
-    return false;
+    return true; // Return true to indicate modal was shown successfully
   }
 
   /**
@@ -1094,7 +1111,10 @@ const RegistrationForm = (function() {
    * Confirm level selection and proceed
    */
   function confirmLevelSelection() {
-    document.getElementById('level_confirmation_modal').classList.add('hidden');
+    const modal = document.getElementById('level_confirmation_modal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
 
     const paymentAmount = document.getElementById('payment_amount_display');
     const paymentLevels = document.getElementById('payment_levels_display');
@@ -1106,8 +1126,8 @@ const RegistrationForm = (function() {
       paymentLevels.textContent = 'For ' + selectedLevels.length + ' selected level(s)';
     }
 
-    const currentStepVal = currentStep || 1;
-    goToStep(currentStepVal + 1);
+    // Advance to step 4 after confirmation
+    showStep(4);
   }
 
   // Export public API
