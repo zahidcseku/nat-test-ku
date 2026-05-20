@@ -69,6 +69,7 @@ $query = "
         r.exam_level,
         r.test_date,
         r.payment_method,
+        r.total_amount,
         r.approved,
         r.submitted_at,
         r.approved_at
@@ -104,6 +105,7 @@ fputcsv($output, [
     'Exam Level',
     'Test Date',
     'Payment Method',
+    'Total Amount (BDT)',
     'Approved',
     'Submitted At',
     'Approved At'
@@ -129,6 +131,7 @@ foreach ($registrations as $reg) {
         $reg['exam_level'],
         $reg['test_date'],
         $reg['payment_method'],
+        $reg['total_amount'],
         $approvedStatus,
         $reg['submitted_at'],
         $reg['approved_at']
