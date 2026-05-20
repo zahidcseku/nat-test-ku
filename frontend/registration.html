@@ -799,9 +799,24 @@
         testDateSelect.addEventListener('change', function() {
           const selectedDate = this.value;
           if (selectedDate) {
-            RegistrationForm.populateExamLevels(selectedDate);
+            RegistrationForm.populateExamLevelsCheckboxes(selectedDate);
           }
-          // Note: Exam level clearing logic will be handled by checkbox population in Task 3
+        });
+      }
+
+      // Modal event listeners for level confirmation
+      const cancelBtn = document.getElementById('cancel_confirm_btn');
+      const confirmBtn = document.getElementById('confirm_selection_btn');
+
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+          RegistrationForm.cancelLevelConfirmation();
+        });
+      }
+
+      if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+          RegistrationForm.confirmLevelSelection();
         });
       }
 

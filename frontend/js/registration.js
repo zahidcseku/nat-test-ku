@@ -13,7 +13,10 @@ const RegistrationForm = (function() {
     MAX_PAYMENT_SIZE: 4 * 1024 * 1024, // 4MB
     ALLOWED_PHOTO_TYPES: ['image/jpeg', 'image/png'],
     ALLOWED_ID_TYPES: ['image/jpeg', 'image/png', 'application/pdf'],
-    ALLOWED_PAYMENT_TYPES: ['image/jpeg', 'image/png', 'application/pdf']
+    ALLOWED_PAYMENT_TYPES: ['image/jpeg', 'image/png', 'application/pdf'],
+    FEE_PER_LEVEL: 4000,
+    MAX_LEVELS: 5,
+    MIN_LEVELS: 1
   };
 
   // State management
@@ -25,6 +28,8 @@ const RegistrationForm = (function() {
     step3: {},
     step4: {}
   };
+  let selectedLevels = [];
+  let totalAmount = 0;
 
   /**
    * Utility: Validate email format
@@ -281,13 +286,24 @@ const RegistrationForm = (function() {
   function validateStep3() {
     let isValid = true;
 
-    // Exam Level
-    const examLevel = document.getElementById('exam_level').value;
-    if (!examLevel) {
-      showError('exam_level', 'Please select your exam level');
+    // Validate exam levels selection (checkboxes instead of dropdown)
+    if (selectedLevels.length < CONFIG.MIN_LEVELS) {
+      const errorEl = document.getElementById('exam_levels-error');
+      if (errorEl) {
+        errorEl.textContent = 'Please select at least ' + CONFIG.MIN_LEVELS + ' level';
+        errorEl.classList.add('show');
+      }
       isValid = false;
     } else {
-      showSuccess('exam_level', '✓');
+      const errorEl = document.getElementById('exam_levels-error');
+      if (errorEl) {
+        errorEl.classList.remove('show');
+      }
+      const successEl = document.getElementById('exam_levels-success');
+      if (successEl) {
+        successEl.textContent = selectedLevels.length + ' level(s) selected';
+        successEl.classList.add('show');
+      }
     }
 
     // Intended Test Date (PLACEHOLDER: will load from database)
@@ -302,12 +318,20 @@ const RegistrationForm = (function() {
     // Store valid data
     if (isValid) {
       formData.step3 = {
-        exam_level: examLevel,
-        test_date: testDate
+        exam_levels: selectedLevels,
+        test_date: testDate,
+        total_amount: totalAmount
       };
     }
 
     return isValid;
+  }
+
+  /**
+   * Go to specific step (helper function)
+   */
+  function goToStep(stepNumber) {
+    showStep(stepNumber);
   }
 
   /**
@@ -504,8 +528,8 @@ const RegistrationForm = (function() {
       const step3Valid = validateStep3();
       console.log('Step 3 validation result:', step3Valid);
       if (step3Valid) {
-        console.log('Moving to step 4');
-        showStep(4);
+        console.log('Showing level confirmation');
+        return showLevelConfirmation();
       } else {
         console.log('Step 3 validation failed');
       }
@@ -621,7 +645,16 @@ const RegistrationForm = (function() {
     formDataToSend.append('payment_method', formData.step2.payment_method);
 
     // Add step 3 data (Exam Details)
-    formDataToSend.append('exam_level', formData.step3.exam_level);
+    // Add selected levels as array
+    if (selectedLevels && selectedLevels.length > 0) {
+      selectedLevels.forEach(level => {
+        formDataToSend.append('exam_levels[]', level);
+      });
+    }
+
+    // Add total amount
+    formDataToSend.append('total_amount', totalAmount);
+
     // Convert date from YYYY-MM-DD to YYYY/MM/DD for backend
     const testDateFormatted = formData.step3.test_date.replace(/-/g, '/');
     formDataToSend.append('test_date', testDateFormatted);
@@ -905,6 +938,178 @@ const RegistrationForm = (function() {
     }
   }
 
+  /**
+   * Populate exam levels checkboxes for multi-level selection
+   */
+  function populateExamLevelsCheckboxes(testDate) {
+    const container = document.getElementById('exam_levels_checkboxes');
+    if (!container) return;
+
+    container.innerHTML = '';
+    selectedLevels = [];
+    totalAmount = 0;
+    updateFeeDisplay();
+
+    const loadingMsg = document.createElement('p');
+    loadingMsg.className = 'text-secondary col-span-5';
+    loadingMsg.textContent = 'Loading available levels...';
+    container.appendChild(loadingMsg);
+
+    fetch(`/intake/api/exam-dates/levels.php?date=${encodeURIComponent(testDate)}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.levels && data.levels.length > 0) {
+          container.innerHTML = '';
+          data.levels.forEach(level => {
+            const checkboxDiv = document.createElement('div');
+            checkboxDiv.className = 'flex items-center gap-2 p-3 bg-surface-container-low rounded-lg cursor-pointer hover:bg-surface-container-high transition-all';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = 'level_' + level;
+            checkbox.value = level;
+            checkbox.className = 'w-5 h-5 text-primary accent-primary';
+            checkbox.addEventListener('change', function() {
+              handleLevelSelection(level, this.checked);
+            });
+
+            const label = document.createElement('label');
+            label.htmlFor = 'level_' + level;
+            label.className = 'flex-1 cursor-pointer font-semibold text-primary select-none';
+            label.textContent = level;
+
+            checkboxDiv.appendChild(checkbox);
+            checkboxDiv.appendChild(label);
+            container.appendChild(checkboxDiv);
+          });
+          document.getElementById('exam_levels_container').classList.remove('opacity-50');
+        } else {
+          container.innerHTML = '';
+          const errorMsg = document.createElement('p');
+          errorMsg.className = 'text-error col-span-5';
+          errorMsg.textContent = 'No levels available for this date';
+          container.appendChild(errorMsg);
+        }
+      })
+      .catch(error => {
+        console.error('Error loading levels:', error);
+        container.innerHTML = '';
+        const errorMsg = document.createElement('p');
+        errorMsg.className = 'text-error col-span-5';
+        errorMsg.textContent = 'Error loading levels. Please try again.';
+        container.appendChild(errorMsg);
+      });
+  }
+
+  /**
+   * Handle checkbox selection for exam levels
+   */
+  function handleLevelSelection(level, isSelected) {
+    if (isSelected) {
+      if (!selectedLevels.includes(level)) {
+        selectedLevels.push(level);
+      }
+    } else {
+      selectedLevels = selectedLevels.filter(l => l !== level);
+    }
+    updateFeeDisplay();
+    validateLevelSelection();
+  }
+
+  /**
+   * Update fee display based on selected levels
+   */
+  function updateFeeDisplay() {
+    const count = selectedLevels.length;
+    const total = count * CONFIG.FEE_PER_LEVEL;
+
+    const feeSummary = document.getElementById('fee_summary');
+    const feeCount = document.getElementById('fee_count');
+    const feeTotal = document.getElementById('fee_total');
+    const feeMultiplier = document.getElementById('fee_multiplier');
+
+    if (count > 0) {
+      feeSummary.classList.remove('hidden');
+      feeCount.textContent = count;
+      feeTotal.textContent = total.toLocaleString('en-BD') + ' BDT';
+      feeMultiplier.textContent = count;
+    } else {
+      feeSummary.classList.add('hidden');
+    }
+
+    totalAmount = total;
+  }
+
+  /**
+   * Validate level selection
+   */
+  function validateLevelSelection() {
+    const errorEl = document.getElementById('exam_levels-error');
+    const successEl = document.getElementById('exam_levels-success');
+
+    if (!errorEl || !successEl) return false;
+
+    if (selectedLevels.length < CONFIG.MIN_LEVELS) {
+      errorEl.textContent = 'Please select at least ' + CONFIG.MIN_LEVELS + ' level';
+      errorEl.classList.add('show');
+      successEl.classList.remove('show');
+      return false;
+    } else {
+      errorEl.classList.remove('show');
+      successEl.textContent = selectedLevels.length + ' level(s) selected';
+      successEl.classList.add('show');
+      return true;
+    }
+  }
+
+  /**
+   * Show confirmation modal for level selection
+   */
+  function showLevelConfirmation() {
+    if (!validateLevelSelection()) {
+      return false;
+    }
+
+    const modal = document.getElementById('level_confirmation_modal');
+    const countEl = document.getElementById('confirm_levels_count');
+    const listEl = document.getElementById('confirm_levels_list');
+    const totalEl = document.getElementById('confirm_total');
+
+    countEl.textContent = selectedLevels.length;
+    listEl.textContent = selectedLevels.sort().join(', ');
+    totalEl.textContent = totalAmount.toLocaleString('en-BD');
+
+    modal.classList.remove('hidden');
+    return false;
+  }
+
+  /**
+   * Cancel level confirmation
+   */
+  function cancelLevelConfirmation() {
+    document.getElementById('level_confirmation_modal').classList.add('hidden');
+  }
+
+  /**
+   * Confirm level selection and proceed
+   */
+  function confirmLevelSelection() {
+    document.getElementById('level_confirmation_modal').classList.add('hidden');
+
+    const paymentAmount = document.getElementById('payment_amount_display');
+    const paymentLevels = document.getElementById('payment_levels_display');
+
+    if (paymentAmount) {
+      paymentAmount.textContent = totalAmount.toLocaleString('en-BD') + ' BDT';
+    }
+    if (paymentLevels) {
+      paymentLevels.textContent = 'For ' + selectedLevels.length + ' selected level(s)';
+    }
+
+    const currentStepVal = currentStep || 1;
+    goToStep(currentStepVal + 1);
+  }
+
   // Export public API
   return {
     CONFIG,
@@ -929,7 +1134,15 @@ const RegistrationForm = (function() {
     resetForm,
     validateAllSteps,
     loadExamDates,
-    populateExamLevels
+    populateExamLevels,
+    populateExamLevelsCheckboxes,
+    handleLevelSelection,
+    updateFeeDisplay,
+    validateLevelSelection,
+    showLevelConfirmation,
+    cancelLevelConfirmation,
+    confirmLevelSelection,
+    goToStep
   };
 
 })();
