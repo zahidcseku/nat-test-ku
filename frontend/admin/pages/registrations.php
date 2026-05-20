@@ -222,7 +222,15 @@ require_once __DIR__ . '/../templates/header.php';
                                 <?php echo e($reg['email']); ?>
                             </a>
                         </td>
-                        <td style="padding: 12px 16px; font-size: 14px;"><?php echo e($reg['exam_level']); ?></td>
+                        <td style="padding: 12px 16px; font-size: 14px;">
+                            <div class="font-semibold"><?php echo e($reg['exam_level']); ?></div>
+                            <div class="text-sm text-secondary">
+                                <?php
+                                $levelCount = count(explode(',', $reg['exam_level']));
+                                echo number_format($reg['total_amount']) . ' BDT (' . $levelCount . ' level(s))';
+                                ?>
+                            </div>
+                        </td>
                         <td style="padding: 12px 16px; font-size: 14px;"><?php echo e(formatDate($reg['test_date'])); ?></td>
                         <td style="padding: 12px 16px;">
                             <?php
