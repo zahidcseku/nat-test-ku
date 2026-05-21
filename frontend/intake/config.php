@@ -73,8 +73,8 @@ loadEnv();
 
 // Database configuration
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-define('DB_NAME', getenv('DB_NAME') ?: 'nat_test_intake');
-define('DB_USER', getenv('DB_USER') ?: 'intake_user');
+define('DB_NAME', getenv('DB_NAME') ?: 'nattest_regs');
+define('DB_USER', getenv('DB_USER') ?: 'nattest_reg');
 define('DB_PASS', getenv('DB_PASS') ?: '');
 define('DB_CHARSET', 'utf8mb4');
 
