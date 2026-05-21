@@ -956,8 +956,14 @@ const RegistrationForm = (function() {
     loadingMsg.textContent = 'Loading available levels...';
     container.appendChild(loadingMsg);
 
-    fetch(`/intake/api/exam-dates/levels.php?date=${encodeURIComponent(testDate)}`)
-      .then(response => response.json())
+    // Use relative path to be consistent with other intake service calls
+    fetch(`intake/api/exam-dates/levels.php?date=${encodeURIComponent(testDate)}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+        }
+        return response.json();
+      })
       .then(data => {
         if (data.levels && data.levels.length > 0) {
           container.innerHTML = '';
@@ -983,9 +989,9 @@ const RegistrationForm = (function() {
             checkboxDiv.appendChild(label);
             container.appendChild(checkboxDiv);
           });
-          const container = document.getElementById('exam_levels_container');
-          if (container) {
-            container.classList.remove('opacity-50');
+          const wrapper = document.getElementById('exam_levels_container');
+          if (wrapper) {
+            wrapper.classList.remove('opacity-50');
           }
         } else {
           container.innerHTML = '';
@@ -1162,8 +1168,4 @@ const RegistrationForm = (function() {
     validateLevelSelection,
     showLevelConfirmation,
     cancelLevelConfirmation,
-    confirmLevelSelection,
-    goToStep
-  };
-
-})();
+    co
