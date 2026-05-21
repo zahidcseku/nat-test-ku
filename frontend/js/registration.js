@@ -1168,4 +1168,6 @@ const RegistrationForm = (function() {
     validateLevelSelection,
     showLevelConfirmation,
     cancelLevelConfirmation,
-    co
+    confirmLevelSelection
+  };
+})();
