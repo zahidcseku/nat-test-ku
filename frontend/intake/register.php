@@ -111,8 +111,9 @@ try {
             photo_filename, photo_storage_path, photo_size_bytes,
             id_filename, id_storage_path, id_size_bytes,
             payment_receipt_filename, payment_receipt_storage_path, payment_receipt_size_bytes,
-            ip_hash, user_agent, honeypot_tripped, honeypot_value
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            submitted_at, ip_hash, user_agent, honeypot_tripped, honeypot_value,
+            approved, approved_at, approved_by, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     if (!$stmt) {
@@ -132,8 +133,15 @@ try {
     $r_size = isset($receipt['size_bytes']) ? (int)$receipt['size_bytes'] : null;
     $hp_tripped = $honeypotCheck['tripped'] ? 1 : 0;
 
+    // Additional fields for approval tracking
+    $submitted_at = date('Y-m-d H:i:s');
+    $approved = 0; // Not approved by default
+    $approved_at = null;
+    $approved_by = null;
+    $created_at = date('Y-m-d H:i:s');
+
     $stmt->bind_param(
-        'sssssssssssisissississis',
+        'sssssssssssisississississssis',
         $id,
         $data['full_name'],
         $data['email'],
@@ -155,10 +163,15 @@ try {
         $r_name,
         $r_path,
         $r_size,
+        $submitted_at,
         $ipHash,
         $userAgent,
         $hp_tripped,
-        $honeypotCheck['value']
+        $honeypotCheck['value'],
+        $approved,
+        $approved_at,
+        $approved_by,
+        $created_at
     );
 
     $result = $stmt->execute();

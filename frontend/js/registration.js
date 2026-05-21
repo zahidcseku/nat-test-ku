@@ -969,7 +969,7 @@ const RegistrationForm = (function() {
           container.innerHTML = '';
           data.levels.forEach(level => {
             const checkboxDiv = document.createElement('div');
-            checkboxDiv.className = 'flex items-center gap-2 p-3 bg-surface-container-low rounded-lg cursor-pointer hover:bg-surface-container-high transition-all';
+            checkboxDiv.className = 'flex items-center gap-2 p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-100 transition-all';
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
