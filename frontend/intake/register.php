@@ -141,7 +141,7 @@ try {
     $created_at = date('Y-m-d H:i:s');
 
     $stmt->bind_param(
-        'ssssssssssisssisssississsisisss',
+        'ssssssssssisssissiississsisisss',
         $id,
         $data['full_name'],
         $data['email'],
@@ -264,6 +264,12 @@ try {
     successResponse($responseData, 'Registration submitted successfully');
 
 } catch (Exception $e) {
-    logActivity("Exception: " . $e->getMessage(), 'error');
+    logActivity("Exception: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine(), 'error');
+    file_put_contents(__DIR__ . '/logs/debug_exception.json', json_encode([
+        'message' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'trace' => $e->getTraceAsString()
+    ], JSON_PRETTY_PRINT));
     errorResponse('Server error', 500);
 }
