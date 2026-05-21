@@ -113,7 +113,7 @@ try {
             payment_receipt_filename, payment_receipt_storage_path, payment_receipt_size_bytes,
             submitted_at, ip_hash, user_agent, honeypot_tripped, honeypot_value,
             approved, approved_at, approved_by, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     if (!$stmt) {
@@ -141,7 +141,7 @@ try {
     $created_at = date('Y-m-d H:i:s');
 
     $stmt->bind_param(
-        'sssssssssssisississississssis',
+        'ssssssssssisssisssississsisisss',
         $id,
         $data['full_name'],
         $data['email'],
