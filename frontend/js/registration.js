@@ -956,8 +956,8 @@ const RegistrationForm = (function() {
     loadingMsg.textContent = 'Loading available levels...';
     container.appendChild(loadingMsg);
 
-    // Use relative path to be consistent with other intake service calls
-    fetch(`intake/api/exam-dates/levels.php?date=${encodeURIComponent(testDate)}`)
+    // Use absolute path from domain root
+    fetch(`/intake/api/exam-dates/levels.php?date=${encodeURIComponent(testDate)}`)
       .then(response => {
         if (!response.ok) {
           throw new Error('HTTP ' + response.status + ': ' + response.statusText);
