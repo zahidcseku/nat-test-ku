@@ -238,10 +238,30 @@ function validateRequired($field, $fieldName, $minLength = 1, $maxLength = 1000)
 /**
  * Validate enum field
  */
-function validateEnum($value, $fieldName, $allowedValues) {
+function validateEnum($value, $fieldName, $allowedValues, $caseInsensitive = false) {
     $value = trim($value);
 
-    if (!in_array($value, $allowedValues, true)) {
+    // Check if value matches (with optional case-insensitivity)
+    $isValid = false;
+    $matchedValue = $value;
+
+    foreach ($allowedValues as $allowed) {
+        if ($caseInsensitive) {
+            if (strcasecmp($value, $allowed) === 0) {
+                $isValid = true;
+                $matchedValue = $allowed; // Return the properly cased version
+                break;
+            }
+        } else {
+            if ($value === $allowed) {
+                $isValid = true;
+                $matchedValue = $allowed;
+                break;
+            }
+        }
+    }
+
+    if (!$isValid) {
         return [
             'valid' => false,
             'error' => "$fieldName must be one of: " . implode(', ', $allowedValues),
@@ -252,7 +272,7 @@ function validateEnum($value, $fieldName, $allowedValues) {
     return [
         'valid' => true,
         'error' => null,
-        'sanitized' => $value
+        'sanitized' => $matchedValue
     ];
 }
 
@@ -299,7 +319,7 @@ function validateRegistrationData($data) {
         $sanitized['dob'] = $dobResult['sanitized'];
     }
 
-    $genderResult = validateEnum($data['gender'] ?? '', 'Gender', ['male', 'female', 'other']);
+    $genderResult = validateEnum($data['gender'] ?? '', 'Gender', ['male', 'female', 'other'], true);
     if (!$genderResult['valid']) {
         $errors['gender'] = $genderResult['error'];
     } else {
