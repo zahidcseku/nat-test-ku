@@ -121,8 +121,8 @@
       "is_active": true,
       "content": {
         "badge_type": "PDF",
-        "title": "Japanese Language Schools in Bangladesh",
-        "url": "resources/Japanese_Language_School_BD.pdf",
+        "title": "Offline application form",
+        "url": "resources/offline_application_formV5.pdf",
         "icon": "download"
       }
     },

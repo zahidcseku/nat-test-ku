@@ -39,14 +39,6 @@
       "type": "link",
       "url": "https://nat-test.jp/en/fairness.html",
       "icon": "link"
-    },
-    {
-      "id": 6,
-      "title": "Japanese Language School in Bangladesh",
-      "description": "Information about Japanese language schools in Bangladesh.",
-      "type": "link",
-      "url": "resources/Japanese_Language_School_BD.pdf",
-      "icon": "picture_as_pdf"
     }
   ]
 }
