@@ -13,3 +13,10 @@ dev_resources/
 node_modules/
 **/.DS_Store/
 TBD.md
+
+*.db
+.env
+frontend/media/
+# Ignore all files in frontend/data/ by default
+frontend/mockups/*
+tmp/
