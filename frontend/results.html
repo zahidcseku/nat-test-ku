@@ -146,9 +146,12 @@
               In person collection from the site office is allowed for free of charge.
               </p>
           </div>
-        
-      <!-- Side Info Section -->
-      <div class="lg:col-span-5 grid grid-cols-1 gap-6">
+      </div>
+    </div>
+
+    <!-- Side Info Section -->
+    <div class="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      <div class="lg:col-span-5 lg:col-start-8 grid grid-cols-1 gap-6">
         <!-- Image Card -->
         <div class="h-64 rounded-lg overflow-hidden shadow-lg">
           <img
@@ -417,33 +420,5 @@
       </div>
     </div>
   </footer>
-
-  <script>
-    document.getElementById('search-btn').addEventListener('click', function(e) {
-      e.preventDefault();
-
-      const btn = this;
-      const btnText = btn.querySelector('.btn-text');
-      const btnIcon = btn.querySelector('.btn-icon');
-
-      // Disable button and show searching state
-      btn.disabled = true;
-      btnText.textContent = 'Searching...';
-      btnIcon.textContent = 'autorenew';
-      btnIcon.classList.add('animate-spin');
-
-      // Simulate search (in production, this would be an actual API call)
-      setTimeout(() => {
-        // Reset button (in production, handle the response here)
-        btn.disabled = false;
-        btnText.textContent = 'Find Score Report';
-        btnIcon.textContent = 'search';
-        btnIcon.classList.remove('animate-spin');
-
-        // Show message (in production, this would show actual results)
-        alert('This is a demo. In production, this would show your score report.');
-      }, 3000);
-    });
-  </script>
 </body>
 </html>
