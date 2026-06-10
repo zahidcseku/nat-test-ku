@@ -84,6 +84,9 @@ define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB in bytes
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/jpg']);
 define('ALLOWED_PDF_TYPES', ['application/pdf']);
 
+// Site URL
+define('SITE_URL', getenv('SITE_URL') ?: 'https://nat-test.ku.ac.bd');
+
 // Security configuration
 define('RATE_LIMIT_MINUTE', 5);
 define('RATE_LIMIT_DAY', 20);
@@ -91,6 +94,41 @@ define('HONEYPOT_FIELD', 'website');
 
 // CORS configuration
 define('ALLOWED_ORIGINS', getenv('ALLOWED_ORIGINS') ?: '*');
+
+// ============================================
+// SSLCommerz Payment Gateway Configuration
+// ============================================
+
+// SSLCommerz API Credentials
+define('SSLCZ_STORE_ID', getenv('SSLCZ_STORE_ID') ?: '');
+define('SSLCZ_STORE_PASSWORD', getenv('SSLCZ_STORE_PASSWORD') ?: '');
+
+// SSLCommerz Mode: 'sandbox' for testing, 'live' for production
+define('SSLCZ_MODE', getenv('SSLCZ_MODE') ?: 'sandbox');
+
+// SSLCommerz API Endpoints
+define('SSLCZ_API_DOMAIN', SSLCZ_MODE === 'live'
+    ? 'https://securepay.sslcommerz.com'
+    : 'https://sandbox.sslcommerz.com');
+
+// Redirect URLs
+define('SSLCZ_SUCCESS_URL', getenv('SSLCZ_SUCCESS_URL') ?: SITE_URL . '/payment-success.html');
+define('SSLCZ_FAIL_URL', getenv('SSLCZ_FAIL_URL') ?: SITE_URL . '/payment-failed.html');
+define('SSLCZ_CANCEL_URL', getenv('SSLCZ_CANCEL_URL') ?: SITE_URL . '/payment-cancelled.html');
+define('SSLCZ_IPN_URL', SITE_URL . '/intake/payment-ipn.php');
+
+// Transaction Fee Rates
+define('SSLCZ_CARD_FEE_RATE', 0.025);  // 2.5% for Visa/MC
+define('SSLCZ_AMEX_FEE_RATE', 0.035);  // 3.5% for AMEX
+
+// Retry Link Expiry (7 days)
+define('PAYMENT_RETRY_EXPIRY_DAYS', 7);
+
+// IPN Whitelist (SSLCommerz server IPs)
+define('SSLCZ_IPN_WHITELIST', [
+    '103.163.227.100',
+    '103.163.227.101'
+]);
 
 // Create database connection
 function getDbConnection() {
@@ -187,4 +225,42 @@ function logActivity($message, $level = 'info') {
     $logMessage = "[$timestamp] [$level] $message" . PHP_EOL;
 
     file_put_contents($logFile, $logMessage, FILE_APPEND);
+}
+
+/**
+ * Calculate payment amount breakdown
+ *
+ * @param int $levelCount Number of exam levels selected
+ * @param bool $isAmex Whether payment method is AMEX
+ * @return array ['base' => float, 'fee' => float, 'total' => float]
+ */
+function calculatePaymentAmount($levelCount, $isAmex = false) {
+    $baseAmount = $levelCount * 4000; // 4000 BDT per level
+    $feeRate = $isAmex ? SSLCZ_AMEX_FEE_RATE : SSLCZ_CARD_FEE_RATE;
+    $transactionFee = $baseAmount * $feeRate;
+    $totalAmount = $baseAmount + $transactionFee;
+
+    return [
+        'base' => $baseAmount,
+        'fee' => $transactionFee,
+        'total' => $totalAmount
+    ];
+}
+
+/**
+ * Generate secure retry token
+ *
+ * @return string 32-character hex token
+ */
+function generateRetryToken() {
+    return bin2hex(random_bytes(16));
+}
+
+/**
+ * Generate retry link expiry datetime
+ *
+ * @return string MySQL datetime format
+ */
+function generateRetryExpiry() {
+    return date('Y-m-d H:i:s', strtotime('+' . PAYMENT_RETRY_EXPIRY_DAYS . ' days'));
 }
