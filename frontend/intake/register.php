@@ -91,6 +91,68 @@ try {
         errorResponse('File upload failed', 400, $uploadResult['errors']);
     }
 
+    // ============================================
+    // PAYMENT GATEWAY INTEGRATION
+    // ============================================
+
+    // Check if payment method is 'online'
+    $paymentMethod = $data['payment_method'] ?? 'offline';
+    $isOnlinePayment = ($paymentMethod === 'online');
+
+    // Calculate payment amounts
+    $levelCount = isset($data['exam_levels']) ? count($data['exam_levels']) : 1;
+    $paymentAmounts = calculatePaymentAmount($levelCount, false);
+    $baseAmount = $paymentAmounts['base'];
+    $transactionFee = $paymentAmounts['fee'];
+    $totalAmount = $paymentAmounts['total'];
+
+    // Generate retry token
+    $retryToken = generateRetryToken();
+    $retryExpires = generateRetryExpiry();
+
+    // If online payment, create SSLCommerz session
+    $sslczSessionId = null;
+    $redirectUrl = null;
+
+    if ($isOnlinePayment) {
+        try {
+            require_once __DIR__ . '/payment-gateway.php';
+            $sslcz = new SSLCommerz();
+
+            // Prepare SSLCommerz payment data
+            $sslczData = [
+                'total_amount' => $totalAmount,
+                'currency' => 'BDT',
+                'tran_id' => $id,
+                'cus_name' => $data['full_name'],
+                'cus_email' => $data['email'],
+                'cus_phone' => $data['mobile'],
+                'cus_add1' => $data['address']
+            ];
+
+            // Create SSLCommerz session
+            $sslczResponse = $sslcz->createPayment($sslczData);
+
+            if ($sslczResponse['status'] === 'SUCCESS') {
+                $sslczSessionId = $sslczResponse['sessionkey'];
+                $redirectUrl = $sslczResponse['GatewayPageURL'];
+                logActivity("SSLCommerz session created for registration {$id}");
+            } else {
+                // SSLCommerz session creation failed, save as unpaid anyway
+                logActivity("SSLCommerz session creation failed: " . $sslczResponse['error'], 'error');
+                $isOnlinePayment = false; // Fallback to offline
+            }
+
+        } catch (Exception $e) {
+            logActivity("SSLCommerz exception: " . $e->getMessage(), 'error');
+            $isOnlinePayment = false; // Fallback to offline
+        }
+    }
+
+    // ============================================
+    // END PAYMENT GATEWAY INTEGRATION
+    // ============================================
+
     // Get database connection
     $conn = getDbConnection();
     if (!$conn) {
@@ -112,8 +174,9 @@ try {
             id_filename, id_storage_path, id_size_bytes,
             payment_receipt_filename, payment_receipt_storage_path, payment_receipt_size_bytes,
             submitted_at, ip_hash, user_agent, honeypot_tripped, honeypot_value,
-            approved, approved_at, approved_by, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            approved, approved_at, approved_by, created_at,
+            payment_status, base_amount, transaction_fee, total_amount_paid, sslcommerz_session_id, payment_retry_token, payment_retry_expires
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     if (!$stmt) {
@@ -140,8 +203,17 @@ try {
     $approved_by = null;
     $created_at = date('Y-m-d H:i:s');
 
+    // Payment gateway fields
+    $payment_status = $isOnlinePayment ? 'unpaid' : 'unpaid'; // Both start unpaid
+    $baseAmountValue = $baseAmount;
+    $transactionFeeValue = $transactionFee;
+    $totalAmountPaidValue = $isOnlinePayment ? $totalAmount : $baseAmount; // Online includes fee
+    $sslczSessionIdValue = $sslczSessionId;
+    $retryTokenValue = $retryToken;
+    $retryExpiresValue = $retryExpires;
+
     $stmt->bind_param(
-        'ssssssssssisssissississsisisss',
+        'ssssssssssisssissississsisisssdsss',
         $id,
         $data['full_name'],
         $data['email'],
@@ -171,7 +243,14 @@ try {
         $approved,
         $approved_at,
         $approved_by,
-        $created_at
+        $created_at,
+        $payment_status,
+        $baseAmountValue,
+        $transactionFeeValue,
+        $totalAmountPaidValue,
+        $sslczSessionIdValue,
+        $retryTokenValue,
+        $retryExpiresValue
     );
 
     $result = $stmt->execute();
@@ -246,22 +325,43 @@ try {
     // Log successful registration
     logActivity("Registration submitted: ID=$id, Email={$data['email']}, IP=$ipHash");
 
-    // Send success response
-    $responseData = [
-        'id' => $id,
-        'email' => $data['email'],
-        'exam_level' => $data['exam_level'],
-        'test_date' => $data['test_date'],
-        'total_amount' => $data['total_amount']
-    ];
+    // If online payment, redirect to SSLCommerz
+    if ($isOnlinePayment && $redirectUrl) {
+        // Return success response with redirect URL
+        $responseData = [
+            'id' => $id,
+            'email' => $data['email'],
+            'exam_level' => $data['exam_level'],
+            'test_date' => $data['test_date'],
+            'total_amount' => $totalAmountPaidValue,
+            'payment_status' => 'unpaid',
+            'redirect_url' => $redirectUrl,
+            'message' => 'Registration saved. Redirecting to payment gateway...'
+        ];
 
-    // Include multi-level registration details if applicable
-    if (isset($data['exam_levels']) && is_array($data['exam_levels'])) {
-        $responseData['exam_levels'] = $data['exam_levels'];
-        $responseData['level_count'] = count($data['exam_levels']);
+        if (isset($data['exam_levels']) && is_array($data['exam_levels'])) {
+            $responseData['exam_levels'] = $data['exam_levels'];
+            $responseData['level_count'] = count($data['exam_levels']);
+        }
+
+        successResponse($responseData, 'Registration submitted. Redirecting to payment gateway...');
+    } else {
+        // Offline payment - return success as usual
+        $responseData = [
+            'id' => $id,
+            'email' => $data['email'],
+            'exam_level' => $data['exam_level'],
+            'test_date' => $data['test_date'],
+            'total_amount' => $totalAmountPaidValue
+        ];
+
+        if (isset($data['exam_levels']) && is_array($data['exam_levels'])) {
+            $responseData['exam_levels'] = $data['exam_levels'];
+            $responseData['level_count'] = count($data['exam_levels']);
+        }
+
+        successResponse($responseData, 'Registration submitted successfully');
     }
-
-    successResponse($responseData, 'Registration submitted successfully');
 
 } catch (Exception $e) {
     logActivity("Exception: " . $e->getMessage(), 'error');
