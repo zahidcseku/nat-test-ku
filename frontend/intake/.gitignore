@@ -8,10 +8,10 @@ logs/
 # Uploaded files (these should be pulled by admin service, not committed)
 uploads/
 
-# Database dumps
-*.sql
-*.sqlite
-*.db
+# Database dumps (except migrations)
+!migrations/*.sql
+!*.sqlite
+!*.db
 
 # Backup files
 *.bak

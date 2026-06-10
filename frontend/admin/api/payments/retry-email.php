@@ -73,14 +73,20 @@ This secure payment link will expire in 7 days.
 Need Help? Email: info@nat-test.ku.ac.bd
 ";
 
-    // Send email using your email function
-    // $emailSent = sendEmail($reg['email'], $subject, $message);
+    // Send email
+    $emailResult = sendEmail($reg['email'], $subject, $message, $registrationId, 'resend');
 
-    // For now, assume success
-    echo json_encode([
-        'success' => true,
-        'message' => 'Retry email sent successfully'
-    ]);
+    if ($emailResult['success']) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'Retry email sent successfully'
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'error' => 'Failed to send email: ' . $emailResult['error']
+        ]);
+    }
 
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);

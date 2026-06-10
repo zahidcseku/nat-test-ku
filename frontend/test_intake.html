@@ -48,6 +48,13 @@
     <h1>Intake Service Test Page</h1>
 
     <div class="test-section">
+        <h2>0. Test PHP Execution</h2>
+        <p>Check if PHP is running on the server.</p>
+        <button onclick="testPHP()">Test PHP</button>
+        <pre id="php-result">Click button to test</pre>
+    </div>
+
+    <div class="test-section">
         <h2>1. Test Service Health</h2>
         <p>Check if the intake service is running and configured correctly.</p>
         <button onclick="testHealth()">Test Health</button>
@@ -68,8 +75,43 @@
         <pre id="reg-result">Click button to test</pre>
     </div>
 
+    <div class="test-section">
+        <h2>4. View Raw Response</h2>
+        <p>See the actual response from the server for debugging.</p>
+        <button onclick="viewRawResponse()">View Raw Response</button>
+        <pre id="raw-result">Click button to test</pre>
+    </div>
+
     <script>
         const BASE_URL = 'intake/';
+
+        async function testPHP() {
+            const result = document.getElementById('php-result');
+            result.textContent = 'Testing...';
+
+            try {
+                const response = await fetch(BASE_URL + 'simple_test.php');
+                const text = await response.text();
+
+                // Try to parse as JSON
+                try {
+                    const data = JSON.parse(text);
+                    let output = '✓ PHP is working!\n\n';
+                    output += JSON.stringify(data, null, 2);
+                    result.textContent = output;
+                    result.className = 'success';
+                } catch (jsonError) {
+                    // Not JSON, show raw response
+                    let output = '✗ PHP returned non-JSON response:\n\n';
+                    output += text.substring(0, 1000); // First 1000 chars
+                    result.textContent = output;
+                    result.className = 'error';
+                }
+            } catch (error) {
+                result.textContent = '✗ Test failed:\n' + error.message;
+                result.className = 'error';
+            }
+        }
 
         async function testHealth() {
             const result = document.getElementById('health-result');
@@ -130,7 +172,8 @@
             formData.append('payment_method', 'offline');
             formData.append('exam_level', 'N5');
             formData.append('test_date', '2024/12/15');
-            formData.append('website', '');
+            // Use single space to avoid ModSecurity empty string validation issues
+            formData.append('website', ' ');
 
             try {
                 const response = await fetch(BASE_URL + 'register_debug.php', {
@@ -152,6 +195,29 @@
                 result.textContent = output;
             } catch (error) {
                 result.textContent = '✗ Registration failed:\n' + error.message;
+                result.className = 'error';
+            }
+        }
+
+        async function viewRawResponse() {
+            const result = document.getElementById('raw-result');
+            result.textContent = 'Fetching...';
+
+            try {
+                const response = await fetch(BASE_URL + 'register_debug.php', {
+                    method: 'POST',
+                    body: new FormData()
+                });
+
+                const text = await response.text();
+                let output = 'Response status: ' + response.status + '\n\n';
+                output += 'Raw response (first 2000 chars):\n\n';
+                output += text.substring(0, 2000);
+
+                result.textContent = output;
+                result.className = '';
+            } catch (error) {
+                result.textContent = '✗ Request failed:\n' + error.message;
                 result.className = 'error';
             }
         }

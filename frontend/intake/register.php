@@ -119,11 +119,15 @@ try {
             require_once __DIR__ . '/payment-gateway.php';
             $sslcz = new SSLCommerz();
 
+            // Generate SSLCommerz-compatible transaction ID
+            // Use timestamp + random suffix for uniqueness
+            $sslczTranId = 'NAT' . date('YmdHis') . substr(md5(uniqid($id, true)), 0, 8);
+
             // Prepare SSLCommerz payment data
             $sslczData = [
                 'total_amount' => $totalAmount,
                 'currency' => 'BDT',
-                'tran_id' => $id,
+                'tran_id' => $sslczTranId,
                 'cus_name' => $data['full_name'],
                 'cus_email' => $data['email'],
                 'cus_phone' => $data['mobile'],
@@ -175,8 +179,8 @@ try {
             payment_receipt_filename, payment_receipt_storage_path, payment_receipt_size_bytes,
             submitted_at, ip_hash, user_agent, honeypot_tripped, honeypot_value,
             approved, approved_at, approved_by, created_at,
-            payment_status, base_amount, transaction_fee, total_amount_paid, sslcommerz_session_id, payment_retry_token, payment_retry_expires
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            payment_status, sslcommerz_transaction_id, sslcommerz_session_id, base_amount, transaction_fee, total_amount_paid, payment_retry_token, payment_retry_expires
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     if (!$stmt) {
@@ -213,7 +217,7 @@ try {
     $retryExpiresValue = $retryExpires;
 
     $stmt->bind_param(
-        'ssssssssssisssissississsisisssdsss',
+        'ssssssssssisssissississsisisssssdsss',
         $id,
         $data['full_name'],
         $data['email'],
@@ -245,10 +249,11 @@ try {
         $approved_by,
         $created_at,
         $payment_status,
+        $sslczTranId,
+        $sslczSessionIdValue,
         $baseAmountValue,
         $transactionFeeValue,
         $totalAmountPaidValue,
-        $sslczSessionIdValue,
         $retryTokenValue,
         $retryExpiresValue
     );

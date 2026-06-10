@@ -115,7 +115,7 @@ When re-enabling the language selector, verify:
 ## Additional TBD Items
 
 *Add future TBD items below following the same format...*
-
+-[] Add photo and passport upload option in the PDF form. 
 ---
 
 **Last Updated:** 2026-05-11

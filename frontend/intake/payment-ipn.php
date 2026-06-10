@@ -51,11 +51,11 @@ try {
         errorResponse('Database error', 500);
     }
 
-    // Find registration by transaction ID
+    // Find registration by SSLCommerz transaction ID
     $stmt = $conn->prepare("
         SELECT id, email, full_name, total_amount_paid, payment_status
         FROM registrations
-        WHERE id = ?
+        WHERE sslcommerz_transaction_id = ?
     ");
     $stmt->bind_param('s', $transactionId);
     $stmt->execute();

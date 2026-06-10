@@ -86,7 +86,6 @@ include __DIR__ . '/../templates/header.php';
     </div>
 </div>
 
-<script src="../api/payments/list.js"></script>
 <script>
 // Load payments on page load
 document.addEventListener('DOMContentLoaded', function() {
