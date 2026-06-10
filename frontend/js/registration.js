@@ -16,7 +16,12 @@ const RegistrationForm = (function() {
     ALLOWED_PAYMENT_TYPES: ['image/jpeg', 'image/png', 'application/pdf'],
     FEE_PER_LEVEL: 4000,
     MAX_LEVELS: 5,
-    MIN_LEVELS: 1
+    MIN_LEVELS: 1,
+
+    // Payment configuration
+    BASE_FEE_PER_LEVEL: 4000,
+    TRANSACTION_FEE_RATE: 0.025, // 2.5%
+    AMEX_FEE_RATE: 0.035 // 3.5%
   };
 
   // State management
@@ -30,6 +35,96 @@ const RegistrationForm = (function() {
   };
   let selectedLevels = [];
   let totalAmount = 0;
+
+  /**
+   * Calculate payment amount with transaction fee
+   */
+  function calculatePaymentAmount(levelCount) {
+    const baseAmount = levelCount * CONFIG.BASE_FEE_PER_LEVEL;
+    const transactionFee = Math.ceil(baseAmount * CONFIG.TRANSACTION_FEE_RATE);
+    const totalAmount = baseAmount + transactionFee;
+
+    return {
+      base: baseAmount,
+      fee: transactionFee,
+      total: totalAmount
+    };
+  }
+
+  /**
+   * Update payment display
+   */
+  function updatePaymentDisplay(levelCount) {
+    if (levelCount === 0) {
+      const paymentAmountEl = document.getElementById('payment_amount_display');
+      const paymentLevelsEl = document.getElementById('payment_levels_display');
+      const paymentFeeEl = document.getElementById('payment_fee_display');
+
+      if (paymentAmountEl) paymentAmountEl.textContent = '0 BDT';
+      if (paymentLevelsEl) paymentLevelsEl.textContent = 'Select exam levels first';
+      if (paymentFeeEl) paymentFeeEl.classList.add('hidden');
+      return;
+    }
+
+    const payment = calculatePaymentAmount(levelCount);
+
+    const paymentAmountEl = document.getElementById('payment_amount_display');
+    const paymentLevelsEl = document.getElementById('payment_levels_display');
+    const paymentFeeEl = document.getElementById('payment_fee_display');
+
+    if (paymentAmountEl) {
+      paymentAmountEl.textContent = payment.total.toLocaleString('en-BD') + ' BDT';
+    }
+    if (paymentLevelsEl) {
+      paymentLevelsEl.textContent = `For ${levelCount} selected level${levelCount > 1 ? 's' : ''}`;
+    }
+    if (paymentFeeEl) {
+      paymentFeeEl.textContent = `Includes ${payment.fee} BDT online transaction fee (${CONFIG.TRANSACTION_FEE_RATE * 1}%)`;
+      paymentFeeEl.classList.remove('hidden');
+    }
+  }
+
+  /**
+   * Show loading overlay
+   */
+  function showLoading(message) {
+    // Remove existing overlay if present
+    hideLoading();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'loading-overlay';
+    overlay.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'bg-white rounded-lg p-8 max-w-md mx-4 text-center';
+
+    const spinner = document.createElement('div');
+    spinner.className = 'animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4';
+
+    const messageP = document.createElement('p');
+    messageP.className = 'text-lg font-semibold text-primary';
+    messageP.textContent = message;
+
+    const waitP = document.createElement('p');
+    waitP.className = 'text-sm text-secondary mt-2';
+    waitP.textContent = 'Please wait, do not close this page...';
+
+    contentDiv.appendChild(spinner);
+    contentDiv.appendChild(messageP);
+    contentDiv.appendChild(waitP);
+    overlay.appendChild(contentDiv);
+    document.body.appendChild(overlay);
+  }
+
+  /**
+   * Hide loading overlay
+   */
+  function hideLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+      overlay.remove();
+    }
+  }
 
   /**
    * Utility: Validate email format
@@ -620,11 +715,19 @@ const RegistrationForm = (function() {
 
     console.log('Validation passed');
 
-    // Show loading state
-    const submitBtn = document.querySelector('.submit-btn');
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting...';
+    // Check payment method
+    const paymentMethod = formData.step3.payment_method;
+
+    if (paymentMethod === 'online') {
+      // Show loading message for payment gateway redirect
+      showLoading('Redirecting to payment gateway...');
+    } else {
+      // Show loading state for offline payment
+      const submitBtn = document.querySelector('.submit-btn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+      }
     }
 
     // Prepare FormData for multipart/form-data upload
@@ -703,12 +806,33 @@ const RegistrationForm = (function() {
     .then(data => {
       console.log('✅ Response received:', data);
 
+      // Hide loading state
+      hideLoading();
+
       if (data.success) {
         // The PHP backend returns registration details at the root level of 'data'
         // or nested inside 'data.data' depending on the successResponse helper.
         const responseData = data.data || data;
 
-        // Collect submission data for success message
+        // Check if redirect URL is present (online payment)
+        if (responseData.redirect_url) {
+          // Show success message then redirect
+          console.log('✅ Registration saved! Redirecting to payment gateway...');
+
+          // Create temporary success message
+          const successDiv = document.createElement('div');
+          successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-50';
+          successDiv.textContent = 'Registration saved! Redirecting to payment gateway...';
+          document.body.appendChild(successDiv);
+
+          // Redirect after delay
+          setTimeout(() => {
+            window.location.href = responseData.redirect_url;
+          }, 2000);
+          return;
+        }
+
+        // Offline payment - show success message
         const submissionData = {
           ...formData.step1,
           ...formData.step2,
@@ -730,7 +854,7 @@ const RegistrationForm = (function() {
         if (formData.step1.full_name) {
           params.set('full_name', formData.step1.full_name);
         }
-        
+
         // Fallback for email if not in response
         if (!params.has('email') && formData.step1.email) {
           params.set('email', formData.step1.email);
@@ -759,6 +883,7 @@ const RegistrationForm = (function() {
       }
     })
     .catch(error => {
+      hideLoading();
       console.error('Submission error:', error);
       console.error('Error stack:', error.stack);
       alert('Submission failed: ' + error.message + '\n\nPlease check the browser console for more details.');
@@ -1123,15 +1248,15 @@ const RegistrationForm = (function() {
       modal.classList.add('hidden');
     }
 
-    const paymentAmount = document.getElementById('payment_amount_display');
-    const paymentLevels = document.getElementById('payment_levels_display');
+    // Calculate payment details
+    const payment = calculatePaymentAmount(selectedLevels.length);
+    console.log('Payment calculation:', payment);
 
-    if (paymentAmount) {
-      paymentAmount.textContent = totalAmount.toLocaleString('en-BD') + ' BDT';
-    }
-    if (paymentLevels) {
-      paymentLevels.textContent = 'For ' + selectedLevels.length + ' selected level(s)';
-    }
+    // Update payment display
+    updatePaymentDisplay(selectedLevels.length);
+
+    // Update total amount for form submission
+    totalAmount = payment.total;
 
     // Advance to step 3 (Payment Method) after confirmation
     showStep(3);
@@ -1140,6 +1265,10 @@ const RegistrationForm = (function() {
   // Export public API
   return {
     CONFIG,
+    calculatePaymentAmount,
+    updatePaymentDisplay,
+    showLoading,
+    hideLoading,
     isValidEmail,
     isValidPhone,
     validateFile,
