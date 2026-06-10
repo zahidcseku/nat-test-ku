@@ -11,6 +11,19 @@ $currentPage = 'registrations';
 
 $conn = getDbConnection();
 
+/**
+ * Get payment status CSS class for styling
+ */
+function getPaymentStatusClass($status) {
+    switch($status) {
+        case 'paid': return 'bg-success-container text-success-dark';
+        case 'unpaid': return 'bg-warning-container text-warning-dark';
+        case 'failed': return 'bg-error-container text-error-dark';
+        case 'refunded': return 'bg-primary-container text-primary-dark';
+        default: return 'bg-surface-container text-secondary';
+    }
+}
+
 // Get filter parameters
 $status = $_GET['status'] ?? '';
 $examDate = $_GET['exam_date'] ?? '';
@@ -206,7 +219,9 @@ require_once __DIR__ . '/../templates/header.php';
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Level</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Test Date</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Status</th>
-                    <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Submitted</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Payment Status</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Amount</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Payment Time</th>
                     <th style="padding: 12px 16px; text-align: center; font-size: 13px; font-weight: 600; color: #4a5568;">Actions</th>
                 </tr>
             </thead>
@@ -249,6 +264,13 @@ require_once __DIR__ . '/../templates/header.php';
                                 <?php echo e(ucfirst($status)); ?>
                             </span>
                         </td>
+                        <td class="p-4">
+                            <span class="px-3 py-1 rounded-full text-sm font-semibold <?php echo getPaymentStatusClass($reg['payment_status']); ?>">
+                                <?php echo ucfirst($reg['payment_status']); ?>
+                            </span>
+                        </td>
+                        <td class="p-4">৳<?php echo number_format($reg['total_amount_paid']); ?></td>
+                        <td class="p-4"><?php echo $reg['payment_time'] ? date('M j, Y', strtotime($reg['payment_time'])) : '-'; ?></td>
                         <td style="padding: 12px 16px; font-size: 14px; color: #718096;">
                             <?php echo e(date('M j, Y', strtotime($reg['submitted_at']))); ?>
                         </td>
