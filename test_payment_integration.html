@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Flow Integration Tests</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .test-controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .control-group input,
+        .control-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .test-results {
+            padding: 30px;
+        }
+
+        .test-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .test-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .test-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .test-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .status-running {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .status-passed {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-failed {
+            background: #dc3545;
+            color: white;
+        }
+
+        .test-details {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .test-details h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .test-details pre {
+            background: #272822;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .test-details code {
+            font-family: 'Courier New', monospace;
+        }
+
+        .summary {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            font-size: 14px;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .console-log {
+            background: #272822;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid transparent;
+        }
+
+        .log-info {
+            border-left-color: #17a2b8;
+        }
+
+        .log-success {
+            border-left-color: #28a745;
+        }
+
+        .log-error {
+            border-left-color: #dc3545;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Payment Flow Integration Tests</h1>
+            <p>Comprehensive testing for SSLCommerz payment gateway</p>
+        </div>
+
+        <div class="test-controls">
+            <div class="control-group">
+                <label for="baseUrl">Base URL:</label>
+                <input type="text" id="baseUrl" value="https://nat-test.ku.ac.bd" placeholder="https://nat-test.ku.ac.bd">
+            </div>
+
+            <div class="control-group">
+                <label for="testEnvironment">Test Environment:</label>
+                <select id="testEnvironment">
+                    <option value="sandbox">Sandbox (Test Mode)</option>
+                    <option value="live">Live (Production)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="testUser">Test User Email:</label>
+                <input type="email" id="testUser" value="test@nat-test.example.com" placeholder="test@example.com">
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="runAllTests()">🚀 Run All Tests</button>
+                <button class="btn btn-secondary" onclick="runSelectedTests()">Run Selected Tests</button>
+                <button class="btn btn-success" onclick="exportResults()">📊 Export Results</button>
+            </div>
+        </div>
+
+        <div class="test-results">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar">0%</div>
+            </div>
+
+            <div id="testResults"></div>
+
+            <div class="summary hidden" id="summary">
+                <div class="summary-item">
+                    <div class="summary-value" id="totalTests">0</div>
+                    <div class="summary-label">Total Tests</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="passedTests" style="color: #28a745;">0</div>
+                    <div class="summary-label">Passed</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="failedTests" style="color: #dc3545;">0</div>
+                    <div class="summary-label">Failed</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="successRate" style="color: #667eea;">0%</div>
+                    <div class="summary-label">Success Rate</div>
+                </div>
+            </div>
+
+            <div class="console-log hidden" id="consoleLog">
+                <div class="log-entry log-info">[INFO] Test console initialized</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test configuration
+        const tests = [
+            {
+                id: 'db_connection',
+                name: 'Database Connection Test',
+                description: 'Verify database connectivity and payment fields',
+                endpoint: '/intake/test_db_connection.php',
+                method: 'GET'
+            },
+            {
+                id: 'php_working',
+                name: 'PHP Working Test',
+                description: 'Verify PHP is functioning correctly',
+                endpoint: '/intake/simple_test.php',
+                method: 'GET'
+            },
+            {
+                id: 'payment_config',
+                name: 'Payment Configuration Test',
+                description: 'Verify SSLCommerz configuration',
+                endpoint: '/intake/test_payment_config.php',
+                method: 'GET'
+            },
+            {
+                id: 'retry_functionality',
+                name: 'Payment Retry Test',
+                description: 'Test retry token generation and validation',
+                endpoint: '/intake/payment-retry.php',
+                method: 'GET'
+            }
+        ];
+
+        let testResults = [];
+        let completedTests = 0;
+
+        // Log to console
+        function log(message, type = 'info') {
+            const consoleLog = document.getElementById('consoleLog');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+
+            const timestamp = document.createElement('span');
+            timestamp.textContent = `[${new Date().toLocaleTimeString()}]`;
+
+            const level = document.createElement('span');
+            level.textContent = `[${type.toUpperCase()}]`;
+
+            const text = document.createTextNode(` ${message}`);
+
+            logEntry.appendChild(timestamp);
+            logEntry.appendChild(level);
+            logEntry.appendChild(text);
+
+            consoleLog.appendChild(logEntry);
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const progress = (completedTests / tests.length) * 100;
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = `${progress}%`;
+            progressBar.textContent = `${Math.round(progress)}%`;
+        }
+
+        // Update summary
+        function updateSummary() {
+            const total = testResults.length;
+            const passed = testResults.filter(r => r.status === 'passed').length;
+            const failed = testResults.filter(r => r.status === 'failed').length;
+            const successRate = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+            document.getElementById('totalTests').textContent = total;
+            document.getElementById('passedTests').textContent = passed;
+            document.getElementById('failedTests').textContent = failed;
+            document.getElementById('successRate').textContent = `${successRate}%`;
+
+            document.getElementById('summary').classList.remove('hidden');
+        }
+
+        // Create safe HTML element
+        function createElement(tag, text, className) {
+            const element = document.createElement(tag);
+            if (text) element.textContent = text;
+            if (className) element.className = className;
+            return element;
+        }
+
+        // Create test result HTML
+        function createTestResultElement(test) {
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test-item';
+
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'test-header';
+
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'test-title';
+            titleDiv.textContent = test.name;
+
+            const statusDiv = createElement('div', test.status.toUpperCase(), `test-status status-${test.status}`);
+            statusDiv.id = `status-${test.id}`;
+
+            headerDiv.appendChild(titleDiv);
+            headerDiv.appendChild(statusDiv);
+
+            const detailsDiv = document.createElement('div');
+            detailsDiv.className = 'test-details';
+
+            const descTitle = createElement('h4', 'Description:');
+            const descP = createElement('p', test.description);
+
+            const endpointTitle = createElement('h4', 'Endpoint:');
+            const endpointCode = createElement('code', `${test.method} ${test.endpoint}`);
+
+            const resultTitle = createElement('h4', 'Result:');
+            const resultPre = document.createElement('pre');
+            const resultCode = document.createElement('code');
+            resultCode.textContent = JSON.stringify(test.result, null, 2);
+            resultPre.appendChild(resultCode);
+
+            const durationTitle = createElement('h4', 'Duration:');
+            const durationP = createElement('p', `${test.duration}ms`);
+
+            detailsDiv.appendChild(descTitle);
+            detailsDiv.appendChild(descP);
+            detailsDiv.appendChild(endpointTitle);
+            detailsDiv.appendChild(endpointCode);
+            detailsDiv.appendChild(resultTitle);
+            detailsDiv.appendChild(resultPre);
+            detailsDiv.appendChild(durationTitle);
+            detailsDiv.appendChild(durationP);
+
+            testDiv.appendChild(headerDiv);
+            testDiv.appendChild(detailsDiv);
+
+            return testDiv;
+        }
+
+        // Run single test
+        async function runTest(test) {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const startTime = Date.now();
+
+            log(`Starting test: ${test.name}`, 'info');
+
+            try {
+                const url = `${baseUrl}${test.endpoint}`;
+                const options = {
+                    method: test.method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+
+                if (test.method === 'POST' && test.data) {
+                    options.body = JSON.stringify(test.data);
+                }
+
+                const response = await fetch(url, options);
+                const result = await response.json();
+                const duration = Date.now() - startTime;
+
+                const testResult = {
+                    ...test,
+                    status: response.ok && result.success ? 'passed' : 'failed',
+                    result: result,
+                    duration: duration,
+                    timestamp: new Date().toISOString()
+                };
+
+                testResults.push(testResult);
+
+                log(`Test completed: ${test.name} - ${testResult.status.toUpperCase()}`,
+                    testResult.status === 'passed' ? 'success' : 'error');
+
+                return testResult;
+
+            } catch (error) {
+                const duration = Date.now() - startTime;
+                const testResult = {
+                    ...test,
+                    status: 'failed',
+                    result: { error: error.message },
+                    duration: duration,
+                    timestamp: new Date().toISOString()
+                };
+
+                testResults.push(testResult);
+
+                log(`Test failed: ${test.name} - ${error.message}`, 'error');
+
+                return testResult;
+            }
+        }
+
+        // Run all tests
+        async function runAllTests() {
+            // Reset
+            testResults = [];
+            completedTests = 0;
+            document.getElementById('testResults').textContent = '';
+            document.getElementById('consoleLog').innerHTML = '';
+            document.getElementById('consoleLog').classList.remove('hidden');
+            document.getElementById('summary').classList.add('hidden');
+
+            // Add initial log entry
+            log('Test console initialized', 'info');
+
+            log('Starting test suite...', 'info');
+            log(`Environment: ${document.getElementById('testEnvironment').value}`, 'info');
+            log(`Base URL: ${document.getElementById('baseUrl').value}`, 'info');
+
+            for (const test of tests) {
+                // Create initial test result element
+                const testDiv = document.createElement('div');
+                testDiv.id = `test-${test.id}`;
+
+                const initialResult = {
+                    ...test,
+                    status: 'running',
+                    result: { message: 'Test in progress...' },
+                    duration: 0
+                };
+
+                testDiv.appendChild(createTestResultElement(initialResult));
+                document.getElementById('testResults').appendChild(testDiv);
+
+                // Run test
+                const result = await runTest(test);
+
+                // Update test result element
+                const updatedTestDiv = document.createElement('div');
+                updatedTestDiv.id = `test-${test.id}`;
+                updatedTestDiv.appendChild(createTestResultElement(result));
+
+                const existingTestDiv = document.getElementById(`test-${test.id}`);
+                if (existingTestDiv) {
+                    existingTestDiv.replaceWith(updatedTestDiv);
+                }
+
+                completedTests++;
+                updateProgress();
+                updateSummary();
+
+                // Small delay between tests
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            log('Test suite completed!', 'success');
+
+            // Final summary
+            const passed = testResults.filter(r => r.status === 'passed').length;
+            const successRate = Math.round((passed / testResults.length) * 100);
+            log(`Final Results: ${passed}/${testResults.length} tests passed (${successRate}%)`,
+                successRate === 100 ? 'success' : 'error');
+        }
+
+        // Export results
+        function exportResults() {
+            if (testResults.length === 0) {
+                alert('No test results to export. Run tests first.');
+                return;
+            }
+
+            const exportData = {
+                test_date: new Date().toISOString(),
+                test_environment: document.getElementById('testEnvironment').value,
+                base_url: document.getElementById('baseUrl').value,
+                total_tests: testResults.length,
+                passed: testResults.filter(r => r.status === 'passed').length,
+                failed: testResults.filter(r => r.status === 'failed').length,
+                success_rate: Math.round((testResults.filter(r => r.status === 'passed').length / testResults.length) * 100),
+                test_results: testResults
+            };
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `payment-test-results-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+
+            log('Test results exported successfully', 'success');
+        }
+
+        // Run selected tests
+        function runSelectedTests() {
+            alert('Please implement test selection functionality');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Payment flow integration test suite loaded', 'info');
+            log(`Ready to run ${tests.length} tests`, 'info');
+        });
+    </script>
+</body>
+</html>
