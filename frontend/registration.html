@@ -231,6 +231,15 @@
           </div>
 
           <form id="registration-form" class="space-y-12" onsubmit="return false;">
+            <!-- ADD THIS FIELD RIGHT AFTER THE FORM TAG: -->
+            <input type="text"
+                  name="website"
+                  value=""
+                  tabindex="-1"
+                  autocomplete="off"
+                  style="position: absolute; left: -9999px; width: 1px; height: 1px;
+            opacity: 0;"
+                  aria-hidden="true">
             <!-- Step 1: Personal Information -->
             <div id="step-1" class="form-step active space-y-10">
               <div>
