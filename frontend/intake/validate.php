@@ -11,10 +11,28 @@ if (!defined('INTAKE_SERVICE')) {
 }
 
 /**
+ * Coerce raw request input to a string.
+ *
+ * PHP populates $_POST values as strings or arrays (e.g. full_name[]=x),
+ * so any client-controlled field can arrive as an array. Non-string input
+ * becomes '' and falls through to the normal "required/invalid" errors
+ * instead of trim() throwing a TypeError.
+ */
+function asString($value): string {
+    if (is_string($value)) {
+        return $value;
+    }
+    if (is_int($value) || is_float($value)) {
+        return (string)$value;
+    }
+    return '';
+}
+
+/**
  * Validate email address
  */
 function validateEmail($email) {
-    $email = trim($email);
+    $email = trim(asString($email));
     $email = filter_var($email, FILTER_SANITIZE_EMAIL);
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -46,7 +64,7 @@ function validateEmail($email) {
  * Accepts formats: +8801XXXXXXXXX, 01XXXXXXXXX
  */
 function validateMobile($mobile) {
-    $mobile = trim($mobile);
+    $mobile = trim(asString($mobile));
     $mobile = preg_replace('/[^0-9+]/', '', $mobile);
 
     // Bangladesh mobile number format
@@ -86,7 +104,7 @@ function validateMobile($mobile) {
  * Validate date in YYYY/MM/DD format
  */
 function validateDate($dateString) {
-    $dateString = trim($dateString);
+    $dateString = trim(asString($dateString));
 
     // Check format YYYY/MM/DD
     if (!preg_match('/^\d{4}\/\d{2}\/\d{2}$/', $dateString)) {
@@ -139,7 +157,7 @@ function validateDate($dateString) {
  * Allows dates from today up to 2 years in the future
  */
 function validateTestDate($dateString) {
-    $dateString = trim($dateString);
+    $dateString = trim(asString($dateString));
 
     // Check format YYYY/MM/DD
     if (!preg_match('/^\d{4}\/\d{2}\/\d{2}$/', $dateString)) {
@@ -199,7 +217,7 @@ function validateTestDate($dateString) {
  * Validate required text field
  */
 function validateRequired($field, $fieldName, $minLength = 1, $maxLength = 1000) {
-    $value = trim($field);
+    $value = trim(asString($field));
 
     if (empty($value)) {
         return [
@@ -239,7 +257,7 @@ function validateRequired($field, $fieldName, $minLength = 1, $maxLength = 1000)
  * Validate enum field
  */
 function validateEnum($value, $fieldName, $allowedValues, $caseInsensitive = false) {
-    $value = trim($value);
+    $value = trim(asString($value));
 
     // Check if value matches (with optional case-insensitivity)
     $isValid = false;
@@ -341,7 +359,7 @@ function validateRegistrationData($data) {
         $sanitized['id_document_type'] = $idTypeResult['sanitized'];
     }
 
-    $idNumber = strtoupper(str_replace([' ', '-'], '', trim($data['id_document_number'] ?? '')));
+    $idNumber = strtoupper(str_replace([' ', '-'], '', trim(asString($data['id_document_number'] ?? ''))));
     if ($idNumber === '') {
         $errors['id_document_number'] = 'ID document number is required';
     } elseif (!preg_match('/^[A-Z0-9]{4,30}$/', $idNumber)) {
@@ -365,9 +383,9 @@ function validateRegistrationData($data) {
     } else {
         $levels = $data['exam_levels'];
 
-        // Remove any empty values
+        // Remove any empty values (nested arrays coerce to '' and drop out)
         $levels = array_filter($levels, function($level) {
-            return !empty(trim($level));
+            return trim(asString($level)) !== '';
         });
 
         // Re-index array
@@ -386,7 +404,7 @@ function validateRegistrationData($data) {
         // Validate each level value
         $validLevels = ['1Q', '2Q', '3Q', '4Q', '5Q'];
         foreach ($levels as $level) {
-            $level = trim($level);
+            $level = trim(asString($level));
             if (!in_array($level, $validLevels, true)) {
                 $errors['exam_levels'] = "Invalid level selected: $level";
                 break;

@@ -362,7 +362,9 @@ try {
         successResponse($responseData, 'Registration submitted successfully');
     }
 
-} catch (Exception $e) {
+} catch (Throwable $e) {
+    // Throwable, not Exception: a TypeError/Error would otherwise escape
+    // and die as a bare fatal with no JSON response
     logActivity("Exception: " . $e->getMessage(), 'error');
     errorResponse('Server error', 500);
 }

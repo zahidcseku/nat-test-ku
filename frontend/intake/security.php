@@ -83,7 +83,9 @@ function checkRateLimit() {
  */
 function checkHoneypot($data) {
     $honeypotField = HONEYPOT_FIELD;
-    $honeypotValue = trim($data[$honeypotField] ?? '');
+    // POST values can be arrays (website[]=x); only strings count here
+    $honeypotValue = $data[$honeypotField] ?? '';
+    $honeypotValue = is_string($honeypotValue) ? trim($honeypotValue) : '';
 
     // If honeypot field is filled, it's a bot
     if (!empty($honeypotValue)) {
