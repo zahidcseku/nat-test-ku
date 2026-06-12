@@ -1,6 +1,6 @@
 /**
  * Registration Form Module
- * Handles multi-step form, validation, file uploads, and submission
+ * Handles the one-page registration form: validation, file uploads, and submission
  */
 
 const RegistrationForm = (function() {
@@ -14,14 +14,11 @@ const RegistrationForm = (function() {
     ALLOWED_PHOTO_TYPES: ['image/jpeg', 'image/png'],
     ALLOWED_ID_TYPES: ['image/jpeg', 'image/png', 'application/pdf'],
     ALLOWED_PAYMENT_TYPES: ['image/jpeg', 'image/png', 'application/pdf'],
+    // Registration fee per level. The applicant pays this base fee only —
+    // SSLCommerz's commission is merchant-side (deducted from settlement)
     FEE_PER_LEVEL: 4000,
     MAX_LEVELS: 5,
     MIN_LEVELS: 1,
-
-    // Payment configuration
-    BASE_FEE_PER_LEVEL: 4000,
-    // SSLCommerz commission is merchant-side (deducted from settlement);
-    // applicants are never charged extra for online payment
   };
 
   // State management
@@ -42,7 +39,7 @@ const RegistrationForm = (function() {
    * deducted from the merchant settlement, never added to the charge.
    */
   function calculatePaymentAmount(levelCount) {
-    const baseAmount = levelCount * CONFIG.BASE_FEE_PER_LEVEL;
+    const baseAmount = levelCount * CONFIG.FEE_PER_LEVEL;
 
     return {
       base: baseAmount,
@@ -579,7 +576,7 @@ const RegistrationForm = (function() {
   }
 
   /**
-   * Submit the form (mock submission)
+   * Validate the whole form and submit it to the intake service
    */
   function submitForm(event) {
     console.log('submitForm called');

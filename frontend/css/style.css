@@ -2630,42 +2630,6 @@ select.valid {
   transition: max-height 0.5s ease-in;
 }
 
-/* Multi-step Form */
-.form-step {
-  display: none;
-}
-
-.form-step.active {
-  display: block;
-  animation: fadeInSlideDown 0.3s ease-in;
-}
-
-@keyframes fadeInSlideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Progress Tracker */
-.progress-step {
-  transition: all 0.3s ease;
-}
-
-.progress-step.active {
-  background-color: #002147;
-  color: white;
-}
-
-.progress-step.completed {
-  background-color: #16a34a;
-  color: white;
-}
-
 /* Loading States */
 .button-loading {
   opacity: 0.6;
