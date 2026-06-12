@@ -20,8 +20,8 @@ const RegistrationForm = (function() {
 
     // Payment configuration
     BASE_FEE_PER_LEVEL: 4000,
-    TRANSACTION_FEE_RATE: 0.025, // 2.5%
-    AMEX_FEE_RATE: 0.035 // 3.5%
+    // SSLCommerz commission is merchant-side (deducted from settlement);
+    // applicants are never charged extra for online payment
   };
 
   // State management
@@ -37,17 +37,18 @@ const RegistrationForm = (function() {
   let totalAmount = 0;
 
   /**
-   * Calculate payment amount with transaction fee
+   * Calculate payment amount
+   *
+   * The applicant pays the base fee only. SSLCommerz's commission is
+   * deducted from the merchant settlement, never added to the charge.
    */
   function calculatePaymentAmount(levelCount) {
     const baseAmount = levelCount * CONFIG.BASE_FEE_PER_LEVEL;
-    const transactionFee = Math.ceil(baseAmount * CONFIG.TRANSACTION_FEE_RATE);
-    const totalAmount = baseAmount + transactionFee;
 
     return {
       base: baseAmount,
-      fee: transactionFee,
-      total: totalAmount
+      fee: 0,
+      total: baseAmount
     };
   }
 
@@ -79,7 +80,7 @@ const RegistrationForm = (function() {
       paymentLevelsEl.textContent = `For ${levelCount} selected level${levelCount > 1 ? 's' : ''}`;
     }
     if (paymentFeeEl) {
-      paymentFeeEl.textContent = `Includes ${payment.fee} BDT online transaction fee (${CONFIG.TRANSACTION_FEE_RATE * 1}%)`;
+      paymentFeeEl.textContent = 'No additional charges for online payment';
       paymentFeeEl.classList.remove('hidden');
     }
   }

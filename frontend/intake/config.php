@@ -119,9 +119,11 @@ define('SSLCZ_FAIL_URL', getenv('SSLCZ_FAIL_URL') ?: SITE_URL . '/intake/payment
 define('SSLCZ_CANCEL_URL', getenv('SSLCZ_CANCEL_URL') ?: SITE_URL . '/intake/payment-return.php?outcome=cancel');
 define('SSLCZ_IPN_URL', SITE_URL . '/intake/payment-ipn.php');
 
-// Transaction Fee Rates
-define('SSLCZ_CARD_FEE_RATE', 0.025);  // 2.5% for Visa/MC
-define('SSLCZ_AMEX_FEE_RATE', 0.035);  // 3.5% for AMEX
+// SSLCommerz merchant commission rates — INFORMATIONAL ONLY.
+// The commission is deducted by SSLCommerz from the merchant settlement;
+// it is never added to the amount the applicant pays.
+define('SSLCZ_CARD_FEE_RATE', 0.025);  // ~2.5% for Visa/MC
+define('SSLCZ_AMEX_FEE_RATE', 0.035);  // ~3.5% for AMEX
 
 // Retry Link Expiry (7 days)
 define('PAYMENT_RETRY_EXPIRY_DAYS', 7);
@@ -233,20 +235,21 @@ function logActivity($message, $level = 'info') {
 /**
  * Calculate payment amount breakdown
  *
+ * The applicant pays the base fee only (4000 BDT per level). SSLCommerz
+ * deducts its commission from the merchant settlement — it is never added
+ * to the amount charged to the applicant.
+ *
  * @param int $levelCount Number of exam levels selected
- * @param bool $isAmex Whether payment method is AMEX
+ * @param bool $isAmex Unused, kept for call-site compatibility
  * @return array ['base' => float, 'fee' => float, 'total' => float]
  */
 function calculatePaymentAmount($levelCount, $isAmex = false) {
     $baseAmount = $levelCount * 4000; // 4000 BDT per level
-    $feeRate = $isAmex ? SSLCZ_AMEX_FEE_RATE : SSLCZ_CARD_FEE_RATE;
-    $transactionFee = $baseAmount * $feeRate;
-    $totalAmount = $baseAmount + $transactionFee;
 
     return [
         'base' => $baseAmount,
-        'fee' => $transactionFee,
-        'total' => $totalAmount
+        'fee' => 0.0,
+        'total' => $baseAmount
     ];
 }
 

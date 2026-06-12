@@ -64,10 +64,11 @@ try {
         errorResponse('Validation failed', 400, $errors);
     }
 
-    // Test charge: 10 BDT per module + the same 2.5% card fee as production
+    // Test charge: 10 BDT per module. The applicant pays the base only —
+    // SSLCommerz's commission comes out of the merchant settlement.
     $baseAmount = $levels * TEST_MODULE_FEE;
-    $transactionFee = $baseAmount * SSLCZ_CARD_FEE_RATE;
-    $totalAmount = $baseAmount + $transactionFee;
+    $transactionFee = 0.0;
+    $totalAmount = $baseAmount;
 
     $id = generateUuid();
     $testName = '[PAYMENT TEST] ' . $name;

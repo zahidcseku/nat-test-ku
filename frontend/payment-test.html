@@ -60,8 +60,7 @@
 
     <div class="breakdown">
       <div><span>Base (<span id="bd-count">1</span> × 10 BDT)</span><span id="bd-base">10.00 BDT</span></div>
-      <div><span>Transaction fee (2.5%)</span><span id="bd-fee">0.25 BDT</span></div>
-      <div class="total"><span>Total</span><span id="bd-total">10.25 BDT</span></div>
+      <div class="total"><span>Total (no extra charges)</span><span id="bd-total">10.00 BDT</span></div>
     </div>
 
     <button id="pay-btn">Start test payment</button>
@@ -71,7 +70,6 @@
   <script>
     (function () {
       var MODULE_FEE = 10;
-      var FEE_RATE = 0.025;
 
       var levelsEl = document.getElementById('levels');
       var msgEl = document.getElementById('msg');
@@ -80,11 +78,9 @@
       function updateBreakdown() {
         var n = parseInt(levelsEl.value, 10);
         var base = n * MODULE_FEE;
-        var fee = base * FEE_RATE;
         document.getElementById('bd-count').textContent = n;
         document.getElementById('bd-base').textContent = base.toFixed(2) + ' BDT';
-        document.getElementById('bd-fee').textContent = fee.toFixed(2) + ' BDT';
-        document.getElementById('bd-total').textContent = (base + fee).toFixed(2) + ' BDT';
+        document.getElementById('bd-total').textContent = base.toFixed(2) + ' BDT';
       }
       levelsEl.addEventListener('change', updateBreakdown);
       updateBreakdown();
