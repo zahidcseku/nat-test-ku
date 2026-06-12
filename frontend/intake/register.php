@@ -169,11 +169,12 @@ try {
             payment_method, exam_level, total_amount, test_date,
             photo_filename, photo_storage_path, photo_size_bytes,
             id_filename, id_storage_path, id_size_bytes,
+            id_document_type, id_document_number,
             payment_receipt_filename, payment_receipt_storage_path, payment_receipt_size_bytes,
             submitted_at, ip_hash, user_agent, honeypot_tripped, honeypot_value,
             approved, approved_at, approved_by, created_at,
             payment_status, sslcommerz_transaction_id, sslcommerz_session_id, base_amount, transaction_fee, total_amount_paid, payment_retry_token, payment_retry_expires
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     if (!$stmt) {
@@ -188,6 +189,8 @@ try {
     // Prepare variables for binding (required for mysqli reference passing)
     $p_size = (int)$photo['size_bytes'];
     $id_size = (int)$idDoc['size_bytes'];
+    $idDocType = $data['id_document_type'];
+    $idDocNumber = $data['id_document_number'];
     $r_name = $receipt['filename'] ?? null;
     $r_path = $receipt['storage_path'] ?? null;
     $r_size = isset($receipt['size_bytes']) ? (int)$receipt['size_bytes'] : null;
@@ -210,7 +213,7 @@ try {
     $retryExpiresValue = $retryExpires;
 
     $stmt->bind_param(
-        'ssssssssssisssissississsisissssssdddss',
+        'ssssssssssisssississssisssisissssssdddss',
         $id,
         $data['full_name'],
         $data['email'],
@@ -229,6 +232,8 @@ try {
         $idDoc['filename'],
         $idDoc['storage_path'],
         $id_size,
+        $idDocType,
+        $idDocNumber,
         $r_name,
         $r_path,
         $r_size,
