@@ -312,14 +312,14 @@ try {
     logActivity("✅ Registration verified in database: ID=$id, Email={$data['email']}");
 
     $stmt->close();
-    $conn->close();
 
     // Log successful registration
     logActivity("Registration submitted: ID=$id, Email={$data['email']}, IP=$ipHash");
 
     // Automated applicant email: confirmation if a payment receipt was
     // attached, otherwise an application receipt with payment options.
-    // A mail failure must never affect the registration response.
+    // Sent before $conn->close() so the email_log insert can reuse the
+    // connection. A mail failure must never affect the registration response.
     $emailVariant = $receipt ? 'payment_confirmation' : 'submission_receipt';
     sendRegistrationEmail([
         'id' => $id,
@@ -340,6 +340,8 @@ try {
         'has_receipt' => (bool)$receipt,
         'bank_tran_id' => '',
     ], $emailVariant);
+
+    $conn->close();
 
     // If online payment, redirect to SSLCommerz
     if ($isOnlinePayment && $redirectUrl) {
