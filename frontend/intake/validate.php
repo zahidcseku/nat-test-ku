@@ -319,12 +319,10 @@ function validateRegistrationData($data) {
         $sanitized['dob'] = $dobResult['sanitized'];
     }
 
-    $genderResult = validateEnum($data['gender'] ?? '', 'Gender', ['male', 'female', 'other'], true);
-    if (!$genderResult['valid']) {
-        $errors['gender'] = $genderResult['error'];
-    } else {
-        $sanitized['gender'] = $genderResult['sanitized'];
-    }
+    // Gender is no longer collected on the form (2026-06-12). The DB column
+    // is NOT NULL, so every new registration stores 'other'. Any submitted
+    // gender value is ignored.
+    $sanitized['gender'] = 'other';
 
     $nationalityResult = validateRequired($data['nationality'] ?? '', 'Nationality', 2, 100);
     if (!$nationalityResult['valid']) {
