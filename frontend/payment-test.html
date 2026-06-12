@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Payment Gateway Test | NAT-TEST Centre</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: #f3f4f6; margin: 0; padding: 24px; color: #1f2937; }
+    .card { max-width: 520px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.08); padding: 32px; }
+    h1 { font-size: 1.4rem; color: #002147; margin: 0 0 4px; }
+    .banner { background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; border-radius: 8px; padding: 10px 14px; font-size: .85rem; margin: 16px 0 24px; }
+    label { display: block; font-size: .85rem; font-weight: 600; margin: 16px 0 6px; color: #374151; }
+    input, select { width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: .95rem; }
+    input:focus, select:focus { outline: none; border-color: #002147; }
+    .breakdown { background: #f9fafb; border-radius: 8px; padding: 14px 16px; margin-top: 20px; font-size: .9rem; }
+    .breakdown div { display: flex; justify-content: space-between; padding: 3px 0; }
+    .breakdown .total { border-top: 1px solid #e5e7eb; margin-top: 6px; padding-top: 8px; font-weight: 700; }
+    button { width: 100%; margin-top: 24px; background: #002147; color: #fff; border: none; border-radius: 8px; padding: 13px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+    button:hover { background: #003366; }
+    button:disabled { background: #9ca3af; cursor: wait; }
+    .msg { margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: .88rem; display: none; }
+    .msg.error { background: #fee2e2; color: #991b1b; display: block; }
+    .msg.ok { background: #d1fae5; color: #065f46; display: block; }
+    .msg a { color: inherit; }
+    .hint { font-size: .78rem; color: #6b7280; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Payment Gateway Test</h1>
+    <div class="banner">
+      ⚠️ Deployment test tool — charges <strong>10 BDT per module</strong> through the real
+      SSLCommerz flow. Creates a registration marked <code>[PAYMENT TEST]</code>.
+      Requires the access key from the server's <code>.env</code>.
+    </div>
+
+    <label for="key">Access key</label>
+    <input type="password" id="key" placeholder="PAYMENT_TEST_KEY value" autocomplete="off">
+
+    <label for="full_name">Name</label>
+    <input type="text" id="full_name" value="Gateway Check">
+
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="you@example.com">
+    <div class="hint">Use a real inbox if you want to test the retry lookup by email.</div>
+
+    <label for="mobile">Mobile</label>
+    <input type="text" id="mobile" placeholder="01712345678">
+
+    <label for="levels">Modules</label>
+    <select id="levels">
+      <option value="1" selected>1 module</option>
+      <option value="2">2 modules</option>
+      <option value="3">3 modules</option>
+      <option value="4">4 modules</option>
+      <option value="5">5 modules</option>
+    </select>
+
+    <div class="breakdown">
+      <div><span>Base (<span id="bd-count">1</span> × 10 BDT)</span><span id="bd-base">10.00 BDT</span></div>
+      <div><span>Transaction fee (2.5%)</span><span id="bd-fee">0.25 BDT</span></div>
+      <div class="total"><span>Total</span><span id="bd-total">10.25 BDT</span></div>
+    </div>
+
+    <button id="pay-btn">Start test payment</button>
+    <div id="msg" class="msg"></div>
+  </div>
+
+  <script>
+    (function () {
+      var MODULE_FEE = 10;
+      var FEE_RATE = 0.025;
+
+      var levelsEl = document.getElementById('levels');
+      var msgEl = document.getElementById('msg');
+      var btn = document.getElementById('pay-btn');
+
+      function updateBreakdown() {
+        var n = parseInt(levelsEl.value, 10);
+        var base = n * MODULE_FEE;
+        var fee = base * FEE_RATE;
+        document.getElementById('bd-count').textContent = n;
+        document.getElementById('bd-base').textContent = base.toFixed(2) + ' BDT';
+        document.getElementById('bd-fee').textContent = fee.toFixed(2) + ' BDT';
+        document.getElementById('bd-total').textContent = (base + fee).toFixed(2) + ' BDT';
+      }
+      levelsEl.addEventListener('change', updateBreakdown);
+      updateBreakdown();
+
+      function showError(text) {
+        msgEl.className = 'msg error';
+        msgEl.textContent = text;
+      }
+
+      function showSuccess(d) {
+        msgEl.className = 'msg ok';
+        msgEl.textContent = '';
+
+        msgEl.appendChild(document.createTextNode(
+          'Session created (transaction ' + d.tran_id + ', ' +
+          Number(d.total_amount).toFixed(2) + ' BDT). After paying, verify via the '
+        ));
+
+        var link = document.createElement('a');
+        link.href = d.status_check_url;
+        link.target = '_blank';
+        link.textContent = 'status page';
+        msgEl.appendChild(link);
+
+        msgEl.appendChild(document.createTextNode(
+          ' — it must show “Payment Complete” once the IPN lands. ' +
+          'Redirecting to the gateway in 5 seconds…'
+        ));
+      }
+
+      btn.addEventListener('click', function () {
+        var params = new URLSearchParams();
+        params.set('key', document.getElementById('key').value);
+        params.set('full_name', document.getElementById('full_name').value.trim());
+        params.set('email', document.getElementById('email').value.trim());
+        params.set('mobile', document.getElementById('mobile').value.trim());
+        params.set('levels', levelsEl.value);
+
+        btn.disabled = true;
+        btn.textContent = 'Creating gateway session...';
+        msgEl.className = 'msg';
+
+        fetch('/intake/payment-test.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: params.toString()
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.success && data.data && data.data.redirect_url) {
+              showSuccess(data.data);
+              setTimeout(function () { window.location.href = data.data.redirect_url; }, 5000);
+            } else {
+              btn.disabled = false;
+              btn.textContent = 'Start test payment';
+              var detail = data.errors ? ' ' + JSON.stringify(data.errors) : '';
+              showError((data.error || 'Request failed.') + detail);
+            }
+          })
+          .catch(function () {
+            btn.disabled = false;
+            btn.textContent = 'Start test payment';
+            showError('Network error — is /intake/payment-test.php deployed?');
+          });
+      });
+    })();
+  </script>
+</body>
+</html>
