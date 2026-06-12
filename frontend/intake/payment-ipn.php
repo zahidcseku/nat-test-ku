@@ -12,6 +12,7 @@ define('INTAKE_SERVICE', true);
 // Load dependencies
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/payment-gateway.php';
+require_once __DIR__ . '/mailer.php';
 
 // Log IPN received
 logActivity("IPN webhook received from IP: " . $_SERVER['REMOTE_ADDR'], 'info');
@@ -50,7 +51,10 @@ try {
 
     // Find registration by SSLCommerz transaction ID
     $stmt = $conn->prepare("
-        SELECT id, email, full_name, total_amount_paid, payment_status
+        SELECT id, email, full_name, mobile, address, dob, nationality,
+               id_document_type, id_document_number, exam_level, test_date,
+               total_amount_paid, payment_method, payment_status,
+               payment_retry_token
         FROM registrations
         WHERE sslcommerz_transaction_id = ?
     ");
@@ -174,13 +178,33 @@ try {
     }
 
     $updateStmt->close();
-    $conn->close();
 
-    // Send confirmation email for successful payments
+    // Send confirmation email for successful payments (before closing the
+    // connection so the email_log insert can reuse it). The payment status
+    // is already committed; a mail failure only logs a warning.
     if ($newStatus === 'paid') {
-        // Email will be sent by admin review process
-        logActivity("Payment confirmation queued for transaction {$transactionId}");
+        sendRegistrationEmail([
+            'id' => $registration['id'],
+            'full_name' => $registration['full_name'],
+            'email' => $registration['email'],
+            'mobile' => $registration['mobile'],
+            'address' => $registration['address'],
+            'dob' => $registration['dob'],
+            'nationality' => $registration['nationality'],
+            'id_document_type' => $registration['id_document_type'],
+            'id_document_number' => $registration['id_document_number'],
+            'exam_level' => $registration['exam_level'],
+            'test_date' => $registration['test_date'],
+            'total_amount' => $registration['total_amount_paid'],
+            'payment_method' => $registration['payment_method'],
+            'payment_status' => 'paid',
+            'retry_token' => $registration['payment_retry_token'],
+            'has_receipt' => false,
+            'bank_tran_id' => $bankTranId,
+        ], 'payment_confirmation');
     }
+
+    $conn->close();
 
     // Log successful IPN processing
     logActivity("✅ IPN processed successfully for transaction {$transactionId}");

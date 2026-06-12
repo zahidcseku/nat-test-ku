@@ -14,6 +14,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/validate.php';
 require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/upload.php';
+require_once __DIR__ . '/mailer.php';
 
 // Initialize security
 initSecurity();
@@ -315,6 +316,30 @@ try {
 
     // Log successful registration
     logActivity("Registration submitted: ID=$id, Email={$data['email']}, IP=$ipHash");
+
+    // Automated applicant email: confirmation if a payment receipt was
+    // attached, otherwise an application receipt with payment options.
+    // A mail failure must never affect the registration response.
+    $emailVariant = $receipt ? 'payment_confirmation' : 'submission_receipt';
+    sendRegistrationEmail([
+        'id' => $id,
+        'full_name' => $data['full_name'],
+        'email' => $data['email'],
+        'mobile' => $data['mobile'],
+        'address' => $data['address'],
+        'dob' => $data['dob'],
+        'nationality' => $data['nationality'],
+        'id_document_type' => $data['id_document_type'],
+        'id_document_number' => $data['id_document_number'],
+        'exam_level' => $data['exam_level'],
+        'test_date' => $data['test_date'],
+        'total_amount' => $totalAmountPaidValue,
+        'payment_method' => $data['payment_method'],
+        'payment_status' => 'unpaid',
+        'retry_token' => $retryTokenValue,
+        'has_receipt' => (bool)$receipt,
+        'bank_tran_id' => '',
+    ], $emailVariant);
 
     // If online payment, redirect to SSLCommerz
     if ($isOnlinePayment && $redirectUrl) {
