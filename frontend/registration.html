@@ -424,15 +424,39 @@
                   <label class="text-xs font-semibold text-secondary tracking-wider uppercase mb-4 block">Government-Issued ID</label>
                   <div class="space-y-4">
                     <p class="text-sm text-secondary">
-                      Upload a clear copy of your Passport or National ID card.
+                      Select your document type, enter its number, then upload a clear copy.
                     </p>
-                    <div class="flex items-center gap-4">
-                      <label class="file-input-wrapper bg-white border-2 border-dashed border-surface-container-highest hover:border-primary rounded-lg px-6 py-4 cursor-pointer transition-all">
-                        <span class="material-symbols-outlined text-2xl text-secondary mr-2">upload</span>
-                        <span class="text-sm font-medium text-secondary">Choose ID (max 4MB, JPG/PNG/PDF)</span>
-                        <input accept="image/jpeg,image/png,application/pdf" id="id_upload" type="file" />
+
+                    <div class="flex flex-wrap gap-6">
+                      <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="id_doc_type" value="passport" class="w-5 h-5 accent-primary">
+                        <span class="font-semibold text-primary">Passport</span>
                       </label>
-                      <img alt="ID preview" class="file-preview" id="id_upload-preview" />
+                      <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="id_doc_type" value="national_id" class="w-5 h-5 accent-primary">
+                        <span class="font-semibold text-primary">National ID</span>
+                      </label>
+                    </div>
+                    <span class="field-error" id="id_doc_type-error"></span>
+                    <span class="field-success" id="id_doc_type-success"></span>
+
+                    <div class="flex flex-col gap-2 max-w-md">
+                      <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="id_number">Document Number</label>
+                      <input class="ghost-input py-3 text-lg placeholder:text-surface-container-highest" id="id_number" placeholder="Select ID type first" type="text" />
+                      <span class="field-error" id="id_number-error"></span>
+                      <span class="field-success" id="id_number-success"></span>
+                    </div>
+
+                    <div id="id_upload_gate" class="space-y-2 opacity-50 pointer-events-none">
+                      <p id="id_upload_gate_hint" class="text-xs text-warning font-semibold">Select your ID type and enter the number first</p>
+                      <div class="flex items-center gap-4">
+                        <label class="file-input-wrapper bg-white border-2 border-dashed border-surface-container-highest hover:border-primary rounded-lg px-6 py-4 cursor-pointer transition-all">
+                          <span class="material-symbols-outlined text-2xl text-secondary mr-2">upload</span>
+                          <span class="text-sm font-medium text-secondary">Choose ID (max 4MB, JPG/PNG/PDF)</span>
+                          <input accept="image/jpeg,image/png,application/pdf" id="id_upload" type="file" disabled />
+                        </label>
+                        <img alt="ID preview" class="file-preview" id="id_upload-preview" />
+                      </div>
                     </div>
                     <span class="field-error" id="id_upload-error"></span>
                     <span class="field-success" id="id_upload-success"></span>
