@@ -61,6 +61,12 @@ function logAudit($action, $tableName = null, $recordId = null, $oldValues = nul
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
+    if (!$stmt) {
+        // audit_log table missing or schema drift — never fatal the action
+        error_log('logAudit prepare failed: ' . $conn->error);
+        return false;
+    }
+
     $userId = $_SESSION['user_id'] ?? null;
     $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '';
     $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
@@ -140,6 +146,9 @@ function deleteRegistrationCompletely($id) {
                approved, photo_storage_path, id_storage_path, payment_receipt_storage_path
         FROM registrations WHERE id = ?
     ");
+    if (!$stmt) {
+        return ['success' => false, 'message' => 'Delete failed (lookup prepare): ' . $conn->error];
+    }
     $stmt->bind_param('s', $id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -152,6 +161,9 @@ function deleteRegistrationCompletely($id) {
 
     // DB row first: if this fails, no files have been touched
     $del = $conn->prepare("DELETE FROM registrations WHERE id = ?");
+    if (!$del) {
+        return ['success' => false, 'message' => 'Delete failed (delete prepare): ' . $conn->error];
+    }
     $del->bind_param('s', $id);
     if (!$del->execute()) {
         $err = $del->error;
@@ -184,9 +196,19 @@ function deleteRegistrationCompletely($id) {
         }
     }
 
-    logAudit('delete_registration', 'registrations', $id, $row, null);
+    // Audit is best-effort: the row and files are already gone, so an
+    // audit failure must not report the delete itself as failed
+    $audited = false;
+    try {
+        $audited = logAudit('delete_registration', 'registrations', $id, $row, null);
+    } catch (Throwable $auditErr) {
+        error_log('Registration delete: audit failed: ' . $auditErr->getMessage());
+    }
 
     $message = 'Registration deleted permanently';
+    if (!$audited) {
+        $message .= ' (warning: audit log entry could not be written)';
+    }
     if (!empty($fileNotes)) {
         $message .= ' — file notes: ' . implode(', ', $fileNotes);
     }
