@@ -256,8 +256,34 @@ const RegistrationForm = (function() {
     if (testDate) testDate.addEventListener('change', () => validateField('test_date'));
 
     document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
-      radio.addEventListener('change', () => validateStep3());
+      radio.addEventListener('change', () => {
+        validateStep3();
+        toggleReceiptSection(radio.value);
+      });
     });
+  }
+
+  /**
+   * The payment receipt upload only applies to bank deposits — hide it
+   * (and drop any chosen file) when the user pays online
+   */
+  function toggleReceiptSection(paymentMethod) {
+    const section = document.getElementById('payment_receipt_section');
+    if (!section) return;
+
+    if (paymentMethod === 'online') {
+      section.classList.add('hidden');
+      const input = document.getElementById('payment_upload');
+      if (input) input.value = '';
+      const preview = document.getElementById('payment_upload-preview');
+      if (preview) {
+        preview.src = '';
+        preview.classList.remove('show');
+      }
+      clearFieldValidation('payment_upload');
+    } else {
+      section.classList.remove('hidden');
+    }
   }
 
   /**
