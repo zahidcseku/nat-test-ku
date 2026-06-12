@@ -355,24 +355,9 @@ const RegistrationForm = (function() {
   function validateStep2() {
     let isValid = true;
 
-    // Validate exam levels selection (checkboxes instead of dropdown)
-    if (selectedLevels.length < CONFIG.MIN_LEVELS) {
-      const errorEl = document.getElementById('exam_levels-error');
-      if (errorEl) {
-        errorEl.textContent = 'Please select at least ' + CONFIG.MIN_LEVELS + ' level';
-        errorEl.classList.add('show');
-      }
+    // Validate exam levels selection (shared with inline checkbox validation)
+    if (!validateLevelSelection()) {
       isValid = false;
-    } else {
-      const errorEl = document.getElementById('exam_levels-error');
-      if (errorEl) {
-        errorEl.classList.remove('show');
-      }
-      const successEl = document.getElementById('exam_levels-success');
-      if (successEl) {
-        successEl.textContent = selectedLevels.length + ' level(s) selected';
-        successEl.classList.add('show');
-      }
     }
 
     // Intended Test Date
@@ -838,6 +823,9 @@ const RegistrationForm = (function() {
       step3: {},
       step4: {}
     };
+    selectedLevels = [];
+    totalAmount = 0;
+    updateFeeDisplay();
   }
 
   /**
@@ -1092,6 +1080,9 @@ const RegistrationForm = (function() {
         submitSummaryEmpty.classList.remove('hidden');
       }
     }
+
+    // Keep the Payment Method section's "Total Payment Due" box in sync
+    updatePaymentDisplay(count);
 
     totalAmount = total;
   }
