@@ -142,6 +142,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setFlashMessage('Rejection tracking requires schema updates. Please contact applicant directly.', 'error');
         header('Location: ' . BASE_URL . '/pages/registrations.php');
         exit;
+
+    } elseif ($action === 'delete') {
+        // The helper audit-logs the deletion with the row's key fields
+        $deleteResult = deleteRegistrationCompletely($id);
+        setFlashMessage($deleteResult['message'], $deleteResult['success'] ? 'success' : 'error');
+        header('Location: ' . BASE_URL . '/pages/registrations.php');
+        exit;
     }
 }
 
@@ -477,6 +484,14 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                     </button>
                 </div>
             </form>
+
+            <form method="POST" onsubmit="return confirmDelete()" style="margin-top: 8px;">
+                <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                <button type="submit" name="action" value="delete" class="btn btn-danger"
+                        style="width: 100%; padding: 12px; font-size: 15px; font-weight: 600; background: #c53030;">
+                    🗑 Delete Registration Permanently
+                </button>
+            </form>
         </div>
     </div>
 </div>
@@ -502,6 +517,10 @@ function toggleEditForm() {
 
 function confirmUpdate() {
     return confirm('Are you sure you want to update this registration information?\n\nThe changes will be logged in the audit trail.');
+}
+
+function confirmDelete() {
+    return confirm('Permanently delete this registration and its uploaded files? This cannot be undone.');
 }
 
 function confirmApprove() {

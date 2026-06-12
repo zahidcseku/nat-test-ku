@@ -118,6 +118,77 @@ function sendEmail($to, $subject, $body, $registrationId = null, $emailType = 'c
     return $success;
 }
 
+/**
+ * Permanently delete a registration: DB row first, then its uploaded files.
+ * Files are only unlinked when they resolve inside an intake uploads
+ * directory — a tampered row must never delete arbitrary server files.
+ *
+ * @return array ['success' => bool, 'message' => string]
+ */
+function deleteRegistrationCompletely($id) {
+    $conn = getDbConnection();
+    if (!$conn) {
+        return ['success' => false, 'message' => 'Database connection failed'];
+    }
+
+    $stmt = $conn->prepare("
+        SELECT full_name, email, mobile, exam_level, test_date, payment_status,
+               approved, photo_storage_path, id_storage_path, payment_receipt_storage_path
+        FROM registrations WHERE id = ?
+    ");
+    $stmt->bind_param('s', $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows === 0) {
+        $stmt->close();
+        return ['success' => false, 'message' => 'Registration not found'];
+    }
+    $row = $result->fetch_assoc();
+    $stmt->close();
+
+    // DB row first: if this fails, no files have been touched
+    $del = $conn->prepare("DELETE FROM registrations WHERE id = ?");
+    $del->bind_param('s', $id);
+    if (!$del->execute()) {
+        $err = $del->error;
+        $del->close();
+        return ['success' => false, 'message' => 'Database delete failed: ' . $err];
+    }
+    $del->close();
+
+    // Unlink uploads after the DB delete succeeded
+    $fileNotes = [];
+    foreach (['photo_storage_path', 'id_storage_path', 'payment_receipt_storage_path'] as $field) {
+        $path = $row[$field] ?? '';
+        if ($path === '' || $path === null) {
+            continue;
+        }
+        $real = realpath($path);
+        if ($real === false) {
+            $fileNotes[] = basename($path) . ' (already missing)';
+            continue;
+        }
+        $uploadsMarker = DIRECTORY_SEPARATOR . 'intake' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
+        if (strpos($real, $uploadsMarker) === false) {
+            error_log("Registration delete: refused to unlink path outside uploads: {$real}");
+            $fileNotes[] = basename($path) . ' (skipped: outside uploads)';
+            continue;
+        }
+        if (!@unlink($real)) {
+            error_log("Registration delete: failed to unlink {$real}");
+            $fileNotes[] = basename($path) . ' (could not delete)';
+        }
+    }
+
+    logAudit('delete_registration', 'registrations', $id, $row, null);
+
+    $message = 'Registration deleted permanently';
+    if (!empty($fileNotes)) {
+        $message .= ' — file notes: ' . implode(', ', $fileNotes);
+    }
+    return ['success' => true, 'message' => $message];
+}
+
 // Format currency
 function formatCurrency($amount) {
     return 'BDT ' . number_format($amount, 2);

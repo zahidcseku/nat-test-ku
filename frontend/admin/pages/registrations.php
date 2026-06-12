@@ -284,6 +284,16 @@ require_once __DIR__ . '/../templates/header.php';
                                    class="btn btn-primary" style="padding: 6px 12px; font-size: 13px;">
                                     ✏️ Edit
                                 </a>
+                                <form method="POST" action="<?php echo BASE_URL; ?>/api/registrations/delete.php"
+                                      style="display: inline;"
+                                      onsubmit="return confirm('Permanently delete this registration and its uploaded files? This cannot be undone.')">
+                                    <input type="hidden" name="csrf_token" value="<?php echo e(generateCsrfToken()); ?>">
+                                    <input type="hidden" name="id" value="<?php echo e($reg['id']); ?>">
+                                    <input type="hidden" name="return_query" value="<?php echo e($_SERVER['QUERY_STRING'] ?? ''); ?>">
+                                    <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 13px;">
+                                        🗑 Delete
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
