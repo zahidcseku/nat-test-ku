@@ -229,6 +229,87 @@ const RegistrationForm = (function() {
   }
 
   /**
+   * Show a dismissible submission banner (friendlier than alert())
+   */
+  function showSubmitBanner(message, isWarning) {
+    const existing = document.getElementById('submit-error-banner');
+    if (existing) existing.remove();
+
+    const banner = document.createElement('div');
+    banner.id = 'submit-error-banner';
+    banner.className = 'fixed top-4 right-4 max-w-md pr-8 text-white px-6 py-4 rounded-lg shadow-lg z-50 ' +
+      (isWarning ? 'bg-amber-500' : 'bg-red-600');
+
+    const text = document.createElement('p');
+    text.className = 'text-sm font-medium';
+    text.textContent = message;
+
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.setAttribute('aria-label', 'Dismiss');
+    close.className = 'absolute top-1 right-2 text-white/80 hover:text-white text-lg font-bold';
+    close.textContent = '×';
+    close.addEventListener('click', () => banner.remove());
+
+    banner.appendChild(close);
+    banner.appendChild(text);
+    document.body.appendChild(banner);
+
+    setTimeout(() => banner.remove(), 12000);
+  }
+
+  /**
+   * Re-enable the Submit button after a failed submission
+   */
+  function restoreSubmitButton() {
+    const submitBtn = document.querySelector('.submit-btn');
+    if (!submitBtn) return;
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Application';
+    const icon = document.createElement('span');
+    icon.className = 'material-symbols-outlined';
+    icon.textContent = 'check_circle';
+    submitBtn.appendChild(icon);
+  }
+
+  // Server validation field names -> form field ids (for inline display of
+  // server-side errors, e.g. when an outdated cached form misses a field)
+  const SERVER_FIELD_IDS = {
+    full_name: 'full_name',
+    email: 'email',
+    mobile: 'mobile',
+    address: 'address',
+    dob: 'dob',
+    nationality: 'nationality',
+    payment_method: 'payment_method',
+    exam_levels: 'exam_levels',
+    total_amount: 'exam_levels',
+    test_date: 'test_date',
+    id_document_type: 'id_doc_type',
+    id_document_number: 'id_number',
+    photo: 'photo_upload',
+    id_document: 'id_upload',
+    payment_receipt: 'payment_upload'
+  };
+
+  /**
+   * Display server-side validation errors on their form fields.
+   * Returns true if at least one error was shown inline.
+   */
+  function showServerErrors(errors) {
+    let shownInline = false;
+    Object.keys(errors).forEach(field => {
+      const fieldId = SERVER_FIELD_IDS[field];
+      if (fieldId) {
+        showError(fieldId, errors[field]);
+        shownInline = true;
+      }
+    });
+    if (shownInline) scrollToFirstError();
+    return shownInline;
+  }
+
+  /**
    * Scroll to and focus the first field with a visible error
    */
   function scrollToFirstError() {
@@ -779,17 +860,15 @@ const RegistrationForm = (function() {
     })
     .then(response => {
       console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
 
-      // Check if response is ok
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return response.json();
+      // Parse the body for error responses too — the server returns
+      // field-level validation errors with 4xx statuses
+      return response.json()
+        .catch(() => ({ success: false, parseFailed: true }))
+        .then(data => ({ status: response.status, data }));
     })
-    .then(data => {
-      console.log('✅ Response received:', data);
+    .then(({ status, data }) => {
+      console.log('✅ Response received:', status, data);
 
       // Hide loading state
       hideLoading();
@@ -873,20 +952,26 @@ const RegistrationForm = (function() {
 
         // Note: Form reset will happen after redirect completes
         return;
+      }
+
+      // Submission failed — restore the button and explain what happened
+      console.error('Submission failed:', status, data);
+      restoreSubmitButton();
+
+      if (data.errors && showServerErrors(data.errors)) {
+        showSubmitBanner('Some details need correcting — please review the highlighted fields.', true);
+      } else if (status >= 500 || data.parseFailed) {
+        showSubmitBanner('Sorry — something went wrong on our side and your registration was not submitted. ' +
+          'Please try again in a few minutes. If the problem continues, email info@nat-test.ku.ac.bd.');
       } else {
-        // Show error message with details
-        console.error('Submission failed:', data);
-        const errorMsg = data.error || 'Unknown error';
-        const debugInfo = data.debug ? `\n\nDebug info: ${JSON.stringify(data.debug, null, 2)}` : '';
-        alert('Submission failed: ' + errorMsg + debugInfo);
+        showSubmitBanner('Your registration could not be submitted: ' + (data.error || 'unexpected error') + '. Please try again.');
       }
     })
     .catch(error => {
       hideLoading();
+      restoreSubmitButton();
       console.error('Submission error:', error);
-      console.error('Error stack:', error.stack);
-      alert('Submission failed: ' + error.message + '\n\nPlease check the browser console for more details.');
-
+      showSubmitBanner('Could not reach the registration server — please check your internet connection and try again.');
     })
     .finally(() => {
       console.log('Submission completed');
