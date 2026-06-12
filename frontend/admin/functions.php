@@ -126,6 +126,10 @@ function sendEmail($to, $subject, $body, $registrationId = null, $emailType = 'c
  * @return array ['success' => bool, 'message' => string]
  */
 function deleteRegistrationCompletely($id) {
+    // mysqli throws on PHP >= 8.1 (e.g. when the DB user lacks the DELETE
+    // privilege) — catch everything so failures surface as flash messages,
+    // never bare 500s.
+    try {
     $conn = getDbConnection();
     if (!$conn) {
         return ['success' => false, 'message' => 'Database connection failed'];
@@ -187,6 +191,11 @@ function deleteRegistrationCompletely($id) {
         $message .= ' — file notes: ' . implode(', ', $fileNotes);
     }
     return ['success' => true, 'message' => $message];
+
+    } catch (Throwable $e) {
+        error_log('Registration delete failed: ' . $e->getMessage());
+        return ['success' => false, 'message' => 'Delete failed: ' . $e->getMessage()];
+    }
 }
 
 // Format currency
