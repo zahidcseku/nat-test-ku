@@ -87,16 +87,16 @@ function buildRegistrationEmail(array $registration, string $variant): array {
                     ? ' (transaction reference: ' . $e($registration['bank_tran_id']) . ')'
                     : '')
                 . '.</p>';
-            $subject = 'NAT-TEST Registration — Payment Received';
+            $subject = 'NAT-TEST Registration - Payment Received';
         } else {
             $banner = '<p style="font-size:15px;background:#fef7e0;border-left:4px solid #f9ab00;padding:10px 14px;">'
                 . '<strong>Payment receipt received — pending verification.</strong> '
                 . 'We received your payment receipt with your application; our team will verify it during review.</p>';
-            $subject = 'NAT-TEST Registration Received — Receipt Pending Verification';
+            $subject = 'NAT-TEST Registration Received - Receipt Pending Verification';
         }
         $middle = $banner;
     } else {
-        $subject = 'NAT-TEST Application Received — Payment Required';
+        $subject = 'NAT-TEST Application Received - Payment Required';
         $intro = '<p style="font-size:15px;background:#fef7e0;border-left:4px solid #f9ab00;padding:10px 14px;">'
             . '<strong>Your application is saved but not yet paid.</strong> '
             . 'Please complete the payment of <strong>' . $e($amount) . ' BDT</strong> using one of the options below.</p>';

@@ -10,3 +10,11 @@ MODIFY email_type ENUM('confirmation', 'rejection', 'admission_ticket', 'resend'
 -- System-sent emails have no admin user
 ALTER TABLE email_log
 MODIFY sent_by INT NULL;
+
+-- The original admin schema declared registration_id INT, but registration
+-- ids are CHAR(36) UUIDs — an INT column cannot reference them. Widen it.
+-- If SHOW CREATE TABLE email_log shows a FOREIGN KEY on registration_id,
+-- drop that constraint first (its auto-generated name appears in the same
+-- output): ALTER TABLE email_log DROP FOREIGN KEY <name>;
+ALTER TABLE email_log
+MODIFY registration_id VARCHAR(36) NULL;
