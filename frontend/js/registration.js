@@ -278,6 +278,9 @@ const RegistrationForm = (function() {
         toggleReceiptSection(radio.value);
       });
     });
+
+    // Sync the upload gate once on load (covers browser-restored form state)
+    updateIdUploadGate();
   }
 
   /**

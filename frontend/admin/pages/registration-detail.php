@@ -285,6 +285,17 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                 <!-- ID Document -->
                 <div>
                     <div style="font-size: 14px; font-weight: 500; color: #1a202c; margin-bottom: 8px;">ID Document</div>
+                    <?php
+                    $idTypeLabels = ['passport' => 'Passport', 'national_id' => 'National ID'];
+                    $idTypeLabel = $idTypeLabels[$registration['id_document_type'] ?? ''] ?? null;
+                    ?>
+                    <div style="font-size: 13px; color: #4a5568; margin-bottom: 8px;">
+                        <?php if ($idTypeLabel): ?>
+                            <?php echo e($idTypeLabel); ?> &middot; <?php echo e($registration['id_document_number'] ?? ''); ?>
+                        <?php else: ?>
+                            &mdash;
+                        <?php endif; ?>
+                    </div>
                     <?php if (!empty($registration['id_storage_path'])): ?>
                         <a href="<?php echo e(intakePathToUrl($registration['id_storage_path'])); ?>" target="_blank"
                            class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px;">
