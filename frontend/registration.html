@@ -50,22 +50,7 @@
     .tab-content.active {
       display: block;
     }
-    /* Form step visibility */
-    .form-step {
-      display: none;
-    }
-    .form-step.active {
-      display: block;
-    }
-    /* Progress tracker */
-    .progress-step.active {
-      background-color: #002147 !important;
-      color: white !important;
-    }
-    .progress-step.completed {
-      background-color: #002147 !important;
-      color: white !important;
-    }
+    /* All form sections render stacked on one page */
     /* Validation messaging */
     .field-error {
       color: #dc2626;
@@ -205,31 +190,6 @@
 
           <h2 class="text-2xl font-bold text-primary text-center mb-8">Online Registration Form</h2>
 
-          <!-- Progress Tracker -->
-          <div class="mb-12">
-            <div class="flex items-center justify-between max-w-3xl mx-auto">
-              <div class="flex flex-col items-center">
-                <div data-progress-step="1" class="progress-step w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-sm font-bold ring-8 ring-surface active">1</div>
-                <span class="text-xs mt-2 text-secondary">Personal Info</span>
-              </div>
-              <div class="flex-1 h-[1px] bg-surface-container-highest mx-2"></div>
-              <div class="flex flex-col items-center">
-                <div data-progress-step="2" class="progress-step w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-sm font-bold ring-8 ring-surface">2</div>
-                <span class="text-xs mt-2 text-secondary">Exam Details</span>
-              </div>
-              <div class="flex-1 h-[1px] bg-surface-container-highest mx-2"></div>
-              <div class="flex flex-col items-center">
-                <div data-progress-step="3" class="progress-step w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-sm font-bold ring-8 ring-surface">3</div>
-                <span class="text-xs mt-2 text-secondary">Payment</span>
-              </div>
-              <div class="flex-1 h-[1px] bg-surface-container-highest mx-2"></div>
-              <div class="flex flex-col items-center">
-                <div data-progress-step="4" class="progress-step w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-sm font-bold ring-8 ring-surface">4</div>
-                <span class="text-xs mt-2 text-secondary">Documents</span>
-              </div>
-            </div>
-          </div>
-
           <form id="registration-form" class="space-y-12" onsubmit="return false;">
             <!-- ADD THIS FIELD RIGHT AFTER THE FORM TAG: -->
             <input type="text"
@@ -274,18 +234,6 @@
                   <input class="ghost-input py-3 text-lg text-secondary" id="dob" type="date" />
                   <span class="field-error" id="dob-error"></span>
                   <span class="field-success" id="dob-success"></span>
-                </div>
-
-                <div class="flex flex-col gap-2">
-                  <label class="text-xs font-semibold text-secondary tracking-wider uppercase" for="gender">Gender</label>
-                  <select class="ghost-input py-3 text-lg bg-white" id="gender">
-                    <option value="">Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </select>
-                  <span class="field-error" id="gender-error"></span>
-                  <span class="field-success" id="gender-success"></span>
                 </div>
 
                 <div class="flex flex-col gap-2">
@@ -369,26 +317,6 @@
                   Proceed to Payment
                   <span class="material-symbols-outlined">arrow_forward</span>
                 </button>
-              </div>
-
-              <!-- Level Confirmation Modal -->
-              <div id="level_confirmation_modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div class="bg-white rounded-lg p-8 max-w-md mx-4">
-                  <h3 class="text-xl font-bold text-primary mb-4">Confirm Your Selection</h3>
-                  <div class="space-y-2 mb-6">
-                    <p class="text-secondary">You've selected <strong id="confirm_levels_count">0</strong> level(s):</p>
-                    <p id="confirm_levels_list" class="text-primary font-semibold text-lg"></p>
-                    <p class="text-lg font-bold text-primary mt-4">Total Fee: <span id="confirm_total">0</span> BDT</p>
-                  </div>
-                  <div class="flex gap-4">
-                    <button id="cancel_confirm_btn" type="button" class="flex-1 px-6 py-3 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-surface-container-low">
-                      Go Back
-                    </button>
-                    <button id="confirm_selection_btn" type="button" class="flex-1 px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90">
-                      Confirm & Continue
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
 
