@@ -19,6 +19,8 @@ $base = [
     'exam_levels' => ['1Q', '3Q'],
     'total_amount' => 8000,
     'test_date' => '2026/08/15',
+    'id_document_type' => 'passport',
+    'id_document_number' => 'AB1234567',
 ];
 
 $pass = true;

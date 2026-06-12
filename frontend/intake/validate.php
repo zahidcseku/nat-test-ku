@@ -331,6 +331,25 @@ function validateRegistrationData($data) {
         $sanitized['nationality'] = $nationalityResult['sanitized'];
     }
 
+    // ID document type & number (Documents section).
+    // Lenient number rule by design: foreign passports vary, so only
+    // require 4-30 letters/digits after stripping spaces and hyphens.
+    $idTypeResult = validateEnum($data['id_document_type'] ?? '', 'ID document type', ['passport', 'national_id']);
+    if (!$idTypeResult['valid']) {
+        $errors['id_document_type'] = 'Please select your ID document type';
+    } else {
+        $sanitized['id_document_type'] = $idTypeResult['sanitized'];
+    }
+
+    $idNumber = strtoupper(str_replace([' ', '-'], '', trim($data['id_document_number'] ?? '')));
+    if ($idNumber === '') {
+        $errors['id_document_number'] = 'ID document number is required';
+    } elseif (!preg_match('/^[A-Z0-9]{4,30}$/', $idNumber)) {
+        $errors['id_document_number'] = 'ID number must be 4-30 letters or digits';
+    } else {
+        $sanitized['id_document_number'] = $idNumber;
+    }
+
     // Step 2: Payment Method
     $paymentResult = validateEnum($data['payment_method'] ?? '', 'Payment method', ['online', 'offline']);
     if (!$paymentResult['valid']) {
