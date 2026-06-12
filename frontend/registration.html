@@ -312,8 +312,8 @@
                   <span class="material-symbols-outlined text-primary">payments</span>
                   <span class="font-bold text-primary">Total Payment Due</span>
                 </div>
-                <p id="payment_amount_display" class="text-3xl font-bold text-primary">4000 BDT</p>
-                <p id="payment_levels_display" class="text-sm text-secondary">For 1 selected level</p>
+                <p id="payment_amount_display" class="text-3xl font-bold text-primary">0 BDT</p>
+                <p id="payment_levels_display" class="text-sm text-secondary">Select exam levels first</p>
                 <p id="payment_fee_display" class="text-xs text-secondary mt-1">No additional charges for online payment</p>
               </div>
 
@@ -469,7 +469,7 @@
 
               <!-- Payment Summary & Submit -->
               <div class="pt-6 border-t border-surface-container-highest space-y-4">
-                <div id="submit_summary" class="p-4 bg-primary-container rounded-lg hidden">
+                <div id="submit_summary" class="p-4 bg-primary-container rounded-lg hidden" aria-live="polite">
                   <div class="flex items-center justify-between">
                     <span class="text-white font-semibold"><span id="submit_summary_count">0</span> level(s) selected</span>
                     <span class="text-white font-bold text-xl">Total: <span id="submit_summary_total">0</span> BDT</span>
@@ -705,6 +705,9 @@
       // Load exam dates from database
       RegistrationForm.loadExamDates();
 
+      // Inline validation: fields validate as the user leaves them
+      RegistrationForm.initInlineValidation();
+
       // Test date change handler - populate exam levels
       const testDateSelect = document.getElementById('test_date');
       if (testDateSelect) {
@@ -713,22 +716,6 @@
           if (selectedDate) {
             RegistrationForm.populateExamLevelsCheckboxes(selectedDate);
           }
-        });
-      }
-
-      // Modal event listeners for level confirmation
-      const cancelBtn = document.getElementById('cancel_confirm_btn');
-      const confirmBtn = document.getElementById('confirm_selection_btn');
-
-      if (cancelBtn) {
-        cancelBtn.addEventListener('click', function() {
-          RegistrationForm.cancelLevelConfirmation();
-        });
-      }
-
-      if (confirmBtn) {
-        confirmBtn.addEventListener('click', function() {
-          RegistrationForm.confirmLevelSelection();
         });
       }
 
