@@ -255,6 +255,23 @@ const RegistrationForm = (function() {
     const testDate = document.getElementById('test_date');
     if (testDate) testDate.addEventListener('change', () => validateField('test_date'));
 
+    document.querySelectorAll('input[name="id_doc_type"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        validateField('id_doc_type');
+        const numberInput = document.getElementById('id_number');
+        if (numberInput) {
+          numberInput.placeholder = radio.value === 'passport' ? 'Passport number' : 'National ID number';
+        }
+        updateIdUploadGate();
+      });
+    });
+
+    const idNumber = document.getElementById('id_number');
+    if (idNumber) {
+      idNumber.addEventListener('input', updateIdUploadGate);
+      idNumber.addEventListener('blur', () => validateField('id_number'));
+    }
+
     document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
       radio.addEventListener('change', () => {
         validateStep3();
@@ -287,10 +304,51 @@ const RegistrationForm = (function() {
   }
 
   /**
+   * Normalized ID number: uppercase, spaces and hyphens stripped —
+   * the same rule the server applies
+   */
+  function getNormalizedIdNumber() {
+    const input = document.getElementById('id_number');
+    return input ? input.value.replace(/[\s-]/g, '').toUpperCase() : '';
+  }
+
+  /**
+   * The ID upload stays disabled until a document type is selected and a
+   * valid number is entered
+   */
+  function updateIdUploadGate() {
+    const gate = document.getElementById('id_upload_gate');
+    const input = document.getElementById('id_upload');
+    const hint = document.getElementById('id_upload_gate_hint');
+    if (!gate || !input) return;
+
+    const typeChosen = !!document.querySelector('input[name="id_doc_type"]:checked');
+    const numberValid = /^[A-Z0-9]{4,30}$/.test(getNormalizedIdNumber());
+
+    if (typeChosen && numberValid) {
+      gate.classList.remove('opacity-50', 'pointer-events-none');
+      input.disabled = false;
+      if (hint) hint.classList.add('hidden');
+    } else {
+      gate.classList.add('opacity-50', 'pointer-events-none');
+      input.disabled = true;
+      if (hint) hint.classList.remove('hidden');
+    }
+  }
+
+  /**
    * Validate a single field by id. Shows inline error/success.
    * Used by inline (blur/change) validation and by section validators.
    */
   function validateField(fieldId) {
+    // Radio group — no single element to read a value from
+    if (fieldId === 'id_doc_type') {
+      const checked = document.querySelector('input[name="id_doc_type"]:checked');
+      if (!checked) { showError('id_doc_type', 'Please select your ID document type'); return false; }
+      showSuccess('id_doc_type', '✓');
+      return true;
+    }
+
     const el = document.getElementById(fieldId);
     if (!el) return true;
     const value = (el.value || '').trim();
@@ -335,6 +393,13 @@ const RegistrationForm = (function() {
       case 'nationality':
         if (!value) { showError('nationality', 'Please enter your nationality'); return false; }
         showSuccess('nationality', '✓'); return true;
+
+      case 'id_number': {
+        const normalized = getNormalizedIdNumber();
+        if (!normalized) { showError('id_number', 'Please enter your document number'); return false; }
+        if (!/^[A-Z0-9]{4,30}$/.test(normalized)) { showError('id_number', 'ID number must be 4-30 letters or digits'); return false; }
+        showSuccess('id_number', '✓'); return true;
+      }
 
       case 'test_date':
         if (!value) { showError('test_date', 'Please select your intended test date'); return false; }
@@ -480,6 +545,14 @@ const RegistrationForm = (function() {
   function validateStep4() {
     let isValid = true;
 
+    // Document type and number come before the upload
+    if (!validateField('id_doc_type')) {
+      isValid = false;
+    }
+    if (!validateField('id_number')) {
+      isValid = false;
+    }
+
     // Student Photo (required)
     const photoInput = document.getElementById('photo_upload');
     const photoFile = photoInput ? photoInput.files[0] : null;
@@ -537,6 +610,8 @@ const RegistrationForm = (function() {
     // Store valid data
     if (isValid) {
       formData.step4 = {
+        id_doc_type: document.querySelector('input[name="id_doc_type"]:checked')?.value || '',
+        id_number: getNormalizedIdNumber(),
         photo_file: photoFile,
         id_file: idFile,
         payment_receipt_file: paymentFile || null
@@ -669,6 +744,8 @@ const RegistrationForm = (function() {
 
     // Add step 4 files (Document Uploads)
     formDataToSend.append('photo', formData.step4.photo_file);
+    formDataToSend.append('id_document_type', formData.step4.id_doc_type);
+    formDataToSend.append('id_document_number', formData.step4.id_number);
     formDataToSend.append('id_document', formData.step4.id_file);
     if (formData.step4.payment_receipt_file) {
       formDataToSend.append('payment_receipt', formData.step4.payment_receipt_file);
