@@ -71,7 +71,7 @@ define('UPLOAD_PATH', __DIR__ . '/' . (getenv('UPLOAD_PATH') ?: 'uploads/'));
 
 // SMTP Configuration
 define('SMTP_HOST', getenv('SMTP_HOST') ?: 'localhost');
-define('SMTP_PORT', (int)(getenv('SMTP_PORT') ?: 587);
+define('SMTP_PORT', (int)(getenv('SMTP_PORT') ?: 587));
 define('SMTP_USER', getenv('SMTP_USER') ?: '');
 define('SMTP_PASS', getenv('SMTP_PASS') ?: '');
 define('SMTP_FROM', getenv('SMTP_FROM') ?: '');
