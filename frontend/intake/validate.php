@@ -359,7 +359,9 @@ function validateRegistrationData($data) {
         $sanitized['id_document_type'] = $idTypeResult['sanitized'];
     }
 
-    $idNumber = strtoupper(str_replace([' ', '-'], '', trim(asString($data['id_document_number'] ?? ''))));
+    // Strip ALL whitespace (incl. tabs/NBSP) and hyphens — must match the
+    // client-side rule in registration.js getNormalizedIdNumber()
+    $idNumber = strtoupper(preg_replace('/[\s\x{00A0}-]+/u', '', asString($data['id_document_number'] ?? '')));
     if ($idNumber === '') {
         $errors['id_document_number'] = 'ID document number is required';
     } elseif (!preg_match('/^[A-Z0-9]{4,30}$/', $idNumber)) {
