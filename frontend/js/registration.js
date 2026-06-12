@@ -25,7 +25,6 @@ const RegistrationForm = (function() {
   };
 
   // State management
-  let currentStep = 1;
   let examDatesData = []; // Store exam dates with levels
   let formData = {
     step1: {},
@@ -233,121 +232,117 @@ const RegistrationForm = (function() {
   }
 
   /**
-   * Validate Step 1: Personal Information & Payment Method
+   * Scroll to and focus the first field with a visible error
    */
-  function validateStep1() {
-    let isValid = true;
+  function scrollToFirstError() {
+    const firstError = document.querySelector('.field-error.show');
+    if (!firstError) return;
+    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const wrapper = firstError.closest('div');
+    const field = wrapper ? wrapper.querySelector('input, select, textarea') : null;
+    if (field) field.focus({ preventScroll: true });
+  }
 
-    // Full Name
-    const fullName = document.getElementById('full_name').value.trim();
-    if (!fullName) {
-      showError('full_name', 'Please enter your full name as it appears on your ID');
-      isValid = false;
-    } else if (fullName.length < 3) {
-      showError('full_name', 'Full name must be at least 3 characters');
-      isValid = false;
-    } else {
-      showSuccess('full_name', '✓');
-    }
+  /**
+   * Wire inline validation: fields validate when the user leaves them
+   */
+  function initInlineValidation() {
+    ['full_name', 'email', 'mobile', 'address', 'nationality'].forEach(fieldId => {
+      const el = document.getElementById(fieldId);
+      if (el) el.addEventListener('blur', () => validateField(fieldId));
+    });
 
-    // Email
-    const email = document.getElementById('email').value.trim();
-    if (!email) {
-      showError('email', 'Please enter your email address');
-      isValid = false;
-    } else if (!isValidEmail(email)) {
-      showError('email', 'Please enter a valid email address');
-      isValid = false;
-    } else {
-      showSuccess('email', '✓');
-    }
+    const dob = document.getElementById('dob');
+    if (dob) dob.addEventListener('change', () => validateField('dob'));
 
-    // Mobile Number
-    const mobile = document.getElementById('mobile').value.trim();
-    if (!mobile) {
-      showError('mobile', 'Please enter your mobile number');
-      isValid = false;
-    } else if (!isValidPhone(mobile)) {
-      showError('mobile', 'Please enter a valid Bangladeshi mobile number (e.g., 01712345678)');
-      isValid = false;
-    } else {
-      showSuccess('mobile', '✓');
-    }
+    const testDate = document.getElementById('test_date');
+    if (testDate) testDate.addEventListener('change', () => validateField('test_date'));
 
-    // Address
-    const address = document.getElementById('address').value.trim();
-    if (!address) {
-      showError('address', 'Please enter your full address');
-      isValid = false;
-    } else if (address.length < 10) {
-      showError('address', 'Please enter a complete address (at least 10 characters)');
-      isValid = false;
-    } else {
-      showSuccess('address', '✓');
-    }
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+      radio.addEventListener('change', () => validateStep3());
+    });
+  }
 
-    // Date of Birth
-    const dob = document.getElementById('dob').value;
-    if (!dob) {
-      showError('dob', 'Please enter your date of birth');
-      isValid = false;
-    } else {
-      // Date picker returns YYYY-MM-DD, convert to YYYY/MM/DD for validation
-      const dobFormatted = dob.replace(/-/g, '/');
-      const dobRegex = /^\d{4}\/\d{2}\/\d{2}$/;
+  /**
+   * Validate a single field by id. Shows inline error/success.
+   * Used by inline (blur/change) validation and by section validators.
+   */
+  function validateField(fieldId) {
+    const el = document.getElementById(fieldId);
+    if (!el) return true;
+    const value = (el.value || '').trim();
 
-      if (!dobRegex.test(dobFormatted)) {
-        showError('dob', 'Please enter date in YYYY/MM/DD format');
-        isValid = false;
-      } else {
-        // Parse and validate the date
+    switch (fieldId) {
+      case 'full_name':
+        if (!value) { showError('full_name', 'Please enter your full name as it appears on your ID'); return false; }
+        if (value.length < 3) { showError('full_name', 'Full name must be at least 3 characters'); return false; }
+        showSuccess('full_name', '✓'); return true;
+
+      case 'email':
+        if (!value) { showError('email', 'Please enter your email address'); return false; }
+        if (!isValidEmail(value)) { showError('email', 'Please enter a valid email address'); return false; }
+        showSuccess('email', '✓'); return true;
+
+      case 'mobile':
+        if (!value) { showError('mobile', 'Please enter your mobile number'); return false; }
+        if (!isValidPhone(value)) { showError('mobile', 'Please enter a valid Bangladeshi mobile number (e.g., 01712345678)'); return false; }
+        showSuccess('mobile', '✓'); return true;
+
+      case 'address':
+        if (!value) { showError('address', 'Please enter your full address'); return false; }
+        if (value.length < 10) { showError('address', 'Please enter a complete address (at least 10 characters)'); return false; }
+        showSuccess('address', '✓'); return true;
+
+      case 'dob': {
+        if (!value) { showError('dob', 'Please enter your date of birth'); return false; }
+        // Date picker returns YYYY-MM-DD, convert to YYYY/MM/DD for validation
+        const dobFormatted = value.replace(/-/g, '/');
+        const dobRegex = /^\d{4}\/\d{2}\/\d{2}$/;
+        if (!dobRegex.test(dobFormatted)) { showError('dob', 'Please enter date in YYYY/MM/DD format'); return false; }
         const [year, month, day] = dobFormatted.split('/').map(Number);
         const dobDate = new Date(year, month - 1, day);
         const today = new Date();
-
-        // Check if date is valid
-        if (dobDate.getFullYear() !== year ||
-            dobDate.getMonth() !== month - 1 ||
-            dobDate.getDate() !== day) {
-          showError('dob', 'Please enter a valid date');
-          isValid = false;
-        } else if (dobDate > today) {
-          showError('dob', 'Date of birth cannot be in the future');
-          isValid = false;
-        } else {
-          showSuccess('dob', '✓');
+        if (dobDate.getFullYear() !== year || dobDate.getMonth() !== month - 1 || dobDate.getDate() !== day) {
+          showError('dob', 'Please enter a valid date'); return false;
         }
+        if (dobDate > today) { showError('dob', 'Date of birth cannot be in the future'); return false; }
+        showSuccess('dob', '✓'); return true;
       }
-    }
 
-    // Gender
-    const gender = document.getElementById('gender').value;
-    if (!gender) {
-      showError('gender', 'Please select your gender');
-      isValid = false;
-    } else {
-      showSuccess('gender', '✓');
-    }
+      case 'nationality':
+        if (!value) { showError('nationality', 'Please enter your nationality'); return false; }
+        showSuccess('nationality', '✓'); return true;
 
-    // Nationality
-    const nationality = document.getElementById('nationality').value.trim();
-    if (!nationality) {
-      showError('nationality', 'Please enter your nationality');
-      isValid = false;
-    } else {
-      showSuccess('nationality', '✓');
-    }
+      case 'test_date':
+        if (!value) { showError('test_date', 'Please select your intended test date'); return false; }
+        showSuccess('test_date', '✓'); return true;
 
-    // Store valid data
+      default:
+        return true;
+    }
+  }
+
+  /**
+   * Validate Section 1: Personal Information
+   */
+  function validateStep1() {
+    const fields = ['full_name', 'email', 'mobile', 'address', 'dob', 'nationality'];
+    let isValid = true;
+
+    fields.forEach(fieldId => {
+      if (!validateField(fieldId)) {
+        isValid = false;
+      }
+    });
+
     if (isValid) {
       formData.step1 = {
-        full_name: fullName,
-        email: email,
-        mobile: mobile,
-        address: address,
-        dob: dob,
-        gender: gender,
-        nationality: nationality
+        full_name: document.getElementById('full_name').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        mobile: document.getElementById('mobile').value.trim(),
+        address: document.getElementById('address').value.trim(),
+        dob: document.getElementById('dob').value,
+        nationality: document.getElementById('nationality').value.trim()
       };
     }
 
@@ -380,13 +375,10 @@ const RegistrationForm = (function() {
       }
     }
 
-    // Intended Test Date (PLACEHOLDER: will load from database)
+    // Intended Test Date
     const testDate = document.getElementById('test_date').value;
-    if (!testDate) {
-      showError('test_date', 'Please select your intended test date');
+    if (!validateField('test_date')) {
       isValid = false;
-    } else {
-      showSuccess('test_date', '✓');
     }
 
     // Store valid data
@@ -421,13 +413,6 @@ const RegistrationForm = (function() {
     }
 
     return isValid;
-  }
-
-  /**
-   * Go to specific step (helper function)
-   */
-  function goToStep(stepNumber) {
-    showStep(stepNumber);
   }
 
   /**
@@ -554,94 +539,6 @@ const RegistrationForm = (function() {
   }
 
   /**
-   * Show a specific form step
-   */
-  function showStep(stepNumber) {
-    // Hide all steps
-    document.querySelectorAll('.form-step').forEach(step => {
-      step.classList.remove('active');
-    });
-
-    // Show target step
-    const targetStep = document.getElementById(`step-${stepNumber}`);
-    if (targetStep) {
-      targetStep.classList.add('active');
-    }
-
-    // Update progress tracker
-    updateProgressTracker(stepNumber);
-
-    // Update current step
-    currentStep = stepNumber;
-  }
-
-  /**
-   * Update progress tracker visual state
-   */
-  function updateProgressTracker(activeStep) {
-    for (let i = 1; i <= 4; i++) {
-      const stepEl = document.querySelector(`[data-progress-step="${i}"]`);
-      if (!stepEl) continue;
-
-      stepEl.classList.remove('active', 'completed');
-
-      if (i < activeStep) {
-        stepEl.classList.add('completed');
-      } else if (i === activeStep) {
-        stepEl.classList.add('active');
-      }
-    }
-  }
-
-  /**
-   * Go to next step
-   */
-  function nextStep() {
-    console.log('nextStep called, currentStep:', currentStep);
-
-    if (currentStep === 1) {
-      console.log('Validating step 1...');
-      const step1Valid = validateStep1();
-      console.log('Step 1 validation result:', step1Valid);
-      if (step1Valid) {
-        console.log('Moving to step 2');
-        showStep(2);
-      } else {
-        console.log('Step 1 validation failed');
-      }
-    } else if (currentStep === 2) {
-      console.log('Validating step 2...');
-      const step2Valid = validateStep2();
-      console.log('Step 2 validation result:', step2Valid);
-      if (step2Valid) {
-        console.log('Showing level confirmation');
-        return showLevelConfirmation();
-      } else {
-        console.log('Step 2 validation failed');
-      }
-    } else if (currentStep === 3) {
-      console.log('Validating step 3...');
-      const step3Valid = validateStep3();
-      console.log('Step 3 validation result:', step3Valid);
-      if (step3Valid) {
-        console.log('Moving to step 4');
-        showStep(4);
-      } else {
-        console.log('Step 3 validation failed');
-      }
-    }
-  }
-
-  /**
-   * Go to previous step
-   */
-  function previousStep() {
-    if (currentStep > 1) {
-      showStep(currentStep - 1);
-    }
-  }
-
-  /**
    * Switch between registration type tabs
    */
   function switchTab(tabName) {
@@ -707,10 +604,10 @@ const RegistrationForm = (function() {
     }
     console.log('Current formData:', formData);
 
-    // Validate all steps
+    // Validate the whole form
     if (!validateAllSteps()) {
       console.log('Validation failed');
-      alert('Please correct the errors before submitting');
+      scrollToFirstError();
       return false;
     }
 
@@ -742,7 +639,6 @@ const RegistrationForm = (function() {
     // Convert date from YYYY-MM-DD to YYYY/MM/DD for backend
     const dobFormatted = formData.step1.dob.replace(/-/g, '/');
     formDataToSend.append('dob', dobFormatted);
-    formDataToSend.append('gender', formData.step1.gender);
     formDataToSend.append('nationality', formData.step1.nationality);
 
     // Add step 2 data (Exam Details)
@@ -936,17 +832,12 @@ const RegistrationForm = (function() {
       msg.classList.remove('show');
     });
 
-    // Reset state
-    currentStep = 1;
     formData = {
       step1: {},
       step2: {},
       step3: {},
       step4: {}
     };
-
-    // Show first step
-    showStep(1);
   }
 
   /**
@@ -1167,7 +1058,7 @@ const RegistrationForm = (function() {
   }
 
   /**
-   * Update fee display based on selected levels
+   * Update fee displays (levels box and submit-area summary)
    */
   function updateFeeDisplay() {
     const count = selectedLevels.length;
@@ -1185,6 +1076,21 @@ const RegistrationForm = (function() {
       feeMultiplier.textContent = count;
     } else {
       feeSummary.classList.add('hidden');
+    }
+
+    // Live summary above the Submit button
+    const submitSummary = document.getElementById('submit_summary');
+    const submitSummaryEmpty = document.getElementById('submit_summary_empty');
+    if (submitSummary && submitSummaryEmpty) {
+      if (count > 0) {
+        document.getElementById('submit_summary_count').textContent = count;
+        document.getElementById('submit_summary_total').textContent = total.toLocaleString('en-BD');
+        submitSummary.classList.remove('hidden');
+        submitSummaryEmpty.classList.add('hidden');
+      } else {
+        submitSummary.classList.add('hidden');
+        submitSummaryEmpty.classList.remove('hidden');
+      }
     }
 
     totalAmount = total;
@@ -1212,72 +1118,6 @@ const RegistrationForm = (function() {
     }
   }
 
-  /**
-   * Show confirmation modal for level selection
-   */
-  function showLevelConfirmation() {
-    if (!validateLevelSelection()) {
-      return false;
-    }
-
-    const modal = document.getElementById('level_confirmation_modal');
-    const countEl = document.getElementById('confirm_levels_count');
-    const listEl = document.getElementById('confirm_levels_list');
-    const totalEl = document.getElementById('confirm_total');
-
-    countEl.textContent = selectedLevels.length;
-    // Validate API response values before displaying - ensure they match expected format (1Q-5Q)
-    const validLevels = selectedLevels.filter(level => {
-      const isValid = /^([1-5]Q)$/.test(level);
-      if (!isValid) {
-        console.warn('Invalid level format received from API:', level);
-      }
-      return isValid;
-    });
-
-    if (validLevels.length === 0) {
-      console.error('No valid levels found in selection');
-      return false;
-    }
-
-    listEl.textContent = validLevels.sort().join(', ');
-    totalEl.textContent = totalAmount.toLocaleString('en-BD');
-
-    modal.classList.remove('hidden');
-    return true; // Return true to indicate modal was shown successfully
-  }
-
-  /**
-   * Cancel level confirmation
-   */
-  function cancelLevelConfirmation() {
-    document.getElementById('level_confirmation_modal').classList.add('hidden');
-  }
-
-  /**
-   * Confirm level selection and proceed
-   */
-  function confirmLevelSelection() {
-    const modal = document.getElementById('level_confirmation_modal');
-    if (modal) {
-      modal.classList.add('hidden');
-    }
-
-    // Calculate payment details
-    const payment = calculatePaymentAmount(selectedLevels.length);
-    console.log('Payment calculation:', payment);
-
-    // Update payment display
-    updatePaymentDisplay(selectedLevels.length);
-
-    // Submit the base amount only (levels × 4000). The server validates
-    // total_amount against the base and computes the gateway fee itself.
-    totalAmount = payment.base;
-
-    // Advance to step 3 (Payment Method) after confirmation
-    showStep(3);
-  }
-
   // Export public API
   return {
     CONFIG,
@@ -1292,14 +1132,13 @@ const RegistrationForm = (function() {
     showError,
     showSuccess,
     clearFieldValidation,
+    scrollToFirstError,
+    validateField,
+    initInlineValidation,
     validateStep1,
     validateStep2,
     handleFileUpload,
     validateStep3,
-    showStep,
-    updateProgressTracker,
-    nextStep,
-    previousStep,
     switchTab,
     toggleOffline,
     submitForm,
@@ -1310,9 +1149,6 @@ const RegistrationForm = (function() {
     populateExamLevelsCheckboxes,
     handleLevelSelection,
     updateFeeDisplay,
-    validateLevelSelection,
-    showLevelConfirmation,
-    cancelLevelConfirmation,
-    confirmLevelSelection
+    validateLevelSelection
   };
 })();
