@@ -135,6 +135,16 @@ define('SSLCZ_IPN_WHITELIST', [
     '103.163.227.101'
 ]);
 
+// ============================================
+// Automated email configuration
+// ============================================
+
+// Sender for automated applicant emails
+define('MAIL_FROM', getenv('MAIL_FROM') ?: 'no-reply@nat-test.ku.ac.bd');
+
+// Where applicants email payment proof (bank deposit / QR payments)
+define('RECEIPT_EMAIL', 'money_receipt@nat-test.ku.ac.bd');
+
 // Create database connection
 function getDbConnection() {
     static $conn = null;
