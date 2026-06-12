@@ -76,7 +76,7 @@ const RegistrationForm = (function() {
       paymentLevelsEl.textContent = `For ${levelCount} selected level${levelCount > 1 ? 's' : ''}`;
     }
     if (paymentFeeEl) {
-      paymentFeeEl.textContent = 'No additional charges for online payment';
+      paymentFeeEl.textContent = 'There is a 2.5% (3.5% for AMEX) online transaction processing charge for online payments.';
       paymentFeeEl.classList.remove('hidden');
     }
   }
