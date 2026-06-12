@@ -30,19 +30,16 @@ try {
 
     // Verify IPN authenticity
     if (!$sslcz->verifyIPN($ipnData)) {
-        logActivity("IPN verification failed: " . json_encode($ipnData), 'security');
+        logActivity("IPN verification failed for tran_id: " . ($ipnData['tran_id'] ?? 'unknown'), 'security');
         errorResponse('IPN verification failed', 403);
     }
 
     // Extract transaction details
     $transactionId = $ipnData['tran_id'] ?? '';
-    $amount = $ipnData['amount'] ?? '0';
     $currency = $ipnData['currency'] ?? 'BDT';
     $status = $ipnData['status'] ?? '';
     $cardType = $ipnData['card_type'] ?? '';
     $bankTranId = $ipnData['bank_tran_id'] ?? '';
-    $cardAmount = $ipnData['card_amount'] ?? '0';
-    $storeAmount = $ipnData['store_amount'] ?? '0';
 
     // Get database connection
     $conn = getDbConnection();
@@ -75,17 +72,50 @@ try {
         successResponse([], 'Already processed');
     }
 
-    // Validate amount
-    if ((float)$registration['total_amount_paid'] !== (float)$cardAmount) {
-        logActivity("Amount mismatch for transaction {$transactionId}. Expected: {$registration['total_amount_paid']}, Got: {$cardAmount}", 'security');
-        errorResponse('Amount validation failed', 400);
-    }
-
     // Process payment status
+    // SSLCommerz IPN sends: VALID (paid), FAILED, CANCELLED, UNATTEMPTED, EXPIRED
     $newStatus = 'unpaid';
     $paymentMethodDetail = 'other';
 
-    if ($status === 'SUCCESS') {
+    if ($status === 'VALID' || $status === 'VALIDATED') {
+        // Authoritative server-side check: confirm the transaction directly
+        // with SSLCommerz before trusting the IPN payload
+        $valId = $ipnData['val_id'] ?? '';
+        if ($valId === '') {
+            logActivity("IPN missing val_id for transaction {$transactionId}", 'security');
+            errorResponse('Missing validation ID', 400);
+        }
+
+        $validation = $sslcz->validateTransaction($valId);
+
+        if ($validation['status'] !== 'VALID' && $validation['status'] !== 'VALIDATED') {
+            logActivity("Validation API rejected transaction {$transactionId}: status={$validation['status']} error={$validation['error']}", 'security');
+            errorResponse('Transaction validation failed', 400);
+        }
+
+        if ($validation['tran_id'] !== $transactionId) {
+            logActivity("Validation API tran_id mismatch. IPN: {$transactionId}, API: {$validation['tran_id']}", 'security');
+            errorResponse('Transaction validation failed', 400);
+        }
+
+        // All charges are in BDT — reject anything else before the amount check
+        $validatedCurrency = $validation['currency'] !== '' ? $validation['currency'] : $currency;
+        if ($validatedCurrency !== 'BDT') {
+            logActivity("Unexpected currency for transaction {$transactionId}: {$validatedCurrency}", 'security');
+            errorResponse('Currency validation failed', 400);
+        }
+
+        // Validate amount against what we charged (1 BDT tolerance for
+        // gateway rounding, per SSLCommerz integration guidance)
+        if (abs((float)$validation['amount'] - (float)$registration['total_amount_paid']) > 1.0) {
+            logActivity("Amount mismatch for transaction {$transactionId}. Expected: {$registration['total_amount_paid']}, Validated: {$validation['amount']}", 'security');
+            errorResponse('Amount validation failed', 400);
+        }
+
+        // Prefer validated values over the raw IPN payload
+        $cardType = $validation['card_type'] !== '' ? $validation['card_type'] : $cardType;
+        $bankTranId = $validation['bank_tran_id'] !== '' ? $validation['bank_tran_id'] : $bankTranId;
+
         $newStatus = 'paid';
 
         // Map card type to payment method detail
@@ -102,26 +132,28 @@ try {
             $paymentMethodDetail = 'card';
         }
 
-        logActivity("Payment successful for transaction {$transactionId}, amount: {$cardAmount} {$currency}");
+        logActivity("Payment successful for transaction {$transactionId}, amount: {$validation['amount']} {$currency}");
 
-    } elseif ($status === 'FAILED') {
+    } elseif ($status === 'FAILED' || $status === 'CANCELLED' || $status === 'EXPIRED' || $status === 'UNATTEMPTED') {
         $newStatus = 'failed';
-        logActivity("Payment failed for transaction {$transactionId}");
+        logActivity("Payment {$status} for transaction {$transactionId}");
 
     } else {
         logActivity("Unknown payment status for transaction {$transactionId}: {$status}", 'warning');
         errorResponse('Unknown payment status', 400);
     }
 
-    // Update registration
+    // Update registration (keep sslcommerz_transaction_id intact — it is the lookup key;
+    // the bank's own reference goes in its dedicated column)
     $updateStmt = $conn->prepare("
         UPDATE registrations
         SET payment_status = ?,
-            sslcommerz_transaction_id = ?,
+            sslcommerz_bank_transaction_id = ?,
             payment_method_detail = ?,
             payment_time = NOW(),
             payment_ipn_received = TRUE
         WHERE id = ?
+          AND payment_status <> 'paid'
     ");
 
     $updateStmt->bind_param(
@@ -129,12 +161,16 @@ try {
         $newStatus,
         $bankTranId,
         $paymentMethodDetail,
-        $transactionId
+        $registration['id']
     );
 
     if (!$updateStmt->execute()) {
         logActivity("Failed to update payment status for transaction {$transactionId}: " . $updateStmt->error, 'error');
         errorResponse('Database update failed', 500);
+    }
+
+    if ($updateStmt->affected_rows === 0) {
+        logActivity("IPN update matched no rows for registration {$registration['id']} (transaction {$transactionId}) — not found or already paid", 'warning');
     }
 
     $updateStmt->close();

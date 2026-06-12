@@ -24,18 +24,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
-    // DEBUG: Log incoming request
-    $debugLog = [
-        'timestamp' => date('Y-m-d H:i:s'),
-        'request_method' => $_SERVER['REQUEST_METHOD'],
-        'content_type' => $_SERVER['CONTENT_TYPE'] ?? 'not set',
-        'post_fields' => array_keys($_POST ?? []),
-        'files' => array_keys($_FILES ?? []),
-        'file_count' => count($_FILES ?? []),
-        'post_count' => count($_POST ?? [])
-    ];
-    file_put_contents(__DIR__ . '/logs/debug_request.json', json_encode($debugLog, JSON_PRETTY_PRINT));
-
     // Validate upload directory
     $dirValidation = validateUploadDirectory();
     if (!$dirValidation['valid']) {
@@ -67,18 +55,13 @@ try {
     $validation = validateRegistrationData($postData);
     if (!$validation['valid']) {
         logActivity("Validation failed for IP: " . getRequestIp(), 'warning');
-        file_put_contents(__DIR__ . '/logs/debug_validation.json', json_encode(['valid' => false, 'errors' => $validation['errors']], JSON_PRETTY_PRINT));
         errorResponse('Validation failed', 400, $validation['errors']);
     }
 
     $data = $validation['data'];
 
-    // DEBUG: Log validated data
-    file_put_contents(__DIR__ . '/logs/debug_data.json', json_encode($data, JSON_PRETTY_PRINT));
-
     // Handle file uploads
     $uploadResult = handleFileUploads($filesData);
-    file_put_contents(__DIR__ . '/logs/debug_upload.json', json_encode($uploadResult, JSON_PRETTY_PRINT));
 
     if (!$uploadResult['success'] || !empty($uploadResult['errors'])) {
         // Clean up any uploaded files if there were errors
@@ -95,12 +78,17 @@ try {
     // PAYMENT GATEWAY INTEGRATION
     // ============================================
 
+    // Generate registration ID up front so the payment session and its logs
+    // can reference it
+    $id = generateUuid();
+
     // Check if payment method is 'online'
     $paymentMethod = $data['payment_method'] ?? 'offline';
     $isOnlinePayment = ($paymentMethod === 'online');
 
-    // Calculate payment amounts
-    $levelCount = isset($data['exam_levels']) ? count($data['exam_levels']) : 1;
+    // Calculate payment amounts — charge is per selected exam level/module
+    // (validate.php returns the selected levels as 'exam_levels_array')
+    $levelCount = isset($data['exam_levels_array']) ? count($data['exam_levels_array']) : 1;
     $paymentAmounts = calculatePaymentAmount($levelCount, false);
     $baseAmount = $paymentAmounts['base'];
     $transactionFee = $paymentAmounts['fee'];
@@ -111,8 +99,10 @@ try {
     $retryExpires = generateRetryExpiry();
 
     // If online payment, create SSLCommerz session
+    $sslczTranId = null;
     $sslczSessionId = null;
     $redirectUrl = null;
+    $gatewayUnavailable = false;
 
     if ($isOnlinePayment) {
         try {
@@ -145,11 +135,15 @@ try {
                 // SSLCommerz session creation failed, save as unpaid anyway
                 logActivity("SSLCommerz session creation failed: " . $sslczResponse['error'], 'error');
                 $isOnlinePayment = false; // Fallback to offline
+                $sslczTranId = null; // No gateway session exists for this ID
+                $gatewayUnavailable = true;
             }
 
         } catch (Exception $e) {
             logActivity("SSLCommerz exception: " . $e->getMessage(), 'error');
             $isOnlinePayment = false; // Fallback to offline
+            $sslczTranId = null; // No gateway session exists for this ID
+            $gatewayUnavailable = true;
         }
     }
 
@@ -165,7 +159,6 @@ try {
     }
 
     // Prepare data for database
-    $id = generateUuid();
     $ipHash = hashIp(getClientIp());
     $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
 
@@ -180,7 +173,7 @@ try {
             submitted_at, ip_hash, user_agent, honeypot_tripped, honeypot_value,
             approved, approved_at, approved_by, created_at,
             payment_status, sslcommerz_transaction_id, sslcommerz_session_id, base_amount, transaction_fee, total_amount_paid, payment_retry_token, payment_retry_expires
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     if (!$stmt) {
@@ -217,7 +210,7 @@ try {
     $retryExpiresValue = $retryExpires;
 
     $stmt->bind_param(
-        'ssssssssssisssissississsisisssssdsss',
+        'ssssssssssisssissississsisissssssdddss',
         $id,
         $data['full_name'],
         $data['email'],
@@ -259,18 +252,6 @@ try {
     );
 
     $result = $stmt->execute();
-
-    // DEBUG: Log database result
-    file_put_contents(__DIR__ . '/logs/debug_db.json', json_encode([
-        'success' => $result,
-        'insert_id' => $id,
-        'error' => $stmt->error,
-        'data' => [
-            'id' => $id,
-            'email' => $data['email'],
-            'exam_level' => $data['exam_level']
-        ]
-    ], JSON_PRETTY_PRINT));
 
     if (!$result) {
         logActivity("Execute failed: " . $stmt->error, 'error');
@@ -344,9 +325,9 @@ try {
             'message' => 'Registration saved. Redirecting to payment gateway...'
         ];
 
-        if (isset($data['exam_levels']) && is_array($data['exam_levels'])) {
-            $responseData['exam_levels'] = $data['exam_levels'];
-            $responseData['level_count'] = count($data['exam_levels']);
+        if (isset($data['exam_levels_array']) && is_array($data['exam_levels_array'])) {
+            $responseData['exam_levels'] = $data['exam_levels_array'];
+            $responseData['level_count'] = count($data['exam_levels_array']);
         }
 
         successResponse($responseData, 'Registration submitted. Redirecting to payment gateway...');
@@ -360,9 +341,17 @@ try {
             'total_amount' => $totalAmountPaidValue
         ];
 
-        if (isset($data['exam_levels']) && is_array($data['exam_levels'])) {
-            $responseData['exam_levels'] = $data['exam_levels'];
-            $responseData['level_count'] = count($data['exam_levels']);
+        if (isset($data['exam_levels_array']) && is_array($data['exam_levels_array'])) {
+            $responseData['exam_levels'] = $data['exam_levels_array'];
+            $responseData['level_count'] = count($data['exam_levels_array']);
+        }
+
+        if ($gatewayUnavailable) {
+            // User chose online payment but the gateway session could not be
+            // created — give them a retry link so they can complete payment
+            $responseData['payment_status'] = 'unpaid';
+            $responseData['payment_retry_url'] = SITE_URL . '/payment-retry.html?token=' . $retryTokenValue;
+            successResponse($responseData, 'Registration saved, but the payment gateway could not be reached. Please use the payment link to complete your payment.');
         }
 
         successResponse($responseData, 'Registration submitted successfully');

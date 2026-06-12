@@ -1,2 +1,30 @@
-# Minimal .htaccess - only prevents directory listing
+# NAT-TEST intake service — access control
+# Public endpoints: register.php, payment-ipn.php, payment-return.php,
+# payment-retry.php, payment-retry-session.php, get_*.php, api/
+# Everything internal (logs, migrations, schema, tests, env files) is denied.
+
+# Prevent directory listing
 Options -Indexes
+
+# Deny env, SQL, log, backup, doc and hidden files
+<FilesMatch "(?i)(\.env|\.sql|\.log|\.bak|\.md|\.json\.bak)$|^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Deny test, debug and diagnostic scripts (these must also be excluded from
+# deployment; this is defense in depth)
+<FilesMatch "(?i)^(test|debug|check|minimal|simple_test|register_debug|register_log)[\w.]*\.php$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>

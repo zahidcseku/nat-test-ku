@@ -111,10 +111,12 @@ define('SSLCZ_API_DOMAIN', SSLCZ_MODE === 'live'
     ? 'https://securepay.sslcommerz.com'
     : 'https://sandbox.sslcommerz.com');
 
-// Redirect URLs
-define('SSLCZ_SUCCESS_URL', getenv('SSLCZ_SUCCESS_URL') ?: SITE_URL . '/payment-success.html');
-define('SSLCZ_FAIL_URL', getenv('SSLCZ_FAIL_URL') ?: SITE_URL . '/payment-failed.html');
-define('SSLCZ_CANCEL_URL', getenv('SSLCZ_CANCEL_URL') ?: SITE_URL . '/payment-cancelled.html');
+// Redirect URLs — must point at payment-return.php, not the static pages:
+// SSLCommerz returns the browser via POST, which static .html cannot accept.
+// payment-return.php converts the POST into a GET redirect to the right page.
+define('SSLCZ_SUCCESS_URL', getenv('SSLCZ_SUCCESS_URL') ?: SITE_URL . '/intake/payment-return.php?outcome=success');
+define('SSLCZ_FAIL_URL', getenv('SSLCZ_FAIL_URL') ?: SITE_URL . '/intake/payment-return.php?outcome=fail');
+define('SSLCZ_CANCEL_URL', getenv('SSLCZ_CANCEL_URL') ?: SITE_URL . '/intake/payment-return.php?outcome=cancel');
 define('SSLCZ_IPN_URL', SITE_URL . '/intake/payment-ipn.php');
 
 // Transaction Fee Rates
@@ -124,7 +126,8 @@ define('SSLCZ_AMEX_FEE_RATE', 0.035);  // 3.5% for AMEX
 // Retry Link Expiry (7 days)
 define('PAYMENT_RETRY_EXPIRY_DAYS', 7);
 
-// IPN Whitelist (SSLCommerz server IPs)
+// Known SSLCommerz server IPs — advisory only (logged, never used to reject).
+// IPN authenticity is established by verify_sign hash + the validation API.
 define('SSLCZ_IPN_WHITELIST', [
     '103.163.227.100',
     '103.163.227.101'

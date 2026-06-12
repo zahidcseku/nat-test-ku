@@ -89,9 +89,55 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading();
         searchForm.classList.add('hidden');
 
-        // Token lookup would need backend endpoint
-        // For now, redirect to regular search
-        window.location.href = '/payment-retry.html';
+        fetch('/intake/payment-retry.php?token=' + encodeURIComponent(token))
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                resultDiv.classList.remove('hidden');
+
+                if (!data.success || !data.data || !data.data.found) {
+                    showNotFound();
+                    return;
+                }
+
+                showResult(data.data);
+            })
+            .catch(error => {
+                hideLoading();
+                searchForm.classList.remove('hidden');
+                showError('Network error. Please try again.');
+            });
+    }
+
+    function startPayment(token, button) {
+        if (!token) {
+            alert('Retry link not available. Please contact support.');
+            return;
+        }
+
+        button.disabled = true;
+        button.textContent = 'Connecting to payment gateway...';
+
+        fetch('/intake/payment-retry-session.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'token=' + encodeURIComponent(token)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data && data.data.redirect_url) {
+                    window.location.href = data.data.redirect_url;
+                } else {
+                    button.disabled = false;
+                    button.textContent = 'Try Again';
+                    alert(data.error || 'Could not start the payment session. Please try again.');
+                }
+            })
+            .catch(error => {
+                button.disabled = false;
+                button.textContent = 'Try Again';
+                alert('Network error. Please try again.');
+            });
     }
 
     function showResult(registration) {
@@ -117,24 +163,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Retry link expires: ' + expiry.toLocaleDateString();
             }
 
-            // Add retry button handler
+            // Add retry button handler — creates a fresh gateway session
             document.getElementById('retry-btn').addEventListener('click', function() {
-                if (registration.retry_link) {
-                    window.location.href = registration.retry_link;
-                } else {
-                    showError('Retry link not available. Please contact support.');
-                }
+                startPayment(registration.retry_token, this);
             });
         } else if (registration.payment_status === 'failed') {
             document.getElementById('status-failed').classList.remove('hidden');
 
-            // Add retry button handler
+            // Add retry button handler — creates a fresh gateway session
             document.getElementById('retry-failed-btn').addEventListener('click', function() {
-                if (registration.retry_link) {
-                    window.location.href = registration.retry_link;
-                } else {
-                    showError('Retry link not available. Please contact support.');
-                }
+                startPayment(registration.retry_token, this);
             });
         }
     }

@@ -72,32 +72,88 @@ class SSLCommerz {
     /**
      * Verify IPN signature
      *
+     * Implements the official SSLCommerz hash verification: verify_sign is the
+     * md5 of the ksorted key=value pairs named in verify_key, joined with '&',
+     * plus store_passwd=md5(store_password).
+     *
+     * The source IP is logged for audit but not used as an auth gate —
+     * SSLCommerz server IPs change and proxies rewrite REMOTE_ADDR.
+     * Authenticity comes from this hash plus validateTransaction().
+     *
      * @param array $ipnData IPN POST data
      * @return bool Valid or not
      */
     public function verifyIPN($ipnData) {
-        // Verify IPN whitelist
-        if (!in_array($_SERVER['REMOTE_ADDR'], SSLCZ_IPN_WHITELIST)) {
-            logActivity("IPN from non-whitelisted IP: " . $_SERVER['REMOTE_ADDR'], 'security');
+        $remoteIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        if (!in_array($remoteIp, SSLCZ_IPN_WHITELIST)) {
+            logActivity("IPN from IP outside known list (advisory): {$remoteIp}", 'info');
+        }
+
+        if (empty($ipnData['verify_sign']) || empty($ipnData['verify_key'])) {
+            logActivity("IPN missing verify_sign/verify_key", 'security');
             return false;
         }
 
-        // Verify signature
-        if (isset($ipnData['verify_sign'])) {
-            $expectedSignature = md5(
-                $ipnData['tran_id'] .
-                $ipnData['amount'] .
-                $ipnData['currency'] .
-                $this->storePassword
-            );
-
-            if (!hash_equals($expectedSignature, $ipnData['verify_sign'])) {
-                logActivity("IPN signature verification failed for tran_id: " . $ipnData['tran_id'], 'security');
-                return false;
+        $signedFields = [];
+        foreach (explode(',', $ipnData['verify_key']) as $key) {
+            $key = trim($key);
+            if ($key !== '' && array_key_exists($key, $ipnData)) {
+                $signedFields[$key] = $ipnData[$key];
             }
+        }
+        $signedFields['store_passwd'] = md5($this->storePassword);
+        ksort($signedFields);
+
+        $pairs = [];
+        foreach ($signedFields as $key => $value) {
+            $pairs[] = $key . '=' . $value;
+        }
+        $expectedSignature = md5(implode('&', $pairs));
+
+        if (!hash_equals($expectedSignature, $ipnData['verify_sign'])) {
+            logActivity("IPN signature verification failed for tran_id: " . ($ipnData['tran_id'] ?? 'unknown'), 'security');
+            return false;
         }
 
         return true;
+    }
+
+    /**
+     * Validate a transaction server-side via the SSLCommerz validation API
+     *
+     * This is the authoritative check recommended by SSLCommerz: after an IPN
+     * arrives, confirm the transaction directly with their server using the
+     * val_id from the IPN payload.
+     *
+     * @param string $valId Validation ID from IPN POST data
+     * @return array ['status' => VALID|VALIDATED|..., 'tran_id', 'amount', ...]
+     */
+    public function validateTransaction($valId) {
+        $endpoint = $this->apiDomain . '/validator/api/validationserverAPI.php';
+
+        $params = [
+            'val_id' => $valId,
+            'store_id' => $this->storeId,
+            'store_passwd' => $this->storePassword,
+            'format' => 'json'
+        ];
+
+        $response = $this->makeApiCall($endpoint, $params, 'GET');
+        $data = json_decode($response, true);
+        if (!is_array($data)) {
+            $data = [];
+        }
+
+        return [
+            'status' => $data['status'] ?? 'INVALID',
+            'tran_id' => $data['tran_id'] ?? '',
+            'val_id' => $data['val_id'] ?? '',
+            'amount' => $data['amount'] ?? '0',
+            'currency' => $data['currency'] ?? '',
+            'bank_tran_id' => $data['bank_tran_id'] ?? '',
+            'card_type' => $data['card_type'] ?? '',
+            'error' => $data['error'] ?? ''
+        ];
     }
 
     /**
@@ -113,10 +169,10 @@ class SSLCommerz {
             'store_id' => $this->storeId,
             'store_passwd' => $this->storePassword,
             'tran_id' => $transactionId,
-            'type' => 'transaction'
+            'format' => 'json'
         ];
 
-        $response = $this->makeApiCall($endpoint, $params);
+        $response = $this->makeApiCall($endpoint, $params, 'GET');
 
         return $this->parseStatusResponse($response);
     }
@@ -126,14 +182,19 @@ class SSLCommerz {
      *
      * @param string $endpoint API endpoint URL
      * @param array $params Request parameters
+     * @param string $method HTTP method ('POST' or 'GET')
      * @return string API response
      */
-    private function makeApiCall($endpoint, $params) {
+    private function makeApiCall($endpoint, $params, $method = 'POST') {
         $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_URL, $endpoint);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+        if ($method === 'GET') {
+            curl_setopt($ch, CURLOPT_URL, $endpoint . '?' . http_build_query($params));
+        } else {
+            curl_setopt($ch, CURLOPT_URL, $endpoint);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+        }
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -190,6 +251,11 @@ class SSLCommerz {
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             parse_str($response, $data);
+        }
+
+        // merchantTransIDValidationAPI wraps transactions in an 'element' array
+        if (isset($data['element'][0]) && is_array($data['element'][0])) {
+            $data = $data['element'][0];
         }
 
         return [

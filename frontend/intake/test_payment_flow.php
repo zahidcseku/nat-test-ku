@@ -300,24 +300,49 @@ function testIPNSignatureVerification() {
     try {
         $gateway = new SSLCommerz();
 
-        // Create test IPN data
-        $testIPNData = [
+        // Sign test IPN data with the real SSLCommerz algorithm: md5 of the
+        // ksorted key=value pairs named in verify_key, joined with '&', plus
+        // store_passwd=md5(store_password)
+        $fields = [
             'tran_id' => 'TEST_TRANSACTION_12345',
             'amount' => '4100.00',
             'currency' => 'BDT',
-            'verify_sign' => md5('TEST_TRANSACTION_12345' . '4100.00' . 'BDT' . SSLCZ_STORE_PASSWORD)
+            'status' => 'VALID'
         ];
+        $signed = $fields;
+        $signed['store_passwd'] = md5(SSLCZ_STORE_PASSWORD);
+        ksort($signed);
+        $pairs = [];
+        foreach ($signed as $k => $v) {
+            $pairs[] = $k . '=' . $v;
+        }
 
-        // Use reflection to access the private verifyIPN method
-        $reflection = new ReflectionClass($gateway);
-        $method = $reflection->getMethod('verifyIPN');
-        $method->setAccessible(true);
+        $testIPNData = $fields;
+        $testIPNData['verify_key'] = implode(',', array_keys($fields));
+        $testIPNData['verify_sign'] = md5(implode('&', $pairs));
 
-        // Note: This will fail IPN whitelist check in test mode, but we can test the signature logic
-        // For complete testing, we'd need to mock the IP whitelist check
+        $_SERVER['REMOTE_ADDR'] = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+
+        if (!$gateway->verifyIPN($testIPNData)) {
+            logTestResult('IPN Signature Verification', 'FAIL', 'Correctly signed IPN was rejected');
+            return false;
+        }
+
+        $tampered = $testIPNData;
+        $tampered['amount'] = '9999.00';
+        if ($gateway->verifyIPN($tampered)) {
+            logTestResult('IPN Signature Verification', 'FAIL', 'Tampered IPN payload was accepted');
+            return false;
+        }
+
+        $unsigned = $fields;
+        if ($gateway->verifyIPN($unsigned)) {
+            logTestResult('IPN Signature Verification', 'FAIL', 'IPN without signature was accepted');
+            return false;
+        }
 
         logTestResult('IPN Signature Verification', 'PASS',
-            'Signature verification logic exists (IP whitelist check separate)');
+            'Valid signature accepted; tampered and unsigned payloads rejected');
         return true;
 
     } catch (Exception $e) {

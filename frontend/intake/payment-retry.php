@@ -20,9 +20,14 @@ try {
     // Get lookup parameters
     $email = $_GET['email'] ?? $_POST['email'] ?? '';
     $registrationId = $_GET['registration_id'] ?? $_POST['registration_id'] ?? '';
+    $token = $_GET['token'] ?? $_POST['token'] ?? '';
 
-    if (empty($email) && empty($registrationId)) {
-        errorResponse('Email or registration ID required', 400);
+    if (empty($email) && empty($registrationId) && empty($token)) {
+        errorResponse('Email, registration ID or retry token required', 400);
+    }
+
+    if (!empty($token) && !preg_match('/^[a-f0-9]{32}$/', $token)) {
+        errorResponse('Invalid retry token', 400);
     }
 
     // Get database connection
@@ -32,7 +37,16 @@ try {
     }
 
     // Build query based on lookup parameter
-    if (!empty($registrationId)) {
+    if (!empty($token)) {
+        $stmt = $conn->prepare("
+            SELECT id, full_name, email, base_amount, transaction_fee, total_amount_paid,
+                   payment_status, payment_retry_token, payment_retry_expires,
+                   exam_level, test_date
+            FROM registrations
+            WHERE payment_retry_token = ?
+        ");
+        $stmt->bind_param('s', $token);
+    } elseif (!empty($registrationId)) {
         $stmt = $conn->prepare("
             SELECT id, full_name, email, base_amount, transaction_fee, total_amount_paid,
                    payment_status, payment_retry_token, payment_retry_expires,
@@ -70,6 +84,7 @@ try {
     // Check if retry is possible
     $canRetry = false;
     $retryLink = null;
+    $activeToken = null;
 
     if ($registration['payment_status'] === 'unpaid' || $registration['payment_status'] === 'failed') {
         $canRetry = true;
@@ -81,7 +96,8 @@ try {
 
             if ($expiresAt > $now) {
                 // Generate retry link (will be used by SSLCommerz session creation)
-                $retryLink = SITE_URL . '/payment-retry.html?token=' . $registration['payment_retry_token'];
+                $activeToken = $registration['payment_retry_token'];
+                $retryLink = SITE_URL . '/payment-retry.html?token=' . $activeToken;
             } else {
                 // Generate new retry token
                 $newToken = generateRetryToken();
@@ -98,6 +114,7 @@ try {
                 $updateStmt->close();
                 $conn->close();
 
+                $activeToken = $newToken;
                 $retryLink = SITE_URL . '/payment-retry.html?token=' . $newToken;
             }
         }
@@ -115,6 +132,7 @@ try {
         'payment_status' => $registration['payment_status'],
         'can_retry' => $canRetry,
         'retry_link' => $retryLink,
+        'retry_token' => $activeToken,
         'expires_at' => $registration['payment_retry_expires']
     ];
 

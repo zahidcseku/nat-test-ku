@@ -832,6 +832,20 @@ const RegistrationForm = (function() {
           return;
         }
 
+        // Online payment chosen but gateway unavailable — registration was
+        // saved; send the user to the retry page to complete payment
+        if (responseData.payment_retry_url) {
+          const warnDiv = document.createElement('div');
+          warnDiv.className = 'fixed top-4 right-4 bg-amber-500 text-white px-6 py-4 rounded-lg shadow-lg z-50';
+          warnDiv.textContent = 'Registration saved, but the payment gateway is unavailable. Taking you to the payment page...';
+          document.body.appendChild(warnDiv);
+
+          setTimeout(() => {
+            window.location.href = responseData.payment_retry_url;
+          }, 3000);
+          return;
+        }
+
         // Offline payment - show success message
         const submissionData = {
           ...formData.step1,
@@ -1255,8 +1269,9 @@ const RegistrationForm = (function() {
     // Update payment display
     updatePaymentDisplay(selectedLevels.length);
 
-    // Update total amount for form submission
-    totalAmount = payment.total;
+    // Submit the base amount only (levels × 4000). The server validates
+    // total_amount against the base and computes the gateway fee itself.
+    totalAmount = payment.base;
 
     // Advance to step 3 (Payment Method) after confirmation
     showStep(3);
