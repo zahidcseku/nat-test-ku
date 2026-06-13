@@ -19,7 +19,14 @@ Write:
 Read (public, JSON, no PII — exam schedule data only):
 - `get_exam_dates.php`, `get_next_exam.php`, `get_schedule.php`
 
-No registration data is ever readable over HTTP. No admin UI here.
+Deliberate registration-read exceptions (documented, user-approved):
+- `payment-retry.php` — limited fields by email/registration id/retry token
+- `application-lookup.php` — full submitted data (never images/file paths),
+  authenticated by full name + mobile + DOB all matching; POST-only
+  (multipart, enforced by initSecurity), generic errors, rate limited,
+  every attempt logged. Helpers in `lookup-lib.php`.
+
+Otherwise no registration data is readable over HTTP. No admin UI here.
 
 ## Shared library files
 Every endpoint must `define('INTAKE_SERVICE', true)` BEFORE including these —
