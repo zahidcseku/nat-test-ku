@@ -12,6 +12,9 @@ server.
 ## Decisions (made with user)
 
 1. **Permission:** any logged-in admin (no super_admin gate).
+   **Revised 2026-06-13 (user decision):** super_admin ONLY — buttons render
+   only for super admins, and both the detail-page action and the api
+   endpoint enforce the role server-side.
 2. **Confirmation:** native browser `confirm()` dialog.
 3. **Placement:** the registration-detail page AND each row of the
    registrations list.
