@@ -162,10 +162,20 @@ function smtpSendMail(string $to, string $subject, string $body, string $fromEma
         return false;
     }
 
+    // Shared-hosting mail servers often present certificates issued for the
+    // host machine rather than this domain; SMTP_ALLOW_SELF_SIGNED=true
+    // relaxes verification for exactly that case (default: strict).
+    $allowSelfSigned = strtolower(getenv('SMTP_ALLOW_SELF_SIGNED') ?: '') === 'true';
+    $context = stream_context_create($allowSelfSigned ? ['ssl' => [
+        'verify_peer' => false,
+        'verify_peer_name' => false,
+        'allow_self_signed' => true,
+    ]] : []);
+
     $remote = ($secure === 'ssl' ? 'ssl://' : 'tcp://') . $host . ':' . $port;
     $errno = 0;
     $errstr = '';
-    $fp = @stream_socket_client($remote, $errno, $errstr, 15);
+    $fp = @stream_socket_client($remote, $errno, $errstr, 15, STREAM_CLIENT_CONNECT, $context);
     if (!$fp) {
         logActivity("SMTP connect to {$host}:{$port} failed: {$errstr}", 'warning');
         return false;
