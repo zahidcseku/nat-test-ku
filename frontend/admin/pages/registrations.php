@@ -284,6 +284,7 @@ require_once __DIR__ . '/../templates/header.php';
                                    class="btn btn-primary" style="padding: 6px 12px; font-size: 13px;">
                                     ✏️ Edit
                                 </a>
+                                <?php if (isSuperAdmin()): ?>
                                 <form method="POST" action="<?php echo BASE_URL; ?>/api/registrations/delete.php"
                                       style="display: inline;"
                                       onsubmit="return confirm('Permanently delete this registration and its uploaded files? This cannot be undone.')">
@@ -294,6 +295,7 @@ require_once __DIR__ . '/../templates/header.php';
                                         🗑 Delete
                                     </button>
                                 </form>
+                                <?php endif; ?>
                             </div>
                         </td>
                     </tr>

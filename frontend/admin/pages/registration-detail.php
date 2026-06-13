@@ -144,6 +144,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
 
     } elseif ($action === 'delete') {
+        // Destructive: super admins only (UI hides the button, but enforce here)
+        if (!isSuperAdmin()) {
+            setFlashMessage('Only a super admin can delete registrations', 'error');
+            header('Location: ' . BASE_URL . '/pages/registration-detail.php?id=' . $id);
+            exit;
+        }
         // The helper audit-logs the deletion with the row's key fields
         $deleteResult = deleteRegistrationCompletely($id);
         setFlashMessage($deleteResult['message'], $deleteResult['success'] ? 'success' : 'error');
@@ -485,6 +491,7 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                 </div>
             </form>
 
+            <?php if (isSuperAdmin()): ?>
             <form method="POST" onsubmit="return confirmDelete()" style="margin-top: 8px;">
                 <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                 <button type="submit" name="action" value="delete" class="btn btn-danger"
@@ -492,6 +499,7 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                     🗑 Delete Registration Permanently
                 </button>
             </form>
+            <?php endif; ?>
         </div>
     </div>
 </div>
