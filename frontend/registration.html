@@ -146,6 +146,26 @@
         <p class="text-xs text-white">Examples: 2 levels = BDT 8,000</p>
       </div>
 
+      <!-- Application Lookup -->
+      <div class="p-6 bg-surface-container-low rounded-lg space-y-3">
+        <div class="flex items-center gap-2 text-primary">
+          <span class="material-symbols-outlined text-xl">person_search</span>
+          <span class="text-sm font-semibold">Already registered?</span>
+        </div>
+        <p class="text-sm text-secondary leading-relaxed">View your submitted application details.</p>
+        <input id="lookup_name" type="text" placeholder="Full name"
+               class="w-full px-3 py-2 text-sm bg-white border border-surface-container-highest rounded-lg focus:border-primary focus:outline-none">
+        <input id="lookup_mobile" type="tel" placeholder="Mobile (01XXXXXXXXX)"
+               class="w-full px-3 py-2 text-sm bg-white border border-surface-container-highest rounded-lg focus:border-primary focus:outline-none">
+        <input id="lookup_dob" type="date" aria-label="Date of birth"
+               class="w-full px-3 py-2 text-sm bg-white border border-surface-container-highest rounded-lg focus:border-primary focus:outline-none text-secondary">
+        <button id="lookup_btn" type="button"
+                class="w-full bg-primary text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-all">
+          View my application
+        </button>
+        <span class="field-error" id="lookup-error"></span>
+      </div>
+
       <!-- Group Registration -->
       <div class="p-6 bg-surface-container-low rounded-lg space-y-3">
         <div class="flex items-center gap-2 text-primary">
@@ -716,6 +736,16 @@
   </footer>
 
   <script src="js/lib/dompurify.js"></script>
+  <!-- Application Lookup Modal -->
+  <div id="lookup_modal" class="hidden fixed inset-0 bg-black/50 z-50 overflow-y-auto p-4">
+    <div class="bg-white rounded-lg max-w-2xl mx-auto my-8 p-6 sm:p-8 relative">
+      <button id="lookup_modal_close" type="button" aria-label="Close"
+              class="absolute top-3 right-4 text-secondary hover:text-primary text-2xl font-bold">×</button>
+      <h3 class="text-xl font-bold text-primary mb-4">Your Application</h3>
+      <div id="lookup_results"></div>
+    </div>
+  </div>
+  <script src="js/application-lookup.js?v=20260613"></script>
   <script src="js/registration.js?v=20260612"></script>
   <script>
     // Initialize form and load exam dates
