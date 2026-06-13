@@ -49,3 +49,27 @@ function isUpcomingTestDate(string $testDate, ?string $today = null): bool {
     $today = $today ?: date('Y-m-d');
     return $testDate >= $today;
 }
+
+/**
+ * Modules (exam levels) present in BOTH comma-separated lists, normalized
+ * (trimmed + uppercased). Used by the duplicate-registration guard.
+ *
+ * @return array sorted unique overlapping modules ([] = no overlap)
+ */
+function findModuleOverlap(string $newCsv, string $existingCsv): array {
+    $split = static function (string $csv): array {
+        $out = [];
+        foreach (explode(',', $csv) as $m) {
+            $m = strtoupper(trim($m));
+            if ($m !== '') {
+                $out[$m] = true;
+            }
+        }
+        return $out;
+    };
+    $new = $split($newCsv);
+    $existing = $split($existingCsv);
+    $overlap = array_keys(array_intersect_key($new, $existing));
+    sort($overlap);
+    return $overlap;
+}

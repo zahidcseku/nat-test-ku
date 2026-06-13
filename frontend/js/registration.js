@@ -958,6 +958,18 @@ const RegistrationForm = (function() {
       console.error('Submission failed:', status, data);
       restoreSubmitButton();
 
+      // Duplicate registration: an application for these modules + test date
+      // already exists. For an unpaid original, route to its payment page.
+      if (data.duplicate) {
+        if (data.payment_retry_url) {
+          showSubmitBanner(data.error + ' Taking you to the payment page...', true);
+          setTimeout(() => { window.location.href = data.payment_retry_url; }, 3500);
+        } else {
+          showSubmitBanner(data.error || 'You have already registered for this test date.', true);
+        }
+        return;
+      }
+
       if (data.errors && showServerErrors(data.errors)) {
         showSubmitBanner('Some details need correcting — please review the highlighted fields.', true);
       } else if (status >= 500 || data.parseFailed) {

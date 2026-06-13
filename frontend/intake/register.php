@@ -15,6 +15,7 @@ require_once __DIR__ . '/validate.php';
 require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/upload.php';
 require_once __DIR__ . '/mailer.php';
+require_once __DIR__ . '/lookup-lib.php';
 
 // Initialize security
 initSecurity();
@@ -73,6 +74,71 @@ try {
         }
 
         errorResponse('File upload failed', 400, $uploadResult['errors']);
+    }
+
+    // ============================================
+    // DUPLICATE GUARD
+    // ============================================
+    // Block re-submitting modules already registered for the same person
+    // (email + DOB) and exam date. Prevents accidental double registration
+    // (back-button re-submit, double-click). Runs before any gateway session.
+    // Fail-open: a query error must never block a legitimate registration.
+    try {
+        $dupConn = getDbConnection();
+        if ($dupConn) {
+            $dupStmt = $dupConn->prepare("
+                SELECT exam_level, payment_status, payment_retry_token
+                FROM registrations
+                WHERE LOWER(email) = LOWER(?) AND dob = ? AND test_date = ?
+                ORDER BY submitted_at DESC
+            ");
+            $dupStmt->bind_param('sss', $data['email'], $data['dob'], $data['test_date']);
+            $dupStmt->execute();
+            $dupResult = $dupStmt->get_result();
+
+            $paidOverlap = [];
+            $unpaidOverlap = [];
+            $unpaidRetryToken = null;
+            while ($existing = $dupResult->fetch_assoc()) {
+                $overlap = findModuleOverlap($data['exam_level'], $existing['exam_level']);
+                if (empty($overlap)) {
+                    continue;
+                }
+                if ($existing['payment_status'] === 'paid') {
+                    $paidOverlap = array_values(array_unique(array_merge($paidOverlap, $overlap)));
+                } elseif ($unpaidRetryToken === null) {
+                    $unpaidOverlap = $overlap;
+                    $unpaidRetryToken = $existing['payment_retry_token'] ?: null;
+                }
+            }
+            $dupStmt->close();
+
+            if (!empty($paidOverlap)) {
+                logActivity("Duplicate blocked (paid overlap) for {$data['email']} on {$data['test_date']}: " . implode(',', $paidOverlap), 'warning');
+                jsonResponse([
+                    'success' => false,
+                    'duplicate' => true,
+                    'error' => 'You are already registered and paid for ' . implode(', ', $paidOverlap)
+                        . ' on this test date. To add or change modules, email info@nat-test.ku.ac.bd.'
+                ], 409);
+            }
+
+            if (!empty($unpaidOverlap)) {
+                logActivity("Duplicate blocked (unpaid overlap) for {$data['email']} on {$data['test_date']}: " . implode(',', $unpaidOverlap), 'warning');
+                $resp = [
+                    'success' => false,
+                    'duplicate' => true,
+                    'error' => 'You already have an application for ' . implode(', ', $unpaidOverlap)
+                        . ' on this test date that is not paid yet. Please complete that payment instead.'
+                ];
+                if ($unpaidRetryToken) {
+                    $resp['payment_retry_url'] = SITE_URL . '/payment-retry.html?token=' . $unpaidRetryToken;
+                }
+                jsonResponse($resp, 409);
+            }
+        }
+    } catch (Throwable $dupErr) {
+        logActivity('Duplicate guard skipped (error): ' . $dupErr->getMessage(), 'warning');
     }
 
     // ============================================
