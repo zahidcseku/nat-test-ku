@@ -39,15 +39,15 @@
       btn.disabled = true;
       btn.textContent = 'Searching...';
 
-      var params = new URLSearchParams();
-      params.set('full_name', name);
-      params.set('mobile', mobile);
-      params.set('dob', dob);
+      // multipart/form-data: the intake security layer requires it for POSTs
+      var formData = new FormData();
+      formData.append('full_name', name);
+      formData.append('mobile', mobile);
+      formData.append('dob', dob);
 
       fetch('intake/application-lookup.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params.toString()
+        body: formData
       })
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
         .then(function (res) {

@@ -62,12 +62,14 @@ try {
         if (!mobilesMatch($row['mobile'], $mobileInput)) {
             continue;
         }
+        // Stored text fields are HTML-encoded (registration sanitization);
+        // decode for display — the client renders with textContent only
         $entry = [
             'id' => $row['id'],
-            'full_name' => $row['full_name'],
+            'full_name' => html_entity_decode($row['full_name'], ENT_QUOTES, 'UTF-8'),
             'email' => $row['email'],
             'mobile' => $row['mobile'],
-            'address' => $row['address'],
+            'address' => html_entity_decode($row['address'], ENT_QUOTES, 'UTF-8'),
             'dob' => $row['dob'],
             'nationality' => $row['nationality'],
             'id_document' => trim(($idTypeLabels[$row['id_document_type']] ?? '—') . ' · ' . ($row['id_document_number'] ?? '')),
