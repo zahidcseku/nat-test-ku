@@ -151,8 +151,22 @@ const RegistrationForm = (function() {
       return { valid: false, error: `File size exceeds ${maxSizeMB}MB limit` };
     }
 
+    // iPhone photos are often HEIC/HEIF, which we don't accept. Detect by
+    // type or extension and give a specific, actionable message (browsers
+    // sometimes report an empty type for HEIC).
+    var nameLower = (file.name || '').toLowerCase();
+    var isHeic = file.type === 'image/heic' || file.type === 'image/heif'
+      || /\.(heic|heif)$/.test(nameLower);
+    if (isHeic) {
+      return {
+        valid: false,
+        error: 'iPhone HEIC photos are not supported. Please upload a JPG or PNG '
+          + '(on iPhone: Settings → Camera → Formats → "Most Compatible", or share the photo as JPEG).'
+      };
+    }
+
     if (!allowedTypes.includes(file.type)) {
-      return { valid: false, error: 'Invalid file type' };
+      return { valid: false, error: 'Unsupported file type. Please upload a JPG or PNG' + (allowedTypes.indexOf('application/pdf') !== -1 ? ' or PDF' : '') + '.' };
     }
 
     return { valid: true, error: null };
@@ -880,33 +894,22 @@ const RegistrationForm = (function() {
 
         // Check if redirect URL is present (online payment)
         if (responseData.redirect_url) {
-          // Show success message then redirect
+          // Navigate to the gateway immediately. A delayed (setTimeout)
+          // redirect is unreliable on mobile (background-timer throttling,
+          // in-app browsers), so go straight there while still in the
+          // fetch-resolution context.
           console.log('✅ Registration saved! Redirecting to payment gateway...');
-
-          // Create temporary success message
-          const successDiv = document.createElement('div');
-          successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-50';
-          successDiv.textContent = 'Registration saved! Redirecting to payment gateway...';
-          document.body.appendChild(successDiv);
-
-          // Redirect after delay
-          setTimeout(() => {
-            window.location.href = responseData.redirect_url;
-          }, 2000);
+          showLoading('Redirecting to payment gateway...');
+          window.location.href = responseData.redirect_url;
           return;
         }
 
         // Online payment chosen but gateway unavailable — registration was
-        // saved; send the user to the retry page to complete payment
+        // saved; send the user to the retry page to complete payment.
+        // Navigate immediately (reliable on mobile).
         if (responseData.payment_retry_url) {
-          const warnDiv = document.createElement('div');
-          warnDiv.className = 'fixed top-4 right-4 bg-amber-500 text-white px-6 py-4 rounded-lg shadow-lg z-50';
-          warnDiv.textContent = 'Registration saved, but the payment gateway is unavailable. Taking you to the payment page...';
-          document.body.appendChild(warnDiv);
-
-          setTimeout(() => {
-            window.location.href = responseData.payment_retry_url;
-          }, 3000);
+          showLoading('Registration saved. Taking you to the payment page...');
+          window.location.href = responseData.payment_retry_url;
           return;
         }
 

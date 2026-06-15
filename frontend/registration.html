@@ -87,6 +87,14 @@
     .file-preview.show {
       display: block;
     }
+    /* Mobile: show the registration form before the sidebar cards so users
+       don't scroll past a wall of info to reach it. Desktop keeps the
+       sidebar on the left (source order). Plain CSS — the pre-built
+       stylesheet has no Tailwind order-* utilities. lg breakpoint = 1024px. */
+    @media (max-width: 1023px) {
+      main.grid > section { order: 1; }
+      main.grid > aside { order: 2; }
+    }
   </style>
 </head>
 <body class="bg-surface font-sans text-[#191c1e] antialiased">
@@ -459,6 +467,10 @@
                       Photograph must be taken within last 6 months on a plain, light-colored background.
                       Face should occupy 70-80% of the frame, front-facing with eyes open.
                     </p>
+                    <p class="text-xs text-warning">
+                      JPG or PNG only. iPhone HEIC photos are not accepted — on iPhone set
+                      Settings → Camera → Formats → "Most Compatible", or share the photo as JPEG.
+                    </p>
                     <div class="flex items-center gap-4">
                       <label class="file-input-wrapper bg-white border-2 border-dashed border-surface-container-highest hover:border-primary rounded-lg px-6 py-4 cursor-pointer transition-all">
                         <span class="material-symbols-outlined text-2xl text-secondary mr-2">upload</span>
@@ -779,7 +791,7 @@
     </div>
   </div>
   <script src="js/application-lookup.js?v=20260613"></script>
-  <script src="js/registration.js?v=20260612"></script>
+  <script src="js/registration.js?v=20260613"></script>
   <script>
     // Initialize form and load exam dates
     document.addEventListener('DOMContentLoaded', function() {

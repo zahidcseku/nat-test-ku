@@ -54,9 +54,17 @@ function validateFileUpload($file, $allowedTypes, $maxSize = null) {
     finfo_close($finfo);
 
     if (!in_array($mimeType, $allowedTypes, true)) {
+        // iPhone HEIC/HEIF is the common culprit — give a specific message
+        if ($mimeType === 'image/heic' || $mimeType === 'image/heif') {
+            return [
+                'valid' => false,
+                'error' => 'iPhone HEIC photos are not supported. Please upload a JPG or PNG '
+                    . '(on iPhone: Settings → Camera → Formats → "Most Compatible").'
+            ];
+        }
         return [
             'valid' => false,
-            'error' => 'Invalid file type. Allowed types: ' . implode(', ', $allowedTypes)
+            'error' => 'Unsupported file type. Please upload a JPG or PNG' . (in_array('application/pdf', $allowedTypes, true) ? ' or PDF' : '') . '.'
         ];
     }
 
