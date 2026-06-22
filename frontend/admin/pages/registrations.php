@@ -146,16 +146,16 @@ require_once __DIR__ . '/../templates/header.php';
 
 <!-- Status Tabs -->
 <div style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
-    <a href="<?php echo BASE_URL; ?>/pages/registrations.php" class="btn <?php echo $status === '' ? 'btn-primary' : 'btn-secondary'; ?>">
+    <a href="<?php echo BASE_URL; ?>/pages/registrations.php<?php echo $page > 1 ? '?page=' . $page : ''; ?>" class="btn <?php echo $status === '' ? 'btn-primary' : 'btn-secondary'; ?>">
         All (<?php echo $statusCounts['all']; ?>)
     </a>
-    <a href="<?php echo BASE_URL; ?>/pages/registrations.php?status=pending" class="btn <?php echo $status === 'pending' ? 'btn-primary' : 'btn-secondary'; ?>">
+    <a href="<?php echo BASE_URL; ?>/pages/registrations.php?status=pending<?php echo $page > 1 ? '&amp;page=' . $page : ''; ?>" class="btn <?php echo $status === 'pending' ? 'btn-primary' : 'btn-secondary'; ?>">
         Pending (<?php echo $statusCounts['pending']; ?>)
     </a>
-    <a href="<?php echo BASE_URL; ?>/pages/registrations.php?status=approved" class="btn <?php echo $status === 'approved' ? 'btn-primary' : 'btn-secondary'; ?>">
+    <a href="<?php echo BASE_URL; ?>/pages/registrations.php?status=approved<?php echo $page > 1 ? '&amp;page=' . $page : ''; ?>" class="btn <?php echo $status === 'approved' ? 'btn-primary' : 'btn-secondary'; ?>">
         Approved (<?php echo $statusCounts['approved']; ?>)
     </a>
-    <a href="<?php echo BASE_URL; ?>/pages/registrations.php?status=rejected" class="btn <?php echo $status === 'rejected' ? 'btn-primary' : 'btn-secondary'; ?>">
+    <a href="<?php echo BASE_URL; ?>/pages/registrations.php?status=rejected<?php echo $page > 1 ? '&amp;page=' . $page : ''; ?>" class="btn <?php echo $status === 'rejected' ? 'btn-primary' : 'btn-secondary'; ?>">
         Rejected (<?php echo $statusCounts['rejected']; ?>)
     </a>
     <a href="<?php echo BASE_URL; ?>/api/registrations/export.php" class="btn btn-secondary">
@@ -166,9 +166,64 @@ require_once __DIR__ . '/../templates/header.php';
     </a>
 </div>
 
+<?php
+// Active-filter chip so it is always obvious which status is filtered.
+$activeStatus = null;
+if ($status === 'pending')  $activeStatus = 'Pending';
+elseif ($status === 'approved') $activeStatus = 'Approved';
+elseif ($status === 'rejected') $activeStatus = 'Rejected';
+
+$activeFilters = [];
+if ($activeStatus)  $activeFilters['Status']   = [$activeStatus, 'status'];
+if (!empty($search))    $activeFilters['Search']   = [$search, 'search'];
+if (!empty($examDate))  $activeFilters['Exam Date'] = [formatDate($examDate), 'exam_date'];
+if (!empty($examLevel)) $activeFilters['Exam Level'] = [$examLevel, 'exam_level'];
+if (!empty($dateFrom))  $activeFilters['From']      = [$dateFrom, 'date_from'];
+if (!empty($dateTo))    $activeFilters['To']        = [$dateTo, 'date_to'];
+
+if (!empty($activeFilters)):
+    // Build "remove this filter" URL by dropping one query param and resetting page.
+    $removeUrl = function($keyToRemove) use ($status, $examDate, $examLevel, $dateFrom, $dateTo, $search, $perPage) {
+        $params = array_filter([
+            'status'     => $status,
+            'exam_date'  => $examDate,
+            'exam_level' => $examLevel,
+            'date_from'  => $dateFrom,
+            'date_to'    => $dateTo,
+            'search'     => $search,
+            'per_page'   => $perPage === 50 ? null : $perPage,
+        ]);
+        unset($params[$keyToRemove]);
+        $qs = http_build_query($params, '', '&amp;');
+        return $qs !== '' ? '?' . $qs : '';
+    };
+
+    $clearAllParams = array_filter([
+        'per_page' => $perPage === 50 ? null : $perPage,
+    ]);
+    $clearAllQs = http_build_query($clearAllParams, '', '&amp;');
+    $clearAllUrl = $clearAllQs !== '' ? '?' . $clearAllQs : '';
+    ?>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding: 12px 16px; background: #fefcbf; border: 1px solid #f6e05e; border-radius: 8px;">
+        <span style="font-size: 13px; color: #744210; font-weight: 600;">Active filters:</span>
+        <?php foreach ($activeFilters as $label => [$value, $key]): ?>
+            <a href="<?php echo BASE_URL; ?>/pages/registrations.php<?php echo $removeUrl($key); ?>"
+               style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: white; border: 1px solid #f6e05e; border-radius: 12px; font-size: 12px; color: #744210; text-decoration: none;">
+                <strong><?php echo e($label); ?>:</strong> <?php echo e($value); ?>
+                <span style="color: #c53030; font-weight: 700;">✕</span>
+            </a>
+        <?php endforeach; ?>
+        <a href="<?php echo BASE_URL; ?>/pages/registrations.php<?php echo $clearAllUrl; ?>"
+           style="font-size: 12px; color: #c53030; text-decoration: underline;">Clear all</a>
+    </div>
+<?php endif; ?>
+
 <!-- Filters -->
 <div style="background: white; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
     <form method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <?php if (!empty($status)): ?>
+            <input type="hidden" name="status" value="<?php echo e($status); ?>">
+        <?php endif; ?>
         <div>
             <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Search</label>
             <input type="text" name="search" placeholder="Name, email, mobile..." value="<?php echo e($search); ?>"
