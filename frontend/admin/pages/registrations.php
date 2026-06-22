@@ -314,10 +314,13 @@ if (!empty($activeFilters)):
                         <td style="padding: 12px 16px; font-size: 14px;"><?php echo e(formatDate($reg['test_date'])); ?></td>
                         <td style="padding: 12px 16px;">
                             <?php
-                            // Determine status from approved column
-                            $status = 'pending';
+                            // Determine row status from approved column.
+                            // IMPORTANT: use a local name ($rowStatus) — reusing $status
+                            // here would clobber the outer filter $status used by the
+                            // status tabs, active-filter chip, and pagination URLs.
+                            $rowStatus = 'pending';
                             if ($reg['approved'] == 1) {
-                                $status = 'approved';
+                                $rowStatus = 'approved';
                             }
                             $statusColors = [
                                 'pending' => '#ed8936',
@@ -325,8 +328,8 @@ if (!empty($activeFilters)):
                                 'rejected' => '#f56565'
                             ];
                             ?>
-                            <span style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; background: <?php echo $statusColors[$status]; ?>20; color: <?php echo $statusColors[$status]; ?>;">
-                                <?php echo e(ucfirst($status)); ?>
+                            <span style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; background: <?php echo $statusColors[$rowStatus]; ?>20; color: <?php echo $statusColors[$rowStatus]; ?>;">
+                                <?php echo e(ucfirst($rowStatus)); ?>
                             </span>
                         </td>
                         <td class="p-4">
