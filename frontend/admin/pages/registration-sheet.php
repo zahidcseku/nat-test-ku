@@ -123,6 +123,24 @@ if (!empty($registrations)) {
     }
 }
 
+// Status counts (mirrors registrations.php so the tab bar matches).
+$statusCounts = ['all' => 0, 'pending' => 0, 'approved' => 0, 'rejected' => 0];
+$stmt = $conn->prepare("
+    SELECT
+        COUNT(*) AS all_count,
+        SUM(CASE WHEN approved IS NULL OR approved = 0 THEN 1 ELSE 0 END) AS pending_count,
+        SUM(CASE WHEN approved = 1 THEN 1 ELSE 0 END) AS approved_count
+    FROM registrations
+");
+if ($stmt) {
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $statusCounts['all']      = (int) ($row['all_count']      ?? 0);
+    $statusCounts['pending']  = (int) ($row['pending_count']  ?? 0);
+    $statusCounts['approved'] = (int) ($row['approved_count'] ?? 0);
+    $stmt->close();
+}
+
 require_once __DIR__ . '/../templates/header.php';
 ?>
 
@@ -132,10 +150,18 @@ require_once __DIR__ . '/../templates/header.php';
 </div>
 
 <div style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; flex-wrap: wrap;">
-    <a href="<?php echo BASE_URL; ?>/pages/registrations.php" class="btn btn-secondary">All</a>
-    <a href="<?php echo BASE_URL; ?>/pages/registrations.php?status=pending" class="btn btn-secondary">Pending</a>
-    <a href="<?php echo BASE_URL; ?>/pages/registrations.php?status=approved" class="btn btn-secondary">Approved</a>
-    <a href="<?php echo BASE_URL; ?>/pages/registrations.php?status=rejected" class="btn btn-secondary">Rejected</a>
+    <a href="<?php echo BASE_URL; ?>/pages/registrations.php" class="btn btn-secondary">
+        All (<?php echo number_format($statusCounts['all']); ?>)
+    </a>
+    <a href="<?php echo BASE_URL; ?>/pages/registrations.php?status=pending" class="btn btn-secondary">
+        Pending (<?php echo number_format($statusCounts['pending']); ?>)
+    </a>
+    <a href="<?php echo BASE_URL; ?>/pages/registrations.php?status=approved" class="btn btn-secondary">
+        Approved (<?php echo number_format($statusCounts['approved']); ?>)
+    </a>
+    <a href="<?php echo BASE_URL; ?>/pages/registrations.php?status=rejected" class="btn btn-secondary">
+        Rejected (<?php echo $statusCounts['rejected']; ?>)
+    </a>
     <a href="<?php echo BASE_URL; ?>/api/registrations/export.php" class="btn btn-secondary">📥 Export CSV</a>
     <a href="<?php echo BASE_URL; ?>/pages/registration-sheet.php" class="btn btn-primary">📋 Registration Sheet</a>
 </div>
