@@ -80,6 +80,8 @@ define('SMTP_FROM_NAME', getenv('SMTP_FROM_NAME') ?: 'NAT-TEST Khulna');
 // Site URLs
 define('BASE_URL', 'https://nat-test.ku.ac.bd/admin');
 define('FRONTEND_URL', 'https://nat-test.ku.ac.bd');
+// Registration Sheet template (used by api/registrations/registration-sheet-export.php)
+define('REGISTRATION_SHEET_TEMPLATE', getenv('REGISTRATION_SHEET_TEMPLATE') ?: __DIR__ . '/templates/Registration_Sheet_ver.30.xlsx');
 
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {

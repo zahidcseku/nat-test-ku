@@ -82,7 +82,7 @@ if (!empty($search)) {
 
 $whereClause = implode(' AND ', $where);
 
-// Get registrations
+// Get registrations (paginated)
 $query = "
     SELECT
         r.*,
@@ -91,15 +91,22 @@ $query = "
     LEFT JOIN exam_dates ed ON r.test_date = ed.exam_date
     WHERE $whereClause
     ORDER BY r.submitted_at DESC
-    LIMIT 50
 ";
 
-$stmt = $conn->prepare($query);
-if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
+$countQuery = "
+    SELECT COUNT(*) AS cnt
+    FROM registrations r
+    WHERE $whereClause
+";
+
+$page    = max(1, (int) ($_GET['page'] ?? 1));
+$perPage = (int) ($_GET['per_page'] ?? 50);
+if (!in_array($perPage, [25, 50, 100, 200], true)) {
+    $perPage = 50;
 }
-$stmt->execute();
-$registrations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+$paginator = paginateQuery($query, $countQuery, $params, $types, $page, $perPage);
+$registrations = $paginator['rows'];
 
 // Get exam dates for filter
 $stmt = $conn->prepare("SELECT DISTINCT exam_date FROM exam_dates ORDER BY exam_date ASC");
@@ -151,8 +158,11 @@ require_once __DIR__ . '/../templates/header.php';
     <a href="<?php echo BASE_URL; ?>/pages/registrations.php?status=rejected" class="btn <?php echo $status === 'rejected' ? 'btn-primary' : 'btn-secondary'; ?>">
         Rejected (<?php echo $statusCounts['rejected']; ?>)
     </a>
-    <a href="<?php echo BASE_URL; ?>/api/registrations/export.php" class="btn btn-secondary" style="margin-left: auto;">
+    <a href="<?php echo BASE_URL; ?>/api/registrations/export.php" class="btn btn-secondary">
         📥 Export CSV
+    </a>
+    <a href="<?php echo BASE_URL; ?>/pages/registration-sheet.php" class="btn btn-secondary" style="margin-left: auto;">
+        📋 Registration Sheet
     </a>
 </div>
 
@@ -303,6 +313,26 @@ require_once __DIR__ . '/../templates/header.php';
             </tbody>
         </table>
     </div>
+    <?php
+    // Pagination control — preserve every active filter in page links.
+    $paginationParams = array_filter([
+        'status'     => $status,
+        'exam_date'  => $examDate,
+        'exam_level' => $examLevel,
+        'date_from'  => $dateFrom,
+        'date_to'    => $dateTo,
+        'search'     => $search,
+        'per_page'   => $perPage === 50 ? null : $perPage,
+    ]);
+    echo renderPagination(
+        $paginator['page'],
+        $paginator['totalPages'],
+        $paginator['total'],
+        $paginator['perPage'],
+        BASE_URL . '/pages/registrations.php',
+        $paginationParams
+    );
+    ?>
 <?php else: ?>
     <div style="background: white; border-radius: 12px; padding: 48px; text-align: center; border: 1px solid #e2e8f0;">
         <div style="font-size: 48px; margin-bottom: 16px;">📭</div>

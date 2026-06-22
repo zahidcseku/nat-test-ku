@@ -34,7 +34,7 @@ if (!empty($examLevel)) {
 
 $whereClause = implode(' AND ', $where);
 
-// Get approved registrations
+// Get approved registrations (paginated)
 $query = "
     SELECT r.*
     FROM registrations r
@@ -42,12 +42,20 @@ $query = "
     ORDER BY r.test_date ASC, r.full_name ASC
 ";
 
-$stmt = $conn->prepare($query);
-if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
+$countQuery = "
+    SELECT COUNT(*) AS cnt
+    FROM registrations r
+    WHERE $whereClause
+";
+
+$page    = max(1, (int) ($_GET['page'] ?? 1));
+$perPage = (int) ($_GET['per_page'] ?? 50);
+if (!in_array($perPage, [25, 50, 100, 200], true)) {
+    $perPage = 50;
 }
-$stmt->execute();
-$participants = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+$paginator   = paginateQuery($query, $countQuery, $params, $types, $page, $perPage);
+$participants = $paginator['rows'];
 
 // Get exam dates for filter
 $stmt = $conn->prepare("
@@ -61,7 +69,7 @@ $stmt->execute();
 $examDates = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // Statistics
-$totalParticipants = count($participants);
+$totalParticipants = $paginator['total'];
 $totalRevenue = $totalParticipants * 4000;
 
 require_once __DIR__ . '/../templates/header.php';
@@ -166,6 +174,21 @@ require_once __DIR__ . '/../templates/header.php';
             </tbody>
         </table>
     </div>
+    <?php
+    $paginationParams = array_filter([
+        'exam_date'  => $examDate,
+        'exam_level' => $examLevel,
+        'per_page'   => $perPage === 50 ? null : $perPage,
+    ]);
+    echo renderPagination(
+        $paginator['page'],
+        $paginator['totalPages'],
+        $paginator['total'],
+        $paginator['perPage'],
+        BASE_URL . '/pages/participants.php',
+        $paginationParams
+    );
+    ?>
 <?php else: ?>
     <div style="background: white; border-radius: 12px; padding: 48px; text-align: center; border: 1px solid #e2e8f0;">
         <div style="font-size: 48px; margin-bottom: 16px;">👥</div>

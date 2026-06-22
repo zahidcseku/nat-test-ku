@@ -340,6 +340,139 @@ function getFlashMessage() {
     return $message;
 }
 
+/**
+ * Run a paginated SELECT.
+ *
+ * @param string $dataQuery  SELECT ... FROM ... WHERE ... ORDER BY ...   (no LIMIT)
+ * @param string $countQuery SELECT COUNT(*) AS cnt FROM ... WHERE ...   (same WHERE)
+ * @param array  $params     bind params for WHERE (excluding page/perPage)
+ * @param string $types      mysqli type string for $params (e.g. "sss")
+ * @param int    $page       1-indexed page number
+ * @param int    $perPage    rows per page
+ * @return array{rows:array, total:int, page:int, perPage:int, totalPages:int}
+ */
+function paginateQuery($dataQuery, $countQuery, $params = [], $types = '', $page = 1, $perPage = 50) {
+    $conn = getDbConnection();
+    $page    = max(1, (int) $page);
+    $perPage = max(1, min(500, (int) $perPage));
+
+    // Total count
+    $stmt = $conn->prepare($countQuery);
+    if ($stmt === false) {
+        return ['rows' => [], 'total' => 0, 'page' => $page, 'perPage' => $perPage, 'totalPages' => 1, 'error' => $conn->error];
+    }
+    if (!empty($params)) {
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $total = (int) ($row['cnt'] ?? 0);
+    $stmt->close();
+
+    $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
+    $page = min($page, $totalPages);
+    $offset = ($page - 1) * $perPage;
+
+    // Page rows
+    $stmt = $conn->prepare($dataQuery . ' LIMIT ? OFFSET ?');
+    if ($stmt === false) {
+        return ['rows' => [], 'total' => $total, 'page' => $page, 'perPage' => $perPage, 'totalPages' => $totalPages, 'error' => $conn->error];
+    }
+    $pageParams = array_merge($params, [$perPage, $offset]);
+    $pageTypes  = $types . 'ii';
+    $stmt->bind_param($pageTypes, ...$pageParams);
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+
+    return [
+        'rows'       => $rows,
+        'total'      => $total,
+        'page'       => $page,
+        'perPage'    => $perPage,
+        'totalPages' => $totalPages,
+    ];
+}
+
+/**
+ * Render a pagination control as HTML. Returns '' if there's nothing to paginate.
+ *
+ * @param int    $currentPage
+ * @param int    $totalPages
+ * @param int    $totalRows
+ * @param int    $perPage
+ * @param string $basePath    script path, e.g. BASE_URL . '/pages/registrations.php'
+ * @param array  $queryParams query params to preserve across page links (page is set automatically)
+ * @return string
+ */
+function renderPagination($currentPage, $totalPages, $totalRows, $perPage, $basePath, $queryParams = []) {
+    if ($totalPages <= 1 || $totalRows === 0) {
+        return '';
+    }
+
+    $startRow = ($currentPage - 1) * $perPage + 1;
+    $endRow   = min($currentPage * $perPage, $totalRows);
+
+    // Build a page URL preserving filter params.
+    $urlFor = function ($p) use ($basePath, $queryParams) {
+        unset($queryParams['page']);
+        $params = array_merge($queryParams, ['page' => $p]);
+        return $basePath . '?' . http_build_query($params, '', '&amp;');
+    };
+
+    // Determine visible page numbers: current ±2, always show 1 and last.
+    $range = [];
+    $rangeStart = max(1, $currentPage - 2);
+    $rangeEnd   = min($totalPages, $currentPage + 2);
+    for ($i = $rangeStart; $i <= $rangeEnd; $i++) {
+        $range[$i] = true;
+    }
+    $range[1] = true;
+    $range[$totalPages] = true;
+
+    $ordered = array_keys($range);
+    sort($ordered);
+
+    ob_start();
+    ?>
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 16px; margin-top: 16px; background: white; border: 1px solid #e2e8f0; border-radius: 12px;">
+        <div style="font-size: 13px; color: #718096;">
+            Showing <strong><?php echo $startRow; ?></strong>&ndash;<strong><?php echo $endRow; ?></strong>
+            of <strong><?php echo number_format($totalRows); ?></strong>
+        </div>
+        <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+            <?php if ($currentPage > 1): ?>
+                <a href="<?php echo $urlFor($currentPage - 1); ?>" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">&laquo; Prev</a>
+            <?php else: ?>
+                <span class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; opacity: 0.4; cursor: not-allowed;">&laquo; Prev</span>
+            <?php endif; ?>
+
+            <?php
+            $prev = 0;
+            foreach ($ordered as $p):
+                if ($p - $prev > 1):
+                    ?><span style="padding: 6px 8px; color: #a0aec0; font-size: 13px;">&hellip;</span><?php
+                endif;
+                $prev = $p;
+                if ($p === $currentPage):
+                    ?><span class="btn btn-primary" style="padding: 6px 12px; font-size: 13px;"><?php echo $p; ?></span><?php
+                else:
+                    ?><a href="<?php echo $urlFor($p); ?>" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;"><?php echo $p; ?></a><?php
+                endif;
+            endforeach;
+            ?>
+
+            <?php if ($currentPage < $totalPages): ?>
+                <a href="<?php echo $urlFor($currentPage + 1); ?>" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">Next &raquo;</a>
+            <?php else: ?>
+                <span class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; opacity: 0.4; cursor: not-allowed;">Next &raquo;</span>
+            <?php endif; ?>
+        </div>
+    </div>
+    <?php
+    return ob_get_clean();
+}
+
 // Set flash message
 function setFlashMessage($message, $type = 'success') {
     $_SESSION['flash_message'] = [
