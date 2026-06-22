@@ -167,7 +167,7 @@ require_once __DIR__ . '/../templates/header.php';
 </div>
 
 <div style="background: white; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
-    <form method="GET" id="sheet-filter-form" style="display: grid; grid-template-columns: 200px 200px auto auto; gap: 16px; align-items: end;">
+    <form method="GET" id="sheet-filter-form" style="display: grid; grid-template-columns: 200px 200px auto auto auto; gap: 16px; align-items: end;">
         <input type="hidden" name="action" value="show">
 
         <div>
@@ -205,6 +205,16 @@ require_once __DIR__ . '/../templates/header.php';
                 </a>
             <?php else: ?>
                 <button type="button" class="btn btn-secondary" disabled style="width: 100%;">📥 Export .xlsx</button>
+            <?php endif; ?>
+        </div>
+
+        <div>
+            <?php if ($selectedYear > 0 && $selectedMonth > 0): ?>
+                <a href="<?php echo BASE_URL; ?>/api/registrations/registration-sheet-photos.php?year=<?php echo $selectedYear; ?>&amp;month=<?php echo $selectedMonth; ?>" class="btn btn-secondary" style="width: 100%;">
+                    📷 Download Photos
+                </a>
+            <?php else: ?>
+                <button type="button" class="btn btn-secondary" disabled style="width: 100%;">📷 Download Photos</button>
             <?php endif; ?>
         </div>
     </form>
