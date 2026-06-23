@@ -535,3 +535,110 @@ function intakePathToUrl($filesystemPath) {
 
     return $url;
 }
+
+// ---- Applicant file upload helpers (photo / ID document replacement) ----
+// Mirrors intake/upload.php rules so files replaced from admin stay
+// consistent with what the intake service writes.
+
+define('APPLICANT_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/jpg']);
+define('APPLICANT_PDF_TYPES', ['application/pdf']);
+define('APPLICANT_FILE_MAX_SIZE', 5 * 1024 * 1024); // 5MB — same as intake
+
+// Generate a UUID v4 for secure filenames
+function generateFileUuid() {
+    $data = random_bytes(16);
+    $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // version 4
+    $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // variant
+    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
+
+/**
+ * Validate and store an applicant file upload (photo or ID document) into
+ * the intake uploads directory. Validation uses finfo magic bytes and the
+ * same 5MB cap as the intake service.
+ *
+ * @param array  $file         $_FILES entry
+ * @param string $category     'photos' or 'ids'
+ * @param array  $allowedTypes allowed MIME types
+ * @return array {success:bool, error:?string, filename:?string, storage_path:?string, size_bytes:?int}
+ */
+function processApplicantFileUpload($file, $category, $allowedTypes) {
+    if (!isset($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        return ['success' => false, 'error' => 'No file uploaded'];
+    }
+
+    if ($file['size'] > APPLICANT_FILE_MAX_SIZE) {
+        return ['success' => false, 'error' => 'File exceeds maximum size of 5MB'];
+    }
+
+    if ($file['size'] === 0) {
+        return ['success' => false, 'error' => 'File is empty'];
+    }
+
+    // Validate real type via magic bytes (never trust the extension)
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    if (!$finfo) {
+        return ['success' => false, 'error' => 'Unable to validate file type'];
+    }
+    $mimeType = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+
+    if (!in_array($mimeType, $allowedTypes, true)) {
+        if ($mimeType === 'image/heic' || $mimeType === 'image/heif') {
+            return ['success' => false, 'error' => 'iPhone HEIC photos are not supported. Please upload a JPG or PNG.'];
+        }
+        $pdfNote = in_array('application/pdf', $allowedTypes, true) ? ' or PDF' : '';
+        return ['success' => false, 'error' => 'Unsupported file type. Please upload a JPG or PNG' . $pdfNote . '.'];
+    }
+
+    $base = INTAKE_UPLOADS_DIR;
+    if (!$base || !is_dir($base)) {
+        return ['success' => false, 'error' => 'Upload directory is not available'];
+    }
+
+    $categoryDir = $base . '/' . $category;
+    if (!is_dir($categoryDir)) {
+        @mkdir($categoryDir, 0755, true);
+    }
+    if (!is_writable($categoryDir)) {
+        return ['success' => false, 'error' => 'Upload directory is not writable'];
+    }
+
+    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $filename = generateFileUuid() . '.' . $extension;
+    $targetPath = $categoryDir . '/' . $filename;
+
+    if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+        return ['success' => false, 'error' => 'Failed to store uploaded file'];
+    }
+
+    chmod($targetPath, 0644);
+
+    return [
+        'success'      => true,
+        'filename'     => $filename,
+        'storage_path' => $targetPath,
+        'size_bytes'   => (int) $file['size'],
+    ];
+}
+
+/**
+ * Safely delete a file inside the intake uploads directory. Refuses to
+ * unlink anything whose realpath is not under /intake/uploads/ so a
+ * tampered DB row can never delete arbitrary server files.
+ */
+function safeUnlinkIntakeUpload($path) {
+    if (empty($path)) {
+        return false;
+    }
+    $real = realpath($path);
+    if ($real === false) {
+        return false; // already gone
+    }
+    $marker = DIRECTORY_SEPARATOR . 'intake' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
+    if (strpos($real, $marker) === false) {
+        error_log("Admin upload replace: refused to unlink path outside intake uploads: {$real}");
+        return false;
+    }
+    return @unlink($real);
+}

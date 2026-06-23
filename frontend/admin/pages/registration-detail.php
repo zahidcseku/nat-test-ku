@@ -70,10 +70,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        // Process optional file uploads (photo / ID document).
+        // Validated before anything is moved or saved — on error, redirect.
+        $photoResult = null;
+        $idResult = null;
+        $fileErrors = [];
+
+        if (isset($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE) {
+            $photoResult = processApplicantFileUpload($_FILES['photo'], 'photos', APPLICANT_IMAGE_TYPES);
+            if (!$photoResult['success']) {
+                $fileErrors[] = 'Photo: ' . $photoResult['error'];
+                $photoResult = null;
+            }
+        }
+
+        if (isset($_FILES['id_document']) && $_FILES['id_document']['error'] !== UPLOAD_ERR_NO_FILE) {
+            $idResult = processApplicantFileUpload(
+                $_FILES['id_document'],
+                'ids',
+                array_merge(APPLICANT_IMAGE_TYPES, APPLICANT_PDF_TYPES)
+            );
+            if (!$idResult['success']) {
+                $fileErrors[] = 'ID document: ' . $idResult['error'];
+                $idResult = null;
+            }
+        }
+
+        if (!empty($fileErrors)) {
+            // Clean up any files already moved before the error was hit
+            if ($photoResult) {
+                safeUnlinkIntakeUpload($photoResult['storage_path']);
+            }
+            if ($idResult) {
+                safeUnlinkIntakeUpload($idResult['storage_path']);
+            }
+            setFlashMessage('Could not upload files: ' . implode('; ', $fileErrors), 'error');
+            header('Location: ' . BASE_URL . '/pages/registration-detail.php?id=' . $id);
+            exit;
+        }
+
         // Store old values for audit
         $oldValues = [];
         foreach ($updateFields as $field => $value) {
             $oldValues[$field] = $registration[$field] ?? '';
+        }
+        $oldPhotoPath = $registration['photo_storage_path'] ?? '';
+        $oldIdPath = $registration['id_storage_path'] ?? '';
+        if ($photoResult) {
+            $oldValues['photo_filename'] = $registration['photo_filename'] ?? '';
+        }
+        if ($idResult) {
+            $oldValues['id_filename'] = $registration['id_filename'] ?? '';
         }
 
         // Build update query
@@ -89,6 +136,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        // Append file columns when new uploads were provided
+        $newValues = $updateFields;
+        if ($photoResult) {
+            $setClause[] = "photo_filename = ?";
+            $setClause[] = "photo_storage_path = ?";
+            $setClause[] = "photo_size_bytes = ?";
+            $params[] = $photoResult['filename'];
+            $params[] = $photoResult['storage_path'];
+            $params[] = $photoResult['size_bytes'];
+            $types .= 'ssi';
+            $newValues['photo_filename'] = $photoResult['filename'];
+        }
+        if ($idResult) {
+            $setClause[] = "id_filename = ?";
+            $setClause[] = "id_storage_path = ?";
+            $setClause[] = "id_size_bytes = ?";
+            $params[] = $idResult['filename'];
+            $params[] = $idResult['storage_path'];
+            $params[] = $idResult['size_bytes'];
+            $types .= 'ssi';
+            $newValues['id_filename'] = $idResult['filename'];
+        }
+
         if (!empty($setClause)) {
             $params[] = $id; // Add ID for WHERE clause
             $types .= 's';
@@ -97,21 +167,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare($sql);
 
             if (!$stmt) {
+                if ($photoResult) { safeUnlinkIntakeUpload($photoResult['storage_path']); }
+                if ($idResult) { safeUnlinkIntakeUpload($idResult['storage_path']); }
                 setFlashMessage('Failed to prepare statement: ' . $conn->error, 'error');
             } else {
                 $stmt->bind_param($types, ...$params);
 
                 if ($stmt->execute()) {
-                    // Get updated values for audit
-                    $newValues = $updateFields;
+                    // DB now points at the new files — safe to remove the old ones
+                    if ($photoResult) {
+                        safeUnlinkIntakeUpload($oldPhotoPath);
+                    }
+                    if ($idResult) {
+                        safeUnlinkIntakeUpload($oldIdPath);
+                    }
 
                     // Log audit
                     logAudit('update_registration', 'registrations', $id, $oldValues, $newValues);
 
-                    setFlashMessage('Registration information updated successfully', 'success');
+                    $fileNote = '';
+                    if ($photoResult && $idResult) {
+                        $fileNote = ' (photo and ID document replaced)';
+                    } elseif ($photoResult) {
+                        $fileNote = ' (photo replaced)';
+                    } elseif ($idResult) {
+                        $fileNote = ' (ID document replaced)';
+                    }
+
+                    setFlashMessage('Registration information updated successfully' . $fileNote, 'success');
                     header('Location: ' . BASE_URL . '/pages/registration-detail.php?id=' . $id);
                     exit;
                 } else {
+                    // DB unchanged — remove the newly uploaded files to avoid orphans
+                    if ($photoResult) { safeUnlinkIntakeUpload($photoResult['storage_path']); }
+                    if ($idResult) { safeUnlinkIntakeUpload($idResult['storage_path']); }
                     setFlashMessage('Failed to update registration: ' . $stmt->error, 'error');
                 }
             }
@@ -345,7 +434,7 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                 </button>
             </div>
 
-            <form id="editForm" method="POST" style="display: none; margin-top: 16px;">
+            <form id="editForm" method="POST" enctype="multipart/form-data" style="display: none; margin-top: 16px;">
                 <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                 <input type="hidden" name="action" value="update">
 
@@ -418,6 +507,24 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                         <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Address *</label>
                         <textarea name="address" rows="3" required
                                   style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; resize: vertical;"><?php echo e($registration['address']); ?></textarea>
+                    </div>
+
+                    <div style="grid-column: span 2; padding-top: 16px; margin-top: 8px; border-top: 1px solid #e2e8f0;">
+                        <div style="font-size: 14px; font-weight: 600; color: #1a202c; margin-bottom: 12px;">Replace Uploaded Files (optional)</div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Replace Photo</label>
+                                <input type="file" name="photo" id="edit_photo" accept="image/jpeg,image/png,image/jpg"
+                                       style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+                                <div style="font-size: 12px; color: #718096; margin-top: 4px;">JPG or PNG, max 5MB. Leave empty to keep current photo.</div>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Replace ID Document</label>
+                                <input type="file" name="id_document" id="edit_id_document" accept="image/jpeg,image/png,image/jpg,application/pdf"
+                                       style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
+                                <div style="font-size: 12px; color: #718096; margin-top: 4px;">JPG, PNG, or PDF, max 5MB. Leave empty to keep current document.</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -524,7 +631,13 @@ function toggleEditForm() {
 }
 
 function confirmUpdate() {
-    return confirm('Are you sure you want to update this registration information?\n\nThe changes will be logged in the audit trail.');
+    var msg = 'Are you sure you want to update this registration information?\n\nThe changes will be logged in the audit trail.';
+    var photo = document.getElementById('edit_photo');
+    var idDoc = document.getElementById('edit_id_document');
+    if ((photo && photo.files.length) || (idDoc && idDoc.files.length)) {
+        msg += '\n\nSelected files will replace the existing uploads.';
+    }
+    return confirm(msg);
 }
 
 function confirmDelete() {

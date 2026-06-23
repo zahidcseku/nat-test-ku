@@ -69,6 +69,12 @@ define('LOGIN_ATTEMPT_WINDOW', (int)(getenv('LOGIN_ATTEMPT_WINDOW') ?: 900));
 define('MAX_UPLOAD_SIZE', (int)(getenv('MAX_UPLOAD_SIZE') ?: 52428800));
 define('UPLOAD_PATH', __DIR__ . '/' . (getenv('UPLOAD_PATH') ?: 'uploads/'));
 
+// Intake uploads directory — where applicant photos/IDs/receipts live.
+// Admin writes replacements here when correcting an applicant's uploads.
+// Resolved relative to admin (../intake/uploads) so it works in dev and prod.
+$_intakeUploadsBase = __DIR__ . '/../intake/uploads';
+define('INTAKE_UPLOADS_DIR', is_dir($_intakeUploadsBase) ? realpath($_intakeUploadsBase) : $_intakeUploadsBase);
+
 // SMTP Configuration
 define('SMTP_HOST', getenv('SMTP_HOST') ?: 'localhost');
 define('SMTP_PORT', (int)(getenv('SMTP_PORT') ?: 587));
