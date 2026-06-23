@@ -371,41 +371,60 @@ function renderEmailTemplate($type, $data, $reasons = '') {
             </h2>
 
             <div style="display: grid; gap: 16px;">
-                <!-- Photo -->
-                <div>
-                    <div style="font-size: 14px; font-weight: 500; color: #1a202c; margin-bottom: 8px;">Student Photo</div>
-                    <?php if (!empty($registration['photo_storage_path'])): ?>
-                        <img src="<?php echo e(intakePathToUrl($registration['photo_storage_path'])); ?>"
-                             alt="Student Photo"
-                             style="max-width: 200px; border: 2px solid #e2e8f0; border-radius: 8px;"
-                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\'%3EImage not found%3C/text%3E%3C/svg%3E'">
-                    <?php else: ?>
-                        <p style="color: #f56565; font-size: 14px;">No photo uploaded</p>
-                    <?php endif; ?>
-                </div>
-
-                <!-- ID Document -->
-                <div>
-                    <div style="font-size: 14px; font-weight: 500; color: #1a202c; margin-bottom: 8px;">ID Document</div>
-                    <?php
-                    $idTypeLabels = ['passport' => 'Passport', 'national_id' => 'National ID'];
-                    $idTypeLabel = $idTypeLabels[$registration['id_document_type'] ?? ''] ?? null;
-                    ?>
-                    <div style="font-size: 13px; color: #4a5568; margin-bottom: 8px;">
-                        <?php if ($idTypeLabel): ?>
-                            <?php echo e($idTypeLabel); ?> &middot; <?php echo e($registration['id_document_number'] ?? ''); ?>
+                <!-- Photo + ID side by side -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <!-- Photo -->
+                    <div>
+                        <div style="font-size: 14px; font-weight: 500; color: #1a202c; margin-bottom: 8px;">Student Photo</div>
+                        <?php if (!empty($registration['photo_storage_path'])): ?>
+                            <a href="<?php echo e(intakePathToUrl($registration['photo_storage_path'])); ?>" target="_blank">
+                                <img src="<?php echo e(intakePathToUrl($registration['photo_storage_path'])); ?>"
+                                     alt="Student Photo"
+                                     style="max-width: 100%; max-height: 300px; border: 2px solid #e2e8f0; border-radius: 8px; object-fit: contain;"
+                                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\'%3EImage not found%3C/text%3E%3C/svg%3E'">
+                            </a>
                         <?php else: ?>
-                            &mdash;
+                            <p style="color: #f56565; font-size: 14px;">No photo uploaded</p>
                         <?php endif; ?>
                     </div>
-                    <?php if (!empty($registration['id_storage_path'])): ?>
-                        <a href="<?php echo e(intakePathToUrl($registration['id_storage_path'])); ?>" target="_blank"
-                           class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px;">
-                            📄 View ID Document
-                        </a>
-                    <?php else: ?>
-                        <p style="color: #f56565; font-size: 14px;">No ID document uploaded</p>
-                    <?php endif; ?>
+
+                    <!-- ID Document -->
+                    <div>
+                        <div style="font-size: 14px; font-weight: 500; color: #1a202c; margin-bottom: 8px;">ID Document</div>
+                        <?php
+                        $idTypeLabels = ['passport' => 'Passport', 'national_id' => 'National ID'];
+                        $idTypeLabel = $idTypeLabels[$registration['id_document_type'] ?? ''] ?? null;
+                        ?>
+                        <div style="font-size: 13px; color: #4a5568; margin-bottom: 8px;">
+                            <?php if ($idTypeLabel): ?>
+                                <?php echo e($idTypeLabel); ?> &middot; <?php echo e($registration['id_document_number'] ?? ''); ?>
+                            <?php else: ?>
+                                &mdash;
+                            <?php endif; ?>
+                        </div>
+                        <?php if (!empty($registration['id_storage_path'])): ?>
+                            <?php
+                            $idExt = strtolower(pathinfo($registration['id_storage_path'], PATHINFO_EXTENSION));
+                            $idUrl = intakePathToUrl($registration['id_storage_path']);
+                            if (in_array($idExt, ['jpg', 'jpeg', 'png', 'gif'], true)): ?>
+                                <a href="<?php echo e($idUrl); ?>" target="_blank">
+                                    <img src="<?php echo e($idUrl); ?>"
+                                         alt="ID Document"
+                                         style="max-width: 100%; max-height: 300px; border: 2px solid #e2e8f0; border-radius: 8px; object-fit: contain;"
+                                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\'%3EImage not found%3C/text%3E%3C/svg%3E'">
+                                </a>
+                            <?php else: ?>
+                                <iframe src="<?php echo e($idUrl); ?>"
+                                        style="width: 100%; height: 300px; border: 2px solid #e2e8f0; border-radius: 8px;"></iframe>
+                                <a href="<?php echo e($idUrl); ?>" target="_blank"
+                                   class="btn btn-secondary" style="display: inline-block; margin-top: 8px; padding: 6px 12px; font-size: 13px;">
+                                    Open in new tab
+                                </a>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <p style="color: #f56565; font-size: 14px;">No ID document uploaded</p>
+                        <?php endif; ?>
+                    </div>
                 </div>
 
                 <!-- Payment Receipt -->
