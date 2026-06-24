@@ -1061,6 +1061,31 @@ const RegistrationForm = (function() {
             nextExamStatusEl.textContent = 'Registration deadline: ' + new Date(firstExam.deadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
           }
 
+          // Update "Following Test Dates" section (next two upcoming exams after the first)
+          const followingBox = document.getElementById('following-exams-box');
+          const followingList = document.getElementById('following-exams-list');
+          if (followingBox && followingList) {
+            followingList.innerHTML = '';
+            const followingExams = exams.slice(1, 3); // at most two
+            if (followingExams.length > 0) {
+              followingBox.hidden = false;
+              followingExams.forEach(exam => {
+                const li = document.createElement('li');
+                const dateEl = document.createElement('p');
+                dateEl.className = 'text-lg font-bold text-primary mb-1';
+                dateEl.textContent = exam.display;
+                const deadlineEl = document.createElement('p');
+                deadlineEl.className = 'text-xs text-secondary';
+                deadlineEl.textContent = 'Registration deadline: ' + new Date(exam.deadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                li.appendChild(dateEl);
+                li.appendChild(deadlineEl);
+                followingList.appendChild(li);
+              });
+            } else {
+              followingBox.hidden = true;
+            }
+          }
+
           // Populate test date dropdown
           const testDateSelect = document.getElementById('test_date');
           if (testDateSelect) {
