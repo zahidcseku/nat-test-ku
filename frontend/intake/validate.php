@@ -404,7 +404,7 @@ function validateRegistrationData($data) {
         }
 
         // Validate each level value
-        $validLevels = ['1Q', '2Q', '3Q', '4Q', '5Q'];
+        $validLevels = ['N1', 'N2', 'N3', 'N4', 'N5'];
         foreach ($levels as $level) {
             $level = trim(asString($level));
             if (!in_array($level, $validLevels, true)) {

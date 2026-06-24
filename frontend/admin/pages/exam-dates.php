@@ -239,7 +239,7 @@ require_once __DIR__ . '/../templates/header.php';
             <div>
                 <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 8px;">Available Levels (select at least one) *</label>
                 <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
-                    <?php foreach (['1Q', '2Q', '3Q', '4Q', '5Q'] as $level): ?>
+                    <?php foreach (['N1', 'N2', 'N3', 'N4', 'N5'] as $level): ?>
                         <label style="display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: background 0.2s;">
                             <input type="checkbox" name="levels[]" value="<?php echo e($level); ?>" id="level_<?php echo e($level); ?>">
                             <span style="font-size: 13px; font-weight: 500;"><?php echo e($level); ?></span>

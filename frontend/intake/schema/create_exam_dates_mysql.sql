@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS exam_dates (
 -- Create exam_levels table (junction table for many-to-many relationship)
 CREATE TABLE IF NOT EXISTS exam_levels (
     exam_date_id CHAR(36) NOT NULL,
-    level ENUM('1Q', '2Q', '3Q', '4Q', '5Q') NOT NULL,
+    level ENUM('N1', 'N2', 'N3', 'N4', 'N5') NOT NULL,
     PRIMARY KEY (exam_date_id, level),
     FOREIGN KEY (exam_date_id) REFERENCES exam_dates(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -28,11 +28,11 @@ INSERT INTO exam_dates (id, exam_date, registration_deadline) VALUES
     ('exam-002', '2026-08-20', '2026-07-31');
 
 INSERT INTO exam_levels (exam_date_id, level) VALUES
-    ('exam-001', '1Q'),
-    ('exam-001', '2Q'),
-    ('exam-001', '3Q'),
-    ('exam-002', '4Q'),
-    ('exam-002', '5Q');
+    ('exam-001', 'N1'),
+    ('exam-001', 'N2'),
+    ('exam-001', 'N3'),
+    ('exam-002', 'N4'),
+    ('exam-002', 'N5');
 */
 
 -- Verify tables were created

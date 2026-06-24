@@ -13,14 +13,14 @@ $check = function ($label, $cond) use (&$pass) {
     if (!$cond) $pass = false;
 };
 
-$check('identical sets overlap fully', findModuleOverlap('1Q,3Q', '1Q,3Q') === ['1Q', '3Q']);
-$check('partial overlap returns shared only', findModuleOverlap('1Q,3Q', '3Q,4Q') === ['3Q']);
-$check('disjoint sets => empty', findModuleOverlap('1Q,2Q', '3Q,4Q') === []);
-$check('case/space insensitive', findModuleOverlap('1q , 3Q', ' 1Q,3q') === ['1Q', '3Q']);
-$check('single vs multi overlap', findModuleOverlap('2Q', '1Q,2Q,3Q') === ['2Q']);
-$check('single vs multi disjoint', findModuleOverlap('5Q', '1Q,2Q,3Q') === []);
-$check('empty new => empty', findModuleOverlap('', '1Q') === []);
-$check('empty existing => empty', findModuleOverlap('1Q', '') === []);
-$check('result sorted + unique', findModuleOverlap('3Q,1Q,3Q', '1Q,3Q') === ['1Q', '3Q']);
+$check('identical sets overlap fully', findModuleOverlap('N1,N3', 'N1,N3') === ['N1', 'N3']);
+$check('partial overlap returns shared only', findModuleOverlap('N1,N3', 'N3,N4') === ['N3']);
+$check('disjoint sets => empty', findModuleOverlap('N1,N2', 'N3,N4') === []);
+$check('case/space insensitive', findModuleOverlap('n1 , N3', ' N1,n3') === ['N1', 'N3']);
+$check('single vs multi overlap', findModuleOverlap('N2', 'N1,N2,N3') === ['N2']);
+$check('single vs multi disjoint', findModuleOverlap('N5', 'N1,N2,N3') === []);
+$check('empty new => empty', findModuleOverlap('', 'N1') === []);
+$check('empty existing => empty', findModuleOverlap('N1', '') === []);
+$check('result sorted + unique', findModuleOverlap('N3,N1,N3', 'N1,N3') === ['N1', 'N3']);
 
 exit($pass ? 0 : 1);

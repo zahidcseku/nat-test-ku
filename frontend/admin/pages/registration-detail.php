@@ -500,7 +500,7 @@ function renderEmailTemplate($type, $data, $reasons = '') {
                     <div>
                         <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Exam Level *</label>
                         <select name="exam_level" required style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
-                            <?php foreach (['1Q', '2Q', '3Q', '4Q', '5Q'] as $level): ?>
+                            <?php foreach (['N1', 'N2', 'N3', 'N4', 'N5'] as $level): ?>
                                 <option value="<?php echo e($level); ?>" <?php echo $registration['exam_level'] === $level ? 'selected' : ''; ?>>
                                     <?php echo e($level); ?>
                                 </option>

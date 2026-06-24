@@ -188,7 +188,7 @@ function setCellNumber($xml, $cellRef, $value) {
  *   = site_code   & level_digit  & zero-padded sheet_row
  */
 function computeRegNo($siteCode, $levelName, $sheetRow) {
-    $levelDigit = substr($levelName, 0, 1); // "1Q" -> "1"
+    $levelDigit = substr($levelName, 1, 1); // "N1" -> "1"
     $padded     = str_pad((string) $sheetRow, 4, '0', STR_PAD_LEFT);
     return $siteCode . $levelDigit . $padded;
 }
@@ -196,7 +196,7 @@ function computeRegNo($siteCode, $levelName, $sheetRow) {
 // =====================================================================
 // ASSIGNMENT TRANSACTION
 // =====================================================================
-$LEVELS    = ['1Q', '2Q', '3Q', '4Q', '5Q'];
+$LEVELS    = ['N1', 'N2', 'N3', 'N4', 'N5'];
 $ROW_CAP   = 500; // template hard limit per level sheet
 
 // Existing mappings for this period (read inside transaction).
@@ -208,7 +208,7 @@ $newMappings = []; // rows to INSERT
 
 // Final per-level assignment for sheet patching:
 //   $assigned[level] => [sheet_row => regId]
-$assigned = ['1Q' => [], '2Q' => [], '3Q' => [], '4Q' => [], '5Q' => []];
+$assigned = ['N1' => [], 'N2' => [], 'N3' => [], 'N4' => [], 'N5' => []];
 
 try {
     $conn->begin_transaction();
@@ -234,7 +234,7 @@ try {
     $stmt->close();
 
     // Split out new vs already-assigned (applicant, level) pairs.
-    $newByLevel = ['1Q' => [], '2Q' => [], '3Q' => [], '4Q' => [], '5Q' => []];
+    $newByLevel = ['N1' => [], 'N2' => [], 'N3' => [], 'N4' => [], 'N5' => []];
     foreach ($registrations as $r) {
         foreach (explode(',', $r['exam_level']) as $lvl) {
             $lvl = trim($lvl);

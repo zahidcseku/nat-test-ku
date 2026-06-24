@@ -19,7 +19,7 @@
 CREATE TABLE IF NOT EXISTS registration_sheet_numbers (
     id              INT AUTO_INCREMENT PRIMARY KEY,
     registration_id VARCHAR(36)    NOT NULL,
-    level           ENUM('1Q','2Q','3Q','4Q','5Q') NOT NULL,
+    level           ENUM('N1','N2','N3','N4','N5') NOT NULL,
     year            SMALLINT       NOT NULL,
     month           TINYINT        NOT NULL,
     -- 1-indexed position within the level sheet. Data starts at sheet row 4,
