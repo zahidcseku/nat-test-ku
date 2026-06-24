@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS exam_dates (
 -- Create exam_levels table (junction table for many-to-many relationship)
 CREATE TABLE IF NOT EXISTS exam_levels (
     exam_date_id TEXT NOT NULL REFERENCES exam_dates(id) ON DELETE CASCADE,
-    level TEXT NOT NULL CHECK(level IN ('N1', 'N2', 'N3', 'N4', 'N5')),
+    level TEXT NOT NULL CHECK(level IN ('1Q/N1', '2Q/N2', '3Q/N3', '4Q/N4', '5Q/N5')),
     PRIMARY KEY (exam_date_id, level)
 );
 
@@ -27,11 +27,11 @@ INSERT INTO exam_dates (id, exam_date, registration_deadline) VALUES
     ('exam-002', '2026-08-20', '2026-07-31');
 
 INSERT INTO exam_levels (exam_date_id, level) VALUES
-    ('exam-001', 'N1'),
-    ('exam-001', 'N2'),
-    ('exam-001', 'N3'),
-    ('exam-002', 'N4'),
-    ('exam-002', 'N5');
+    ('exam-001', '1Q/N1'),
+    ('exam-001', '2Q/N2'),
+    ('exam-001', '3Q/N3'),
+    ('exam-002', '4Q/N4'),
+    ('exam-002', '5Q/N5');
 */
 
 -- Verify tables were created

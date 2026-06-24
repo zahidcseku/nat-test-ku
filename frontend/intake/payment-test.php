@@ -121,7 +121,7 @@ try {
     $gender = 'other';
     $nationality = 'Test';
     $paymentMethod = 'online';
-    $examLevel = implode(',', array_slice(['N1', 'N2', 'N3', 'N4', 'N5'], 0, $levels));
+    $examLevel = implode(',', array_slice(['1Q/N1', '2Q/N2', '3Q/N3', '4Q/N4', '5Q/N5'], 0, $levels));
     $totalAmountInt = $baseAmount;
     $testDate = date('Y-m-d', strtotime('+30 days'));
     $placeholder = 'TEST';

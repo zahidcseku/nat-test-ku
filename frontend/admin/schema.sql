@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS content_blocks (
 CREATE TABLE IF NOT EXISTS registration_sheet_numbers (
     id              INT AUTO_INCREMENT PRIMARY KEY,
     registration_id VARCHAR(36)    NOT NULL,
-    level           ENUM('N1','N2','N3','N4','N5') NOT NULL,
+    level           ENUM('1Q/N1','2Q/N2','3Q/N3','4Q/N4','5Q/N5') NOT NULL,
     year            SMALLINT       NOT NULL,
     month           TINYINT        NOT NULL,
     sheet_row       INT            NOT NULL COMMENT '1-indexed row within level sheet (sheet_row=1 -> cells C4/D4)',

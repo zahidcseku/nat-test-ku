@@ -82,7 +82,7 @@ if ($action === 'show' && $selectedYear > 0 && $selectedMonth > 0) {
     $stmt->close();
 }
 
-$levelCounts = ['N1' => 0, 'N2' => 0, 'N3' => 0, 'N4' => 0, 'N5' => 0];
+$levelCounts = ['1Q/N1' => 0, '2Q/N2' => 0, '3Q/N3' => 0, '4Q/N4' => 0, '5Q/N5' => 0];
 foreach ($registrations as $r) {
     foreach (explode(',', $r['exam_level']) as $lvl) {
         $lvl = trim($lvl);

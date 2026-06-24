@@ -22,7 +22,7 @@ class PaymentTestDataGenerator {
         'Narayanganj', 'Comilla', 'Sylhet', 'Rajshahi', 'Bogra', 'Rangpur'
     ];
 
-    private $examLevels = ['N1', 'N2', 'N3', 'N4', 'N5'];
+    private $examLevels = ['1Q/N1', '2Q/N2', '3Q/N3', '4Q/N4', '5Q/N5'];
 
     private $testNames = [
         'Rahman Hassan', 'Islam Fatima', 'Ahmed Karim', 'Hossain Ayesha',

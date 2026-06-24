@@ -131,7 +131,7 @@
           console.log('Schedule data:', data.data.exams);
 
           // Generate exam cards
-          const allLevels = ['N1', 'N2', 'N3', 'N4', 'N5'];
+          const allLevels = ['1Q/N1', '2Q/N2', '3Q/N3', '4Q/N4', '5Q/N5'];
 
           data.data.exams.forEach(exam => {
             const card = document.createElement('div');
@@ -239,7 +239,7 @@
 
             // Filter available levels and join with /
             const availableLevels = allLevels.filter(level => exam.levels.includes(level));
-            levelsText.textContent = availableLevels.join('/');
+            levelsText.textContent = availableLevels.join(', ');
 
             levelsContainer.appendChild(levelsText);
             levelsSection.appendChild(levelsLabel);

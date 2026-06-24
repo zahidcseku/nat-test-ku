@@ -1161,11 +1161,11 @@ const RegistrationForm = (function() {
     if (selectedExam && selectedExam.levels && selectedExam.levels.length > 0) {
       // Add available levels from database
       const levelLabels = {
-        'N1': 'N1 - Basic Level',
-        'N2': 'N2 - Elementary Level',
-        'N3': 'N3 - Intermediate Level',
-        'N4': 'N4 - Upper Intermediate Level',
-        'N5': 'N5 - Advanced Level'
+        '1Q/N1': '1Q/N1 - Basic Level',
+        '2Q/N2': '2Q/N2 - Elementary Level',
+        '3Q/N3': '3Q/N3 - Intermediate Level',
+        '4Q/N4': '4Q/N4 - Upper Intermediate Level',
+        '5Q/N5': '5Q/N5 - Advanced Level'
       };
 
       selectedExam.levels.forEach(level => {

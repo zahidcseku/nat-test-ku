@@ -20,7 +20,7 @@ function basePost(array $overrides = []): array {
         'dob' => '2000/01/15',
         'nationality' => 'Bangladeshi',
         'payment_method' => 'online',
-        'exam_levels' => ['N1'],
+        'exam_levels' => ['1Q/N1'],
         'total_amount' => 4000,
         'test_date' => '2026/08/15',
         'id_document_type' => 'passport',
@@ -55,7 +55,7 @@ foreach ($stringFields as $field) {
 
 // Nested array inside exam_levels (exam_levels[0][]=x) must not throw either.
 try {
-    $v = validateRegistrationData(basePost(['exam_levels' => [['N1']]]));
+    $v = validateRegistrationData(basePost(['exam_levels' => [['1Q/N1']]]));
     $check(
         'nested array in exam_levels rejected as validation error',
         $v['valid'] === false && isset($v['errors']['exam_levels'])

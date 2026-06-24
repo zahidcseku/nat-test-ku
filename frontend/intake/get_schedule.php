@@ -179,11 +179,11 @@ try {
 
         // Map level codes to display format
         $level_mapping = [
-            'N1' => 'N1',
-            'N2' => 'N2',
-            'N3' => 'N3',
-            'N4' => 'N4',
-            'N5' => 'N5'
+            '1Q/N1' => '1Q/N1',
+            '2Q/N2' => '2Q/N2',
+            '3Q/N3' => '3Q/N3',
+            '4Q/N4' => '4Q/N4',
+            '5Q/N5' => '5Q/N5'
         ];
 
         // Format levels for display
