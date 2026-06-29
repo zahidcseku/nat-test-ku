@@ -37,16 +37,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($stmt->get_result()->num_rows > 0) {
                     setFlashMessage('Exam date already exists', 'error');
                 } else {
-                    // Insert exam date
-                    $stmt = $conn->prepare("INSERT INTO exam_dates (exam_date, registration_deadline) VALUES (?, ?)");
-                    $stmt->bind_param('ss', $examDate, $deadline);
+                    // Insert exam date (id is a CHAR(36) UUID, app-generated)
+                    $examId = generateFileUuid();
+                    $stmt = $conn->prepare("INSERT INTO exam_dates (id, exam_date, registration_deadline) VALUES (?, ?, ?)");
+                    $stmt->bind_param('sss', $examId, $examDate, $deadline);
                     $stmt->execute();
-                    $examId = $conn->insert_id;
 
                     // Insert levels
                     $stmt = $conn->prepare("INSERT INTO exam_levels (exam_date_id, level) VALUES (?, ?)");
                     foreach ($levels as $level) {
-                        $stmt->bind_param('is', $examId, $level);
+                        $stmt->bind_param('ss', $examId, $level);
                         $stmt->execute();
                     }
 
@@ -56,24 +56,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 // Update exam date
                 $stmt = $conn->prepare("UPDATE exam_dates SET exam_date = ?, registration_deadline = ? WHERE id = ?");
-                $stmt->bind_param('ssi', $examDate, $deadline, $examId);
+                $stmt->bind_param('sss', $examDate, $deadline, $examId);
                 $stmt->execute();
 
                 // Get old levels
                 $stmt = $conn->prepare("SELECT level FROM exam_levels WHERE exam_date_id = ?");
-                $stmt->bind_param('i', $examId);
+                $stmt->bind_param('s', $examId);
                 $stmt->execute();
                 $oldLevels = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                 $oldLevelArray = array_column($oldLevels, 'level');
 
                 // Delete old levels and insert new ones
                 $stmt = $conn->prepare("DELETE FROM exam_levels WHERE exam_date_id = ?");
-                $stmt->bind_param('i', $examId);
+                $stmt->bind_param('s', $examId);
                 $stmt->execute();
 
                 $stmt = $conn->prepare("INSERT INTO exam_levels (exam_date_id, level) VALUES (?, ?)");
                 foreach ($levels as $level) {
-                    $stmt->bind_param('is', $examId, $level);
+                    $stmt->bind_param('ss', $examId, $level);
                     $stmt->execute();
                 }
 
@@ -88,11 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
     } elseif ($action === 'delete') {
-        $examId = $_POST['exam_id'] ?? 0;
+        $examId = $_POST['exam_id'] ?? '';
 
         // Check if any registrations exist for this exam
         $stmt = $conn->prepare("SELECT COUNT(*) as count FROM registrations WHERE test_date = (SELECT exam_date FROM exam_dates WHERE id = ?)");
-        $stmt->bind_param('i', $examId);
+        $stmt->bind_param('s', $examId);
         $stmt->execute();
         $count = $stmt->get_result()->fetch_assoc()['count'];
 
@@ -101,18 +101,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Get exam details for audit
             $stmt = $conn->prepare("SELECT exam_date FROM exam_dates WHERE id = ?");
-            $stmt->bind_param('i', $examId);
+            $stmt->bind_param('s', $examId);
             $stmt->execute();
             $exam = $stmt->get_result()->fetch_assoc();
 
             // Delete levels first
             $stmt = $conn->prepare("DELETE FROM exam_levels WHERE exam_date_id = ?");
-            $stmt->bind_param('i', $examId);
+            $stmt->bind_param('s', $examId);
             $stmt->execute();
 
             // Delete exam date
             $stmt = $conn->prepare("DELETE FROM exam_dates WHERE id = ?");
-            $stmt->bind_param('i', $examId);
+            $stmt->bind_param('s', $examId);
             $stmt->execute();
 
             logAudit('delete_exam_date', 'exam_dates', $examId, $exam);
@@ -190,11 +190,11 @@ require_once __DIR__ . '/../templates/header.php';
                             </div>
                         </td>
                         <td style="padding: 16px; text-align: center;">
-                            <button onclick="editExam(<?php echo e($exam['id']); ?>, '<?php echo e($exam['exam_date']); ?>', '<?php echo e($exam['registration_deadline']); ?>', '<?php echo e($exam['levels']); ?>')"
+                            <button onclick="editExam('<?php echo e($exam['id']); ?>', '<?php echo e($exam['exam_date']); ?>', '<?php echo e($exam['registration_deadline']); ?>', '<?php echo e($exam['levels']); ?>')"
                                     class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">
                                 Edit
                             </button>
-                            <button onclick="deleteExam(<?php echo e($exam['id']); ?>, '<?php echo e(formatDate($exam['exam_date'])); ?>')"
+                            <button onclick="deleteExam('<?php echo e($exam['id']); ?>', '<?php echo e(formatDate($exam['exam_date'])); ?>')"
                                     class="btn btn-danger" style="padding: 6px 12px; font-size: 13px;">
                                 Delete
                             </button>
