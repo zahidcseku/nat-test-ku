@@ -287,7 +287,7 @@ require_once __DIR__ . '/../templates/header.php';
 function showModal() {
     document.getElementById('examModal').style.display = 'flex';
     document.getElementById('modalTitle').textContent = 'Add New Exam Date';
-    document.getElementById('examForm').action.value = 'create';
+    document.getElementById('examForm').elements['action'].value = 'create';
     document.getElementById('examForm').exam_id.value = '';
     document.getElementById('examForm').reset();
 }
@@ -299,7 +299,7 @@ function hideModal() {
 function editExam(id, examDate, deadline, levels) {
     document.getElementById('examModal').style.display = 'flex';
     document.getElementById('modalTitle').textContent = 'Edit Exam Date';
-    document.getElementById('examForm').action.value = 'update';
+    document.getElementById('examForm').elements['action'].value = 'update';
     document.getElementById('examForm').exam_id.value = id;
     document.getElementById('exam_date').value = examDate;
     document.getElementById('registration_deadline').value = deadline;
