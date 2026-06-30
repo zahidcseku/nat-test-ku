@@ -201,11 +201,25 @@ function renderExamRibbonFromDB(data) {
 
   const nextDeadlineEl = document.querySelector('.ribbon-next-exam-deadline');
   if (nextDeadlineEl) {
-    if (data.next_exam_note) {
-      nextDeadlineEl.textContent = data.next_exam_note;
-      console.log('✓ Updated next-to-next exam note from database:', data.next_exam_note);
+    const note = data.next_exam_note;
+    const dateStr = data.next_exam_short_date;
+    if (note && dateStr) {
+      const idx = note.indexOf(dateStr);
+      if (idx >= 0) {
+        const highlight = document.createElement('span');
+        highlight.textContent = dateStr;
+        highlight.className = 'text-accent font-semibold';
+        nextDeadlineEl.replaceChildren(
+          note.slice(0, idx),
+          highlight,
+          note.slice(idx + dateStr.length)
+        );
+      } else {
+        nextDeadlineEl.textContent = note;
+      }
+      console.log('✓ Updated next-to-next exam note from database:', note);
     } else {
-      nextDeadlineEl.textContent = '';
+      nextDeadlineEl.replaceChildren();
     }
   }
 

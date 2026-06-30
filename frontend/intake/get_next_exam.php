@@ -93,11 +93,13 @@ try {
 
         // Build registration note for the following (next-to-next) exam
         $next_exam_note = null;
+        $next_exam_short_date = null;
         if ($following_exam && !empty($following_exam['exam_date']) && !empty($following_exam['registration_deadline'])) {
             $following_exam_obj = DateTime::createFromFormat('Y-m-d', $following_exam['exam_date']);
             $following_deadline_ts = strtotime($following_exam['registration_deadline']);
             if ($following_exam_obj && $following_deadline_ts !== false) {
                 $following_exam_short = $following_exam_obj->format('F j');
+                $next_exam_short_date = $following_exam_short;
                 if ($today_timestamp > $following_deadline_ts) {
                     $next_exam_note = 'Registration for ' . $following_exam_short . ' exam is closed.';
                 } else {
@@ -113,6 +115,7 @@ try {
             'registration_deadline' => $formatted_deadline,
             'registration_status' => $registration_status,
             'next_exam_note' => $next_exam_note,
+            'next_exam_short_date' => $next_exam_short_date,
             'levels' => $exam['levels'] ? explode(',', $exam['levels']) : []
         ], 'Exam date retrieved successfully');
 
