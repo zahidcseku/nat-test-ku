@@ -199,6 +199,16 @@ function renderExamRibbonFromDB(data) {
     console.log('✓ Updated registration status from database:', data.registration_status);
   }
 
+  const nextDeadlineEl = document.querySelector('.ribbon-next-exam-deadline');
+  if (nextDeadlineEl) {
+    if (data.next_exam_note) {
+      nextDeadlineEl.textContent = data.next_exam_note;
+      console.log('✓ Updated next-to-next exam note from database:', data.next_exam_note);
+    } else {
+      nextDeadlineEl.textContent = '';
+    }
+  }
+
   // Update links if needed
   const infoLink = document.querySelector('.ribbon-info-url');
   if (infoLink) {
@@ -223,6 +233,11 @@ function renderExamRibbonFallback() {
   const statusEl = document.querySelector('.ribbon-registration-status');
   if (statusEl) {
     statusEl.textContent = 'Check back later for upcoming exam dates';
+  }
+
+  const nextDeadlineEl = document.querySelector('.ribbon-next-exam-deadline');
+  if (nextDeadlineEl) {
+    nextDeadlineEl.textContent = '';
   }
 
   console.log('✓ Rendered exam ribbon fallback');

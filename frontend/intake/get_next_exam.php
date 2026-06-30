@@ -43,7 +43,7 @@ try {
         WHERE ed.exam_date >= ?
         GROUP BY ed.id, ed.exam_date, ed.registration_deadline
         ORDER BY ed.exam_date ASC
-        LIMIT 1
+        LIMIT 2
     ";
 
     $stmt = $conn->prepare($query);
@@ -60,6 +60,7 @@ try {
 
     $result = $stmt->get_result();
     $exam = $result->fetch_assoc();
+    $following_exam = $result->fetch_assoc();
 
     if ($exam) {
         // Calculate registration status based on today's date
@@ -90,11 +91,28 @@ try {
         }
         $formatted_deadline = $deadline_obj->format('F j, Y');
 
+        // Build registration note for the following (next-to-next) exam
+        $next_exam_note = null;
+        if ($following_exam && !empty($following_exam['exam_date']) && !empty($following_exam['registration_deadline'])) {
+            $following_exam_obj = DateTime::createFromFormat('Y-m-d', $following_exam['exam_date']);
+            $following_deadline_ts = strtotime($following_exam['registration_deadline']);
+            if ($following_exam_obj && $following_deadline_ts !== false) {
+                $following_exam_short = $following_exam_obj->format('F j');
+                if ($today_timestamp > $following_deadline_ts) {
+                    $next_exam_note = 'Registration for ' . $following_exam_short . ' exam is closed.';
+                } else {
+                    $following_days = ceil(($following_deadline_ts - $today_timestamp) / (60 * 60 * 24));
+                    $next_exam_note = 'Registration for ' . $following_exam_short . ' exam closes in ' . $following_days . ' days.';
+                }
+            }
+        }
+
         // Send success response
         successResponse([
             'exam_date' => $formatted_exam_date,
             'registration_deadline' => $formatted_deadline,
             'registration_status' => $registration_status,
+            'next_exam_note' => $next_exam_note,
             'levels' => $exam['levels'] ? explode(',', $exam['levels']) : []
         ], 'Exam date retrieved successfully');
 
