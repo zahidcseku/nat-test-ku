@@ -53,8 +53,10 @@ $paginator    = null;
 
 if ($selectedExamDateId !== '') {
     // Resolve exam_date (YYYY-MM-DD) for the selected exam_date_id, used
-    // to build the PDF web path.
+    // to build the PDF web path. Also pull the guide_pdf_path so we can
+    // show whether a guide is set.
     $selectedExamDate = '';
+    $examGuidePath    = null;
     foreach ($examDates as $ed) {
         if ($ed['id'] === $selectedExamDateId) {
             $selectedExamDate = $ed['exam_date'];
@@ -63,11 +65,20 @@ if ($selectedExamDateId !== '') {
     }
     if ($selectedExamDate === '') {
         // Fallback: query directly.
-        $stmt = $conn->prepare("SELECT exam_date FROM exam_dates WHERE id = ?");
+        $stmt = $conn->prepare("SELECT exam_date, guide_pdf_path FROM exam_dates WHERE id = ?");
         $stmt->bind_param('s', $selectedExamDateId);
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
         $selectedExamDate = $row['exam_date'] ?? '';
+        $examGuidePath    = $row['guide_pdf_path'] ?? null;
+        $stmt->close();
+    } else {
+        // Have the exam_date from the cached list — fetch guide separately.
+        $stmt = $conn->prepare("SELECT guide_pdf_path FROM exam_dates WHERE id = ?");
+        $stmt->bind_param('s', $selectedExamDateId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $examGuidePath = $row['guide_pdf_path'] ?? null;
         $stmt->close();
     }
 
@@ -198,6 +209,63 @@ require_once __DIR__ . '/../templates/header.php';
         </span>
         <a href="<?php echo BASE_URL; ?>/pages/admission-tickets.php"
            style="font-size: 12px; color: #c53030; text-decoration: underline;">✕ Clear</a>
+    </div>
+
+    <!-- Exam Guide (optional, attached to every admission ticket email) -->
+    <div style="background: white; border-radius: 12px; padding: 16px 20px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
+        <h2 style="font-size: 15px; font-weight: 600; color: #1a202c; margin-bottom: 8px;">Exam Guide (optional)</h2>
+        <p style="font-size: 12px; color: #718096; margin-bottom: 12px;">
+            If set, this PDF is attached to every admission-ticket email sent for this exam date.
+        </p>
+
+        <?php if (!empty($examGuidePath) && is_readable($examGuidePath)): ?>
+            <?php
+            // Web URL for the guide — same path-mapping logic as ticket PDFs.
+            $guideUrl = _ticketWebUrl($examGuidePath);
+            ?>
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #c6f6d5; color: #276749; border-radius: 12px; font-size: 13px; font-weight: 600;">
+                    ✓ Guide uploaded
+                </span>
+                <?php if ($guideUrl): ?>
+                    <a href="<?php echo e($guideUrl); ?>" target="_blank" style="font-size: 13px; color: #667eea; text-decoration: none;">📄 view current</a>
+                <?php else: ?>
+                    <span style="font-size: 12px; color: #718096; font-family: monospace;"><?php echo e(basename($examGuidePath)); ?></span>
+                <?php endif; ?>
+                <form method="POST" action="<?php echo BASE_URL; ?>/api/admission-tickets/guide.php" style="display: inline; margin-left: auto;"
+                      onsubmit="return confirm('Remove the exam guide? Future admission-ticket emails for this exam will not include an attachment.');">
+                    <input type="hidden" name="csrf_token" value="<?php echo e(generateCsrfToken()); ?>">
+                    <input type="hidden" name="exam_date_id" value="<?php echo e($selectedExamDateId); ?>">
+                    <input type="hidden" name="action" value="delete">
+                    <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 13px;">Remove</button>
+                </form>
+            </div>
+
+            <form method="POST" action="<?php echo BASE_URL; ?>/api/admission-tickets/guide.php"
+                  enctype="multipart/form-data"
+                  style="display: flex; gap: 8px; align-items: center; margin-top: 12px;">
+                <input type="hidden" name="csrf_token" value="<?php echo e(generateCsrfToken()); ?>">
+                <input type="hidden" name="exam_date_id" value="<?php echo e($selectedExamDateId); ?>">
+                <input type="file" name="guide_pdf" accept=".pdf,application/pdf" required
+                       style="font-size: 13px;">
+                <button type="submit" class="btn btn-secondary" style="padding: 6px 16px; font-size: 13px;">Replace Guide</button>
+            </form>
+        <?php else: ?>
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                <span style="display: inline-flex; align-items: center; padding: 6px 12px; background: #edf2f7; color: #4a5568; border-radius: 12px; font-size: 13px; font-weight: 600;">
+                    ⚠ No guide uploaded
+                </span>
+            </div>
+            <form method="POST" action="<?php echo BASE_URL; ?>/api/admission-tickets/guide.php"
+                  enctype="multipart/form-data"
+                  style="display: flex; gap: 8px; align-items: center;">
+                <input type="hidden" name="csrf_token" value="<?php echo e(generateCsrfToken()); ?>">
+                <input type="hidden" name="exam_date_id" value="<?php echo e($selectedExamDateId); ?>">
+                <input type="file" name="guide_pdf" accept=".pdf,application/pdf" required
+                       style="font-size: 13px;">
+                <button type="submit" class="btn btn-primary" style="padding: 6px 16px; font-size: 13px;">Upload Guide</button>
+            </form>
+        <?php endif; ?>
     </div>
 
     <!-- Summary chips -->

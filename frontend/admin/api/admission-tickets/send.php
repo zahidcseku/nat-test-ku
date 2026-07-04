@@ -65,7 +65,7 @@ if ($action === 'send_all') {
     }
 }
 
-$result = sendTickets($ids, $sentBy);
+$result = sendTickets($ids, $sentBy, $examDateId);
 
 $attempted = count($ids);
 $msg = "Sent {$result['sent']} of {$attempted} ticket(s).";

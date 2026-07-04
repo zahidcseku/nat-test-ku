@@ -198,12 +198,16 @@ function stageTicketsFromUpload(string $xlsxTmpPath, string $zipTmpPath, string 
 /**
  * Send one or more staged admission tickets by ID.
  *
+ * If $examDateId is provided and the exam_date has a guide_pdf_path set,
+ * that guide is attached as a second PDF alongside each admission ticket.
+ *
  * @param array<int, int|string> $ticketIds  admission_tickets.id values
  * @param int                    $sentBy     admin_users.id
+ * @param ?string                $examDateId exam_dates.id, for guide lookup
  *
  * @return array{sent:int, failed:int, errors:string[]}
  */
-function sendTickets(array $ticketIds, int $sentBy): array {
+function sendTickets(array $ticketIds, int $sentBy, ?string $examDateId = null): array {
     $conn = getDbConnection();
     if (!$conn) {
         return ['sent' => 0, 'failed' => 0, 'errors' => ['Database connection failed']];
@@ -212,6 +216,9 @@ function sendTickets(array $ticketIds, int $sentBy): array {
     if (!function_exists('sendEmailWithAttachment')) {
         require_once __DIR__ . '/../functions.php';
     }
+
+    // Resolve the exam guide once for the whole batch.
+    $guidePath = _resolveExamGuide($conn, $examDateId);
 
     $sent = 0;
     $failed = 0;
@@ -262,8 +269,21 @@ function sendTickets(array $ticketIds, int $sentBy): array {
             continue;
         }
 
-        $body    = _renderTicketEmailBody($ticket);
+        $body    = _renderTicketEmailBody($ticket, $guidePath !== null);
         $subject = 'Your NAT-TEST Admission Ticket';
+
+        $attachments = [[
+            'path' => $ticket['file_path'],
+            'name' => 'admission-ticket-' . $ticket['xlsx_id'] . '.pdf',
+            'mime' => 'application/pdf',
+        ]];
+        if ($guidePath !== null) {
+            $attachments[] = [
+                'path' => $guidePath,
+                'name' => 'exam-guide.pdf',
+                'mime' => 'application/pdf',
+            ];
+        }
 
         $ok = sendEmailWithAttachment(
             $ticket['email'],
@@ -271,11 +291,7 @@ function sendTickets(array $ticketIds, int $sentBy): array {
             $body,
             $ticket['registration_id'],
             'admission_ticket',
-            [[
-                'path' => $ticket['file_path'],
-                'name' => 'admission-ticket-' . $ticket['xlsx_id'] . '.pdf',
-                'mime' => 'application/pdf',
-            ]]
+            $attachments
         );
 
         if ($ok) {
@@ -337,6 +353,26 @@ function _findKey(array $row, array $candidates): ?string {
     return null;
 }
 
+/**
+ * Look up the per-exam-date guide PDF. Returns absolute path if set and
+ * readable, otherwise null. Caller treats null as "no guide attached".
+ */
+function _resolveExamGuide(mysqli $conn, ?string $examDateId): ?string {
+    if ($examDateId === null || $examDateId === '') {
+        return null;
+    }
+    $stmt = $conn->prepare("SELECT guide_pdf_path FROM exam_dates WHERE id = ?");
+    $stmt->bind_param('s', $examDateId);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    $path = $row['guide_pdf_path'] ?? null;
+    if ($path && is_readable($path)) {
+        return $path;
+    }
+    return null;
+}
+
 function _markTicketFailed(mysqli $conn, int $ticketId, string $error): void {
     $upd = $conn->prepare("UPDATE admission_tickets SET send_status='failed', last_error=? WHERE id=?");
     $upd->bind_param('si', $error, $ticketId);
@@ -354,16 +390,25 @@ function _cleanupTemp(string $dir): void {
     @rmdir($dir);
 }
 
-function _renderTicketEmailBody(array $ticket): string {
+function _renderTicketEmailBody(array $ticket, bool $hasGuide = false): string {
     $name = htmlspecialchars((string) ($ticket['full_name'] ?? 'Applicant'), ENT_QUOTES, 'UTF-8');
     $id   = htmlspecialchars((string) $ticket['xlsx_id'],        ENT_QUOTES, 'UTF-8');
     $reg  = htmlspecialchars((string) $ticket['reg_no'],         ENT_QUOTES, 'UTF-8');
 
+    // Body copy changes based on whether the guide is attached.
+    if ($hasGuide) {
+        $bodyLine = 'Your admission ticket and an exam guide are attached to this email. '
+                  . 'Please print the admission ticket and bring it with you on the exam day. '
+                  . 'Read the exam guide carefully before the exam — it covers reporting time, venue details, and rules.';
+    } else {
+        $bodyLine = 'Your admission ticket is attached to this email. '
+                  . 'Please print it and bring it with you on the exam day.';
+    }
+
     return '<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;color:#1a202c;margin:0;padding:16px;">'
         . '<h2 style="color:#002147;">Japanese Language NAT-TEST — Khulna Test Center</h2>'
         . '<p style="font-size:14px;">Dear ' . $name . ',</p>'
-        . '<p style="font-size:14px;">Your admission ticket is attached to this email. '
-        . 'Please print it and bring it with you on the exam day.</p>'
+        . '<p style="font-size:14px;">' . $bodyLine . '</p>'
         . '<div style="background:#f4f6f8;border-left:4px solid #667eea;padding:12px 16px;margin:16px 0;font-size:14px;">'
         . '<strong>Examinee ID:</strong> ' . $id . '<br>'
         . '<strong>Reg. Number:</strong> ' . $reg
