@@ -170,6 +170,7 @@ require_once __DIR__ . '/../templates/header.php';
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Recipient</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Subject</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Status</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Error</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Sent</th>
                     <th style="padding: 12px 16px; text-align: center; font-size: 13px; font-weight: 600; color: #4a5568;">Actions</th>
                 </tr>
@@ -216,15 +217,21 @@ require_once __DIR__ . '/../templates/header.php';
                                 <span style="color: #f56565; font-size: 13px;">✗ Failed</span>
                             <?php endif; ?>
                         </td>
+                        <td style="padding: 12px 16px; font-size: 12px; color: #c53030; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?php echo e($email['error_message'] ?? ''); ?>">
+                            <?php echo e($email['error_message'] ?? ''); ?>
+                        </td>
                         <td style="padding: 12px 16px; font-size: 14px; color: #718096;">
                             <?php echo e(date('M j, Y g:i A', strtotime($email['sent_at']))); ?>
                         </td>
                         <td style="padding: 12px 16px; text-align: center;">
                             <?php if ($email['status'] === 'failed'): ?>
-                                <a href="<?php echo BASE_URL; ?>/api/emails/resend.php?id=<?php echo e($email['id']); ?>"
-                                   class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">
-                                    🔄 Resend
-                                </a>
+                                <form method="POST" action="<?php echo BASE_URL; ?>/api/emails/resend.php" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="<?php echo e(generateCsrfToken()); ?>">
+                                    <input type="hidden" name="email_id" value="<?php echo e($email['id']); ?>">
+                                    <button type="submit" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">
+                                        🔄 Resend
+                                    </button>
+                                </form>
                             <?php else: ?>
                                 <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;"
                                         onclick="alert('Email sent by: <?php echo e($email['sent_by_username'] ?? 'System'); ?>')">

@@ -5,9 +5,27 @@
 
 require_once __DIR__ . '/../../auth/middleware.php';
 
+// State-changing action: enforce POST + CSRF.
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    setFlashMessage('Resend requires POST', 'error');
+    header('Location: ' . BASE_URL . '/pages/emails.php');
+    exit;
+}
+if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
+    setFlashMessage('Invalid CSRF token', 'error');
+    header('Location: ' . BASE_URL . '/pages/emails.php');
+    exit;
+}
+
 $conn = getDbConnection();
 
-$emailId = $_POST['email_id'] ?? 0;
+$emailId = (int) ($_POST['email_id'] ?? 0);
+
+if ($emailId <= 0) {
+    setFlashMessage('Email not found', 'error');
+    header('Location: ' . BASE_URL . '/pages/emails.php');
+    exit;
+}
 
 // Get original email
 $stmt = $conn->prepare("
