@@ -4,6 +4,15 @@
  * Database connection, constants, and utility functions
  */
 
+// Include guard: this file may be required from multiple paths
+// (middleware, direct require, or a host's auto_prepend_file).
+// Returning early on a second include prevents "Constant already
+// defined" notices on every define() below.
+if (defined('ADMIN_CONFIG_LOADED')) {
+    return;
+}
+define('ADMIN_CONFIG_LOADED', true);
+
 // Prevent direct access
 if (!defined('ADMIN_ACCESS')) {
     define('ADMIN_ACCESS', true);
@@ -76,12 +85,12 @@ $_intakeUploadsBase = __DIR__ . '/../intake/uploads';
 define('INTAKE_UPLOADS_DIR', is_dir($_intakeUploadsBase) ? realpath($_intakeUploadsBase) : $_intakeUploadsBase);
 
 // SMTP Configuration
-define('SMTP_HOST', getenv('SMTP_HOST') ?: 'localhost');
-define('SMTP_PORT', (int)(getenv('SMTP_PORT') ?: 587));
-define('SMTP_USER', getenv('SMTP_USER') ?: '');
-define('SMTP_PASS', getenv('SMTP_PASS') ?: '');
-define('SMTP_FROM', getenv('SMTP_FROM') ?: '');
-define('SMTP_FROM_NAME', getenv('SMTP_FROM_NAME') ?: 'NAT-TEST Khulna');
+defined('SMTP_HOST')     || define('SMTP_HOST', getenv('SMTP_HOST') ?: 'localhost');
+defined('SMTP_PORT')     || define('SMTP_PORT', (int)(getenv('SMTP_PORT') ?: 587));
+defined('SMTP_USER')     || define('SMTP_USER', getenv('SMTP_USER') ?: '');
+defined('SMTP_PASS')     || define('SMTP_PASS', getenv('SMTP_PASS') ?: '');
+defined('SMTP_FROM')     || define('SMTP_FROM', getenv('SMTP_FROM') ?: '');
+defined('SMTP_FROM_NAME')|| define('SMTP_FROM_NAME', getenv('SMTP_FROM_NAME') ?: 'NAT-TEST Khulna');
 
 // Site URLs
 define('BASE_URL', 'https://nat-test.ku.ac.bd/admin');
