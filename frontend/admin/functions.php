@@ -79,9 +79,22 @@ function logAudit($action, $tableName = null, $recordId = null, $oldValues = nul
 }
 
 // Send email
+//
+// Routes through the SAME shared SMTP transport as the intake service
+// (frontend/intake/smtp-transport.php). Single source of truth for SMTP
+// across the project; same channel, same credentials, same deliverability
+// rules. Falls back to plain mail() only if SMTP is not configured, which
+// on production it always should be.
 function sendEmail($to, $subject, $body, $registrationId = null, $emailType = 'confirmation') {
     $conn = getDbConnection();
     if (!$conn) return false;
+
+    // Pull in the shared SMTP transport exactly once.
+    // admin/ and intake/ are sibling directories inside frontend/, so
+    // only one ".." is needed to cross from /admin to /intake.
+    if (!function_exists('smtpSendMail')) {
+        require_once __DIR__ . '/../intake/smtp-transport.php';
+    }
 
     // Log email attempt
     $stmt = $conn->prepare("
@@ -93,26 +106,34 @@ function sendEmail($to, $subject, $body, $registrationId = null, $emailType = 'c
     $status = 'sent';
     $errorMsg = null;
 
-    // Send email using PHP mail() (can be upgraded to PHPMailer later)
-    $headers = [
-        'From' => SMTP_FROM,
-        'Content-Type' => 'text/html; charset=UTF-8',
-        'MIME-Version' => '1.0'
-    ];
+    $fromEmail = defined('SMTP_FROM') ? SMTP_FROM : (getenv('SMTP_USER') ?: '');
+    $fromName  = defined('SMTP_FROM_NAME') && SMTP_FROM_NAME ? SMTP_FROM_NAME : '';
 
-    $headersStr = '';
-    foreach ($headers as $key => $value) {
-        $headersStr .= "$key: $value\r\n";
+    // Authenticated SMTP when configured; plain mail() as the unconfigured
+    // fallback (local dev / sandbox without SMTP credentials).
+    if (getenv('SMTP_HOST') && getenv('SMTP_USER') && getenv('SMTP_PASS')) {
+        $result = smtpSendMail($to, $subject, $body, $fromEmail, $fromName);
+        $success = $result['success'];
+        if (!$success) {
+            $errorMsg = $result['error'] ?? 'Unknown SMTP error';
+        }
+    } else {
+        $headersStr = 'From: ' . $fromEmail . "\r\n"
+            . "MIME-Version: 1.0\r\n"
+            . "Content-Type: text/html; charset=UTF-8\r\n";
+        $success = @mail($to, $subject, $body, $headersStr);
+        if (!$success) {
+            $errorMsg = error_get_last()['message'] ?? 'mail() returned false';
+        }
     }
-
-    $success = mail($to, $subject, $body, $headersStr);
 
     if (!$success) {
         $status = 'failed';
-        $errorMsg = error_get_last()['message'] ?? 'Unknown error';
     }
 
-    $stmt->bind_param('issssis', $registrationId, $emailType, $to, $subject, $body, $sentBy, $status);
+    // bind_param: registration_id is VARCHAR(36) so use 's' not 'i' — the
+    // old 'i' here silently coerced UUID ids to 0 and broke the FK link.
+    $stmt->bind_param('sssssis', $registrationId, $emailType, $to, $subject, $body, $sentBy, $status);
     $stmt->execute();
 
     if ($errorMsg) {

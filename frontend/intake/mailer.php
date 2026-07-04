@@ -3,8 +3,9 @@
  * NAT-TEST Intake Service - Applicant Email
  *
  * Automated submission/payment emails. Self-contained by design: the intake
- * service must not import anything from /admin. Sending uses PHP mail(),
- * the same transport the admin panel uses.
+ * service must not import anything from /admin. Sending uses the shared
+ * SMTP transport at smtp-transport.php (same file the admin panel uses),
+ * falling back to plain mail() only when SMTP is not configured.
  *
  * RULE: email must never break a registration. sendRegistrationEmail()
  * never throws — every failure degrades to a logged warning.
@@ -14,6 +15,9 @@
 if (!defined('INTAKE_SERVICE')) {
     exit('Direct access not permitted');
 }
+
+// Shared SMTP transport (single source of truth across intake + admin).
+require_once __DIR__ . '/smtp-transport.php';
 
 // Bank details shown for offline payment (must match registration.html)
 const BANK_ACCOUNT_NAME = 'Test Site Director';
@@ -141,109 +145,6 @@ function buildRegistrationEmail(array $registration, string $variant): array {
 }
 
 /**
- * Send one message over authenticated SMTP (STARTTLS by default).
- *
- * Used when SMTP_HOST/SMTP_USER/SMTP_PASS are configured — required for
- * deliverability because nat-test.ku.ac.bd's mail is Google-hosted and the
- * web server is not an authorized sender (no SPF/DKIM), so plain mail()
- * gets rejected by Gmail. SMTP_SECURE: 'starttls' (default), 'ssl'
- * (implicit TLS, port 465), or 'none' (local testing only).
- *
- * @return bool True if the server accepted the message
- */
-function smtpSendMail(string $to, string $subject, string $body, string $fromEmail): bool {
-    $host = getenv('SMTP_HOST');
-    $port = (int)(getenv('SMTP_PORT') ?: 587);
-    $user = getenv('SMTP_USER');
-    $pass = getenv('SMTP_PASS');
-    $secure = strtolower(getenv('SMTP_SECURE') ?: 'starttls');
-
-    if (!$host || !$user || !$pass) {
-        return false;
-    }
-
-    // Shared-hosting mail servers often present certificates issued for the
-    // host machine rather than this domain; SMTP_ALLOW_SELF_SIGNED=true
-    // relaxes verification for exactly that case (default: strict).
-    $allowSelfSigned = strtolower(getenv('SMTP_ALLOW_SELF_SIGNED') ?: '') === 'true';
-    $context = stream_context_create($allowSelfSigned ? ['ssl' => [
-        'verify_peer' => false,
-        'verify_peer_name' => false,
-        'allow_self_signed' => true,
-    ]] : []);
-
-    $remote = ($secure === 'ssl' ? 'ssl://' : 'tcp://') . $host . ':' . $port;
-    $errno = 0;
-    $errstr = '';
-    $fp = @stream_socket_client($remote, $errno, $errstr, 15, STREAM_CLIENT_CONNECT, $context);
-    if (!$fp) {
-        logActivity("SMTP connect to {$host}:{$port} failed: {$errstr}", 'warning');
-        return false;
-    }
-    stream_set_timeout($fp, 15);
-
-    $read = static function () use ($fp) {
-        $data = '';
-        while (($line = fgets($fp, 515)) !== false) {
-            $data .= $line;
-            if (strlen($line) < 4 || $line[3] !== '-') {
-                break;
-            }
-        }
-        return $data;
-    };
-    $cmd = static function (?string $c, int $expect) use ($fp, $read) {
-        if ($c !== null) {
-            fwrite($fp, $c . "\r\n");
-        }
-        $resp = $read();
-        if (strpos($resp, (string)$expect) !== 0) {
-            throw new RuntimeException('SMTP unexpected response: ' . trim(substr($resp, 0, 200)));
-        }
-        return $resp;
-    };
-
-    try {
-        $cmd(null, 220);
-        $cmd('EHLO nat-test.ku.ac.bd', 250);
-
-        if ($secure === 'starttls') {
-            $cmd('STARTTLS', 220);
-            if (!stream_socket_enable_crypto($fp, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
-                throw new RuntimeException('TLS negotiation failed');
-            }
-            $cmd('EHLO nat-test.ku.ac.bd', 250);
-        }
-
-        $cmd('AUTH LOGIN', 334);
-        $cmd(base64_encode($user), 334);
-        $cmd(base64_encode($pass), 235);
-        $cmd('MAIL FROM:<' . $fromEmail . '>', 250);
-        $cmd('RCPT TO:<' . $to . '>', 250);
-        $cmd('DATA', 354);
-
-        $headers = 'From: ' . $fromEmail . "\r\n"
-            . 'To: ' . $to . "\r\n"
-            . 'Subject: ' . $subject . "\r\n"
-            . 'Date: ' . date('r') . "\r\n"
-            . "MIME-Version: 1.0\r\n"
-            . "Content-Type: text/html; charset=UTF-8\r\n";
-        // Dot-stuffing per RFC 5321
-        $stuffed = preg_replace('/^\./m', '..', $body);
-        $cmd($headers . "\r\n" . $stuffed . "\r\n.", 250);
-        $cmd('QUIT', 221);
-        fclose($fp);
-        return true;
-    } catch (Throwable $e) {
-        logActivity('SMTP send failed: ' . $e->getMessage(), 'warning');
-        if (is_resource($fp)) {
-            @fclose($fp);
-        }
-        return false;
-    }
-}
-
-/**
  * Build and send an applicant email. Never throws.
  *
  * @return bool True if the transport accepted the message
@@ -258,9 +159,13 @@ function sendRegistrationEmail(array $registration, string $variant): bool {
         }
 
         // Authenticated SMTP when configured (required for Gmail
-        // deliverability); plain mail() as the unconfigured fallback
+        // deliverability); plain mail() as the unconfigured fallback.
         if (getenv('SMTP_HOST') && getenv('SMTP_USER') && getenv('SMTP_PASS')) {
-            $success = smtpSendMail($to, $mail['subject'], $mail['body'], MAIL_FROM);
+            $result = smtpSendMail($to, $mail['subject'], $mail['body'], MAIL_FROM);
+            $success = $result['success'];
+            if (!$success) {
+                logActivity('SMTP send failed: ' . ($result['error'] ?? 'unknown'), 'warning');
+            }
         } else {
             $headers = 'From: ' . MAIL_FROM . "\r\n"
                 . "MIME-Version: 1.0\r\n"
