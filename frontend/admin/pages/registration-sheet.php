@@ -211,10 +211,10 @@ require_once __DIR__ . '/../templates/header.php';
         <div>
             <?php if ($selectedYear > 0 && $selectedMonth > 0): ?>
                 <a href="<?php echo BASE_URL; ?>/api/registrations/registration-sheet-photos.php?year=<?php echo $selectedYear; ?>&amp;month=<?php echo $selectedMonth; ?>" class="btn btn-secondary" style="width: 100%;">
-                    📷 Download Photos
+                    📷 Download New Photos
                 </a>
             <?php else: ?>
-                <button type="button" class="btn btn-secondary" disabled style="width: 100%;">📷 Download Photos</button>
+                <button type="button" class="btn btn-secondary" disabled style="width: 100%;">📷 Download New Photos</button>
             <?php endif; ?>
         </div>
     </form>

@@ -2,17 +2,29 @@
 /**
  * Registration Sheet Photos ZIP Download
  *
- * Streams a .zip of every applicant's photo for the selected year+month,
- * with each file renamed to {reg_no}.{ext}.
+ * Streams a .zip of applicant photos for the selected year+month, but ONLY
+ * for mappings whose photo has not been included in a previous Download
+ * Photos zip (photos_downloaded_at IS NULL). After a successful build,
+ * those mappings are marked photos_downloaded_at = NOW() so the next
+ * download only picks up newly-added applicants.
  *
- * Source of truth: registration_sheet_numbers (the same mapping used by the
- * xlsx export). One photo per registration; for multi-level applicants, the
- * lowest reg_no wins as the filename (so 1Q < 2Q < 3Q ...).
+ * Folder structure inside the zip mirrors the xlsx level sheets:
+ *
+ *     1Q/47610001.jpg
+ *     1Q/47610002.jpg
+ *     2Q/47620001.jpg
+ *     3Q/47630005.png
+ *     _manifest.csv
+ *     _README.txt
+ *
+ * A multi-level applicant (1Q/N1 + 2Q/N2) appears in BOTH folders, once
+ * per reg_no - matches how they appear in the xlsx level sheets.
  *
  * Safety: only photos whose realpath is inside /intake/uploads/ are
- * included. Path traversal via a tampered row is refused, never followed.
+ * included. Path traversal via a tampered row is refused.
  *
- * Requires the mapping table — export the .xlsx at least once first.
+ * Requires registration_sheet_numbers.photos_downloaded_at - see
+ * schema/add_photos_downloaded_at.sql.
  */
 
 require_once __DIR__ . '/../../auth/middleware.php';
@@ -39,18 +51,33 @@ if (!$conn) {
     exit;
 }
 
-// One row per registration. primary_reg_no = lowest reg_no across levels.
+// Soft-check for the photos_downloaded_at column. If it is missing, every
+// download would return the full set every time, so fail loudly with the
+// migration hint instead.
+$colCheck = $conn->query("SHOW COLUMNS FROM registration_sheet_numbers LIKE 'photos_downloaded_at'");
+if ($colCheck === false || $colCheck->num_rows === 0) {
+    http_response_code(500);
+    echo "Required column 'photos_downloaded_at' is missing on registration_sheet_numbers. ";
+    echo "Run: mysql -u nattest_reg -p nattest_regs < admin/schema/add_photos_downloaded_at.sql";
+    exit;
+}
+
+// One row per (registration_id, level) - multi-level applicants appear
+// multiple times. Filter to mappings whose photo has not yet been sent.
 $stmt = $conn->prepare("
-    SELECT rsn.registration_id,
-           MIN(rsn.reg_no) AS primary_reg_no,
+    SELECT rsn.id AS mapping_id,
+           rsn.registration_id,
+           rsn.level,
+           rsn.reg_no,
            r.full_name,
            r.photo_storage_path,
            r.photo_filename
     FROM registration_sheet_numbers rsn
     JOIN registrations r ON r.id = rsn.registration_id
-    WHERE rsn.year = ? AND rsn.month = ?
-    GROUP BY rsn.registration_id, r.full_name, r.photo_storage_path, r.photo_filename
-    ORDER BY primary_reg_no ASC
+    WHERE rsn.year = ?
+      AND rsn.month = ?
+      AND rsn.photos_downloaded_at IS NULL
+    ORDER BY rsn.reg_no ASC
 ");
 $stmt->bind_param('ii', $year, $month);
 $stmt->execute();
@@ -59,8 +86,8 @@ $stmt->close();
 
 if (empty($rows)) {
     http_response_code(404);
-    echo 'No registration numbers have been assigned for this period yet. ';
-    echo 'Export the .xlsx first to assign reg numbers.';
+    echo 'No new photos to download for ' . sprintf('%04d-%02d', $year, $month) . '. ';
+    echo 'Either every mapped applicant has already been downloaded, or the xlsx has not been exported yet.';
     exit;
 }
 
@@ -79,18 +106,22 @@ if ($zip->open($tmpPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
     exit;
 }
 
-// Path-traversal guard: same marker used by deleteRegistrationCompletely.
+// Path-traversal guard. Same marker used by deleteRegistrationCompletely().
 $uploadsMarker = DIRECTORY_SEPARATOR . 'intake' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
 
 $added           = 0;
 $skippedMissing  = 0;
 $skippedUnsafe   = 0;
 $skippedCollision = 0;
-$seenNames       = [];
+$seenPaths       = []; // tracks full in-zip paths to avoid collisions
+$markedMappingIds = []; // mapping.id values to mark as downloaded
 $manifest        = [];
 
+// Tally per level for the README.
+$perLevel = ['1Q' => 0, '2Q' => 0, '3Q' => 0, '4Q' => 0, '5Q' => 0];
+
 foreach ($rows as $row) {
-    $regNo = $row['primary_reg_no'];
+    $regNo = $row['reg_no'];
     $path  = $row['photo_storage_path'];
 
     if ($path === '' || $path === null) {
@@ -111,57 +142,50 @@ foreach ($rows as $row) {
         continue;
     }
 
+    // Folder = level with the /N{digit} suffix stripped: "1Q/N1" -> "1Q".
+    $levelFolder = preg_replace('/\/N\d+$/', '', $row['level']);
+
     // Preserve original extension (fall back to .jpg).
     $ext = strtolower(pathinfo($row['photo_filename'] ?: $path, PATHINFO_EXTENSION));
     if ($ext === '') {
         $ext = 'jpg';
     }
-    $zipName = $regNo . '.' . $ext;
+    $inZipPath = $levelFolder . '/' . $regNo . '.' . $ext;
 
-    // Defensive: avoid name collisions (reg_no is UNIQUE per period, but
-    // case-insensitive filesystems could merge e.g. 47610001.JPG and .jpg).
-    if (isset($seenNames[strtolower($zipName)])) {
-        $suffix = substr(md5($real), 0, 6);
-        $zipName = $regNo . '_' . $suffix . '.' . $ext;
-        if (isset($seenNames[strtolower($zipName)])) {
+    // Defensive: avoid name collisions on case-insensitive filesystems.
+    $key = strtolower($inZipPath);
+    if (isset($seenPaths[$key])) {
+        $suffix  = substr(md5($real), 0, 6);
+        $inZipPath = $levelFolder . '/' . $regNo . '_' . $suffix . '.' . $ext;
+        $key = strtolower($inZipPath);
+        if (isset($seenPaths[$key])) {
             $skippedCollision++;
             continue;
         }
     }
-    $seenNames[strtolower($zipName)] = true;
+    $seenPaths[$key] = true;
 
-    if (!$zip->addFile($real, $zipName)) {
+    if (!$zip->addFile($real, $inZipPath)) {
         $skippedMissing++;
         continue;
     }
 
+    if (isset($perLevel[$levelFolder])) {
+        $perLevel[$levelFolder]++;
+    }
+
     $manifest[] = [
-        'reg_no' => $regNo,
-        'file'   => $zipName,
-        'name'   => $row['full_name'],
+        'reg_no'  => $regNo,
+        'level'   => $levelFolder,
+        'file'    => $inZipPath,
+        'name'    => $row['full_name'],
     ];
+    $markedMappingIds[] = (int) $row['mapping_id'];
     $added++;
 }
 
-// Embed a small manifest so recipients can map reg_no -> name without opening the DB.
-if (!empty($manifest)) {
-    $csv = "reg_no,filename,full_name\n";
-    foreach ($manifest as $m) {
-        $name = str_replace(['"', ','], [' ', ' '], $m['name']);
-        $csv .= $m['reg_no'] . ',' . $m['file'] . ',' . $name . "\n";
-    }
-    $zip->addFromString('_manifest.csv', $csv);
-
-    $summary = sprintf(
-        "Registration photos for %d-%02d\nGenerated: %s\n\nTotal: %d\nMissing: %d\nUnsafe: %d\nCollisions: %d\n",
-        $year, $month, date('Y-m-d H:i:s'), $added, $skippedMissing, $skippedUnsafe, $skippedCollision
-    );
-    $zip->addFromString('_README.txt', $summary);
-}
-
-$zip->close();
-
 if ($added === 0) {
+    $zip->close();
     @unlink($tmpPath);
     http_response_code(404);
     echo 'No readable photos found for the selected period. ';
@@ -169,7 +193,44 @@ if ($added === 0) {
     exit;
 }
 
-$filename = sprintf('Registration_Photos_%d-%02d.zip', $year, $month);
+// Embed manifest + README so recipients can map reg_no -> name without the DB.
+if (!empty($manifest)) {
+    $csv = "reg_no,level,filename,full_name\n";
+    foreach ($manifest as $m) {
+        $name = str_replace(['"', ','], [' ', ' '], $m['name']);
+        $csv .= $m['reg_no'] . ',' . $m['level'] . ',' . $m['file'] . ',' . $name . "\n";
+    }
+    $zip->addFromString('_manifest.csv', $csv);
+
+    $summary = sprintf(
+        "Registration photos for %04d-%02d (NEW applicants only)\nGenerated: %s\n\nTotal: %d\nPer level: 1Q=%d  2Q=%d  3Q=%d  4Q=%d  5Q=%d\nSkipped: missing=%d  unsafe=%d  collisions=%d\n",
+        $year, $month, date('Y-m-d H:i:s'),
+        $added,
+        $perLevel['1Q'], $perLevel['2Q'], $perLevel['3Q'], $perLevel['4Q'], $perLevel['5Q'],
+        $skippedMissing, $skippedUnsafe, $skippedCollision
+    );
+    $zip->addFromString('_README.txt', $summary);
+}
+
+$zip->close();
+
+// Mark the included mappings as downloaded so the next call only returns
+// newly-added applicants. Done AFTER the zip is built; if anything above
+// exits early (e.g. no readable photos), nothing is marked.
+if (!empty($markedMappingIds)) {
+    $placeholders = implode(',', array_fill(0, count($markedMappingIds), '?'));
+    $types = str_repeat('i', count($markedMappingIds));
+    $mark = $conn->prepare("
+        UPDATE registration_sheet_numbers
+        SET photos_downloaded_at = NOW()
+        WHERE id IN ($placeholders)
+    ");
+    $mark->bind_param($types, ...$markedMappingIds);
+    $mark->execute();
+    $mark->close();
+}
+
+$filename = sprintf('Registration_Photos_%d-%02d_new.zip', $year, $month);
 $filesize = filesize($tmpPath);
 
 try {
@@ -185,6 +246,7 @@ try {
             'missing'    => $skippedMissing,
             'unsafe'     => $skippedUnsafe,
             'collisions' => $skippedCollision,
+            'marked'     => count($markedMappingIds),
         ]
     );
 } catch (Throwable $e) {
