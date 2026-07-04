@@ -98,33 +98,45 @@ if ($selectedExamDateId !== '') {
     $stmt->close();
     $ticketCounts['total'] = $ticketCounts['staged'] + $ticketCounts['sent'] + $ticketCounts['failed'];
 
-    // Paginated ticket rows.
-    $where = ['exam_date_id = ?'];
+    // Paginated ticket rows. Qualify all columns with `at.` because we
+    // JOIN registration_sheet_numbers and registrations, which share
+    // column names (reg_no, id).
+    $where = ['at.exam_date_id = ?'];
     $params = [$selectedExamDateId];
     $types = 's';
 
     if (in_array($statusFilter, ['staged', 'sent', 'failed'], true)) {
-        $where[] = 'send_status = ?';
+        $where[] = 'at.send_status = ?';
         $params[] = $statusFilter;
         $types   .= 's';
     }
     if ($search !== '') {
-        $where[] = '(xlsx_id LIKE ? OR reg_no LIKE ?)';
+        $where[] = '(at.xlsx_id LIKE ? OR at.reg_no LIKE ? OR r.full_name LIKE ? OR r.email LIKE ? OR r.mobile LIKE ?)';
         $params[] = "%$search%";
         $params[] = "%$search%";
-        $types   .= 'ss';
+        $params[] = "%$search%";
+        $params[] = "%$search%";
+        $params[] = "%$search%";
+        $types   .= 'sssss';
     }
     $whereClause = implode(' AND ', $where);
 
     $dataQuery = "
-        SELECT id, xlsx_id, reg_no, file_path, send_status, emailed_at, last_error
-        FROM admission_tickets
+        SELECT at.id, at.xlsx_id, at.reg_no, at.file_path,
+               at.send_status, at.emailed_at, at.last_error,
+               r.full_name, r.email, r.mobile
+        FROM admission_tickets at
+        LEFT JOIN registration_sheet_numbers rsn ON rsn.reg_no = at.reg_no
+        LEFT JOIN registrations r ON r.id = rsn.registration_id
         WHERE $whereClause
-        ORDER BY CAST(xlsx_id AS UNSIGNED), xlsx_id ASC
+        GROUP BY at.id
+        ORDER BY CAST(at.xlsx_id AS UNSIGNED), at.xlsx_id ASC
     ";
     $countQuery = "
         SELECT COUNT(*) AS cnt
-        FROM admission_tickets
+        FROM admission_tickets at
+        LEFT JOIN registration_sheet_numbers rsn ON rsn.reg_no = at.reg_no
+        LEFT JOIN registrations r ON r.id = rsn.registration_id
         WHERE $whereClause
     ";
 
@@ -334,6 +346,9 @@ require_once __DIR__ . '/../templates/header.php';
                             </th>
                             <th style="padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">ID</th>
                             <th style="padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">RegNumber</th>
+                            <th style="padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Name</th>
+                            <th style="padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Email</th>
+                            <th style="padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Phone</th>
                             <th style="padding: 10px 12px; text-align: center; font-size: 13px; font-weight: 600; color: #4a5568;">Ticket</th>
                             <th style="padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Status</th>
                         </tr>
@@ -357,6 +372,27 @@ require_once __DIR__ . '/../templates/header.php';
                                 </td>
                                 <td style="padding: 10px 12px; font-family: monospace; font-size: 13px;"><?php echo e($t['xlsx_id']); ?></td>
                                 <td style="padding: 10px 12px; font-family: monospace; font-size: 13px;"><?php echo e($t['reg_no']); ?></td>
+                                <td style="padding: 10px 12px; font-size: 13px;">
+                                    <?php if (!empty($t['full_name'])): ?>
+                                        <?php echo e($t['full_name']); ?>
+                                    <?php else: ?>
+                                        <span style="color: #cbd5e0;" title="No registration found for this reg_no">—</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="padding: 10px 12px; font-size: 13px;">
+                                    <?php if (!empty($t['email'])): ?>
+                                        <a href="mailto:<?php echo e($t['email']); ?>" style="color: #667eea; text-decoration: none;"><?php echo e($t['email']); ?></a>
+                                    <?php else: ?>
+                                        <span style="color: #cbd5e0;">—</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="padding: 10px 12px; font-size: 13px;">
+                                    <?php if (!empty($t['mobile'])): ?>
+                                        <?php echo e($t['mobile']); ?>
+                                    <?php else: ?>
+                                        <span style="color: #cbd5e0;">—</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td style="padding: 10px 12px; text-align: center;">
                                     <?php if ($pdfUrl): ?>
                                         <a href="<?php echo e($pdfUrl); ?>" target="_blank" style="color: #667eea; text-decoration: none; font-size: 13px;">📄 view</a>
