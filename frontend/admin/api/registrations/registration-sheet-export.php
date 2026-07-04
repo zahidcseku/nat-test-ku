@@ -342,15 +342,18 @@ if (isset($sheetNameToFile['Registration'])) {
     }
 }
 
-// 2) Patch each level sheet using the persisted assignments
+// 2) Patch each level sheet using the persisted assignments.
+// The template's sheet tabs are named "1Q".."5Q" (no /N1 suffix), so
+// strip the combined-notation suffix before looking the file up.
 foreach ($LEVELS as $lvl) {
     if (empty($assigned[$lvl])) {
         continue;
     }
-    if (!isset($sheetNameToFile[$lvl])) {
+    $sheetTabName = preg_replace('/\/N\d+$/', '', $lvl); // "1Q/N1" -> "1Q"
+    if (!isset($sheetNameToFile[$sheetTabName])) {
         continue;
     }
-    $file = $sheetNameToFile[$lvl];
+    $file = $sheetNameToFile[$sheetTabName];
     $xml  = $zip->getFromName($file);
     if ($xml === false) {
         continue;
