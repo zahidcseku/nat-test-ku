@@ -146,6 +146,67 @@ function sendEmail($to, $subject, $body, $registrationId = null, $emailType = 'c
 }
 
 /**
+ * Send an HTML email with file attachments (e.g. admission ticket PDFs).
+ * Mirrors sendEmail(): same email_log INSERT pattern, same CSRF/audit
+ * expectations. Routes through smtpSendMailWithAttachment() when SMTP
+ * is configured, falls back to plain mail() (without the attachment) in
+ * local dev with a warning in error_log.
+ *
+ * @param array<int, array{path:string, name:string, mime:string}> $attachments
+ */
+function sendEmailWithAttachment($to, $subject, $body, $registrationId = null, $emailType = 'admission_ticket', array $attachments = []) {
+    $conn = getDbConnection();
+    if (!$conn) return false;
+
+    if (!function_exists('smtpSendMailWithAttachment')) {
+        require_once __DIR__ . '/../intake/smtp-transport.php';
+    }
+
+    // Log email attempt row up front so we always have a record, even
+    // if the SMTP call below throws.
+    $stmt = $conn->prepare("
+        INSERT INTO email_log (registration_id, email_type, recipient_email, subject, body, sent_by, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ");
+
+    $sentBy   = $_SESSION['user_id'] ?? null;
+    $status   = 'sent';
+    $errorMsg = null;
+
+    $fromEmail = defined('SMTP_FROM') ? SMTP_FROM : (getenv('SMTP_USER') ?: '');
+    $fromName  = defined('SMTP_FROM_NAME') && SMTP_FROM_NAME ? SMTP_FROM_NAME : '';
+
+    if (getenv('SMTP_HOST') && getenv('SMTP_USER') && getenv('SMTP_PASS')) {
+        $result  = smtpSendMailWithAttachment($to, $subject, $body, $fromEmail, $fromName, $attachments);
+        $success = $result['success'];
+        if (!$success) {
+            $errorMsg = $result['error'] ?? 'Unknown SMTP error';
+        }
+    } else {
+        // Unconfigured fallback. mail() doesn't take attachments in this
+        // helper's signature, so log and bail rather than silently send a
+        // ticket-less email.
+        $success = false;
+        $errorMsg = 'SMTP not configured — attachment email cannot be sent via mail() fallback';
+    }
+
+    if (!$success) {
+        $status = 'failed';
+    }
+
+    $stmt->bind_param('sssssis', $registrationId, $emailType, $to, $subject, $body, $sentBy, $status);
+    $stmt->execute();
+
+    if ($errorMsg) {
+        $stmt = $conn->prepare("UPDATE email_log SET error_message = ? WHERE id = ?");
+        $stmt->bind_param('si', $errorMsg, $conn->insert_id);
+        $stmt->execute();
+    }
+
+    return $success;
+}
+
+/**
  * Permanently delete a registration: DB row first, then its uploaded files.
  * Files are only unlinked when they resolve inside an intake uploads
  * directory — a tampered row must never delete arbitrary server files.
