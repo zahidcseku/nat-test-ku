@@ -25,7 +25,8 @@ try {
         errorResponse('Database connection failed', 500);
     }
 
-    // Get the next exam date (today or future, but not before July 11, 2026)
+    // Get the next exams with registration still open (deadline strictly in
+    // the future), so the ribbon advances past exams whose registration closed.
     $today = date('Y-m-d');
     $center_opening_date = '2026-07-11';
 
@@ -40,7 +41,7 @@ try {
             GROUP_CONCAT(el.level ORDER BY el.level SEPARATOR ',') as levels
         FROM exam_dates ed
         LEFT JOIN exam_levels el ON ed.id = el.exam_date_id
-        WHERE ed.exam_date >= ?
+        WHERE ed.exam_date >= ? AND ed.registration_deadline > ?
         GROUP BY ed.id, ed.exam_date, ed.registration_deadline
         ORDER BY ed.exam_date ASC
         LIMIT 2
@@ -52,7 +53,7 @@ try {
         errorResponse('Database error', 500);
     }
 
-    $stmt->bind_param('s', $effective_start_date);
+    $stmt->bind_param('ss', $effective_start_date, $today);
     if (!$stmt->execute()) {
         logActivity("Query execution failed: " . $stmt->error, 'error');
         errorResponse('Database error', 500);
