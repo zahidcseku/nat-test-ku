@@ -332,6 +332,13 @@ require_once __DIR__ . '/../templates/header.php';
                         <?php if ($ticketCounts['staged'] + $ticketCounts['failed'] === 0) echo 'disabled'; ?>>
                     Send All (<?php echo $ticketCounts['staged'] + $ticketCounts['failed']; ?> staged/failed)
                 </button>
+                <a href="<?php echo BASE_URL; ?>/pages/seat-tags.php?exam_date_id=<?php echo e($selectedExamDateId); ?>"
+                   target="_blank"
+                   class="btn btn-secondary"
+                   style="text-decoration: none; <?php echo $ticketCounts['sent'] === 0 ? 'opacity: 0.5; pointer-events: none;' : ''; ?>"
+                   <?php echo $ticketCounts['sent'] === 0 ? 'title="No sent tickets yet"' : 'title="Open printable seat tags in a new tab"'; ?>>
+                    🖨️ Print Seat Tags (<?php echo $ticketCounts['sent']; ?>)
+                </a>
                 <span style="font-size: 12px; color: #718096; align-self: center; margin-left: auto;">
                     Selected: <span id="selected-count">0</span>
                 </span>
