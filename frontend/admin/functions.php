@@ -555,6 +555,45 @@ function renderPagination($currentPage, $totalPages, $totalRows, $perPage, $base
     return ob_get_clean();
 }
 
+/**
+ * Count PAID registrations per level for a given exam date.
+ *
+ * registrations.exam_level is a comma-separated string (e.g. '1Q/N1,2Q/N2'),
+ * so we aggregate counts in PHP after exploding. Returns an associative
+ * array keyed by level: ['1Q/N1' => 47, '2Q/N2' => 12, ...].
+ *
+ * @param mysqli $conn
+ * @param string $examDate  YYYY-MM-DD
+ * @return array<string,int>
+ */
+function countPaidByLevel($conn, $examDate) {
+    if (!$conn || empty($examDate)) {
+        return [];
+    }
+    $stmt = $conn->prepare(
+        "SELECT exam_level FROM registrations
+          WHERE test_date = ? AND payment_status = 'paid'"
+    );
+    if (!$stmt) {
+        return [];
+    }
+    $stmt->bind_param('s', $examDate);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $counts = [];
+    while ($row = $result->fetch_assoc()) {
+        foreach (explode(',', $row['exam_level']) as $lvl) {
+            $lvl = trim($lvl);
+            if ($lvl !== '') {
+                $counts[$lvl] = ($counts[$lvl] ?? 0) + 1;
+            }
+        }
+    }
+    $stmt->close();
+    return $counts;
+}
+
 // Set flash message
 function setFlashMessage($message, $type = 'success') {
     $_SESSION['flash_message'] = [

@@ -794,6 +794,22 @@ const RegistrationForm = (function() {
 
     console.log('Validation passed');
 
+    // Pre-submit cap guard: even though full levels are disabled in the
+    // checkbox UI, this catches the edge case where the level filled up
+    // between page load and submit. The server also enforces this, but
+    // failing here avoids a wasted multipart upload.
+    const preSubmitDate = formData.step2 && formData.step2.test_date;
+    if (preSubmitDate && selectedLevels.length > 0) {
+      const exam = examDatesData.find(ex => ex.value === preSubmitDate);
+      const caps = (exam && exam.level_caps) || {};
+      const fullSelected = selectedLevels.filter(l => caps[l] && caps[l].is_full);
+      if (fullSelected.length > 0) {
+        alert('Registration just filled up for: ' + fullSelected.join(', ')
+          + '. Please choose another level or date.');
+        return false;
+      }
+    }
+
     // Check payment method
     const paymentMethod = formData.step3.payment_method;
 
@@ -1214,15 +1230,38 @@ const RegistrationForm = (function() {
       .then(data => {
         if (data.levels && data.levels.length > 0) {
           container.innerHTML = '';
+
+          // Look up per-level cap info from the cached examDatesData
+          // (loadExamDates() already populated level_caps from
+          // get_exam_dates.php). Fall back to "no info" if missing.
+          const selectedExam = examDatesData.find(exam => exam.value === testDate);
+          const caps = (selectedExam && selectedExam.level_caps) || {};
+
+          // If every offered level on this date is full, show a banner
+          // instead of the checkbox grid and bail out.
+          const allFull = data.levels.every(level => caps[level] && caps[level].is_full);
+          if (allFull) {
+            const banner = document.createElement('p');
+            banner.className = 'text-error col-span-5 font-semibold';
+            banner.textContent = 'Registration is full for this exam date. Please choose another date.';
+            container.appendChild(banner);
+            return;
+          }
+
           data.levels.forEach(level => {
+            const capInfo = caps[level] || { cap: null, paid: 0, is_full: false };
+            const isFull = !!capInfo.is_full;
+
             const checkboxDiv = document.createElement('div');
-            checkboxDiv.className = 'flex items-center gap-2 p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-100 transition-all';
+            checkboxDiv.className = 'flex items-center gap-2 p-3 bg-white rounded-lg transition-all'
+              + (isFull ? ' opacity-60 cursor-not-allowed' : ' cursor-pointer hover:bg-gray-100');
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.id = 'level_' + level;
             checkbox.value = level;
             checkbox.className = 'w-5 h-5 text-primary accent-primary';
+            checkbox.disabled = isFull;
             checkbox.addEventListener('change', function() {
               handleLevelSelection(level, this.checked);
             });
@@ -1230,7 +1269,13 @@ const RegistrationForm = (function() {
             const label = document.createElement('label');
             label.htmlFor = 'level_' + level;
             label.className = 'flex-1 cursor-pointer font-semibold text-primary select-none';
-            label.textContent = level;
+            // Append a "(Full)" tag when the level has hit its cap.
+            if (isFull) {
+              label.textContent = level + ' (Full)';
+              label.classList.add('text-secondary', 'line-through');
+            } else {
+              label.textContent = level;
+            }
 
             checkboxDiv.appendChild(checkbox);
             checkboxDiv.appendChild(label);

@@ -101,12 +101,69 @@ try {
         // Get available levels for this exam
         $levels = $row['levels'] ? explode(',', $row['levels']) : [];
 
+        // Build per-level cap/paid/is_full info (cap fetched separately below).
+        $level_caps = [];
+        foreach ($levels as $lvl) {
+            $level_caps[$lvl] = ['cap' => null, 'paid' => 0, 'is_full' => false];
+        }
+
+        // Per-level caps (separate query — keeps the main query portable).
+        $capStmt = $conn->prepare("SELECT level, registration_cap FROM exam_levels WHERE exam_date_id = ?");
+        if ($capStmt) {
+            $capStmt->bind_param('s', $row['id']);
+            $capStmt->execute();
+            $capResult = $capStmt->get_result();
+            while ($capRow = $capResult->fetch_assoc()) {
+                $level_caps[$capRow['level']]['cap'] = $capRow['registration_cap'] !== null
+                    ? (int)$capRow['registration_cap']
+                    : null;
+            }
+            $capStmt->close();
+        }
+
+        // Paid counts per level. registrations.exam_level is a comma-separated
+        // string (e.g. '1Q/N1,2Q/N2'), so we explode in PHP rather than rely
+        // on FIND_IN_SET for every level.
+        $paidStmt = $conn->prepare(
+            "SELECT exam_level FROM registrations
+              WHERE test_date = ? AND payment_status = 'paid'"
+        );
+        if ($paidStmt) {
+            $paidStmt->bind_param('s', $row['exam_date']);
+            $paidStmt->execute();
+            $paidResult = $paidStmt->get_result();
+            $counts = [];
+            while ($paidRow = $paidResult->fetch_assoc()) {
+                foreach (explode(',', $paidRow['exam_level']) as $lvl) {
+                    $lvl = trim($lvl);
+                    if ($lvl !== '') {
+                        $counts[$lvl] = ($counts[$lvl] ?? 0) + 1;
+                    }
+                }
+            }
+            $paidStmt->close();
+            foreach ($counts as $lvl => $cnt) {
+                if (isset($level_caps[$lvl])) {
+                    $level_caps[$lvl]['paid'] = $cnt;
+                }
+            }
+        }
+
+        // Mark full levels: only when a finite cap is set AND paid >= cap.
+        foreach ($level_caps as $lvl => &$info) {
+            if ($info['cap'] !== null && $info['paid'] >= $info['cap']) {
+                $info['is_full'] = true;
+            }
+        }
+        unset($info);
+
         $exams[] = [
             'id' => $row['id'],
             'value' => $row['exam_date'],
             'display' => $formatted_date,
             'deadline' => $row['registration_deadline'],
-            'levels' => $levels
+            'levels' => $levels,
+            'level_caps' => $level_caps,
         ];
     }
 

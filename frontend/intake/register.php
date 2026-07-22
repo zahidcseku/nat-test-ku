@@ -62,6 +62,55 @@ try {
 
     $data = $validation['data'];
 
+    // ============================================
+    // REGISTRATION CAP ENFORCEMENT (per exam_date + level)
+    // ============================================
+    // Block new submissions for any selected (date, level) that has already
+    // reached its cap of PAID registrations. Fail-open: a query error must
+    // never block a legitimate registration. Runs before file uploads so a
+    // full level doesn't cost the applicant a useless upload.
+    try {
+        $capConn = getDbConnection();
+        if ($capConn && !empty($data['exam_levels_array'])) {
+            $capStmt = $capConn->prepare("
+                SELECT el.registration_cap,
+                       (SELECT COUNT(*) FROM registrations r
+                          WHERE r.test_date = ?
+                            AND r.payment_status = 'paid'
+                            AND FIND_IN_SET(?, r.exam_level)) AS paid_count
+                  FROM exam_levels el
+                  JOIN exam_dates ed ON ed.id = el.exam_date_id
+                 WHERE ed.exam_date = ? AND el.level = ?
+            ");
+            if ($capStmt) {
+                $fullLevels = [];
+                foreach ($data['exam_levels_array'] as $level) {
+                    $capStmt->bind_param('ssss', $data['test_date'], $level, $data['test_date'], $level);
+                    $capStmt->execute();
+                    $row = $capStmt->get_result()->fetch_assoc();
+                    // Skip if (date, level) has no exam_levels row (not offered)
+                    // or registration_cap is NULL (unlimited).
+                    if ($row && $row['registration_cap'] !== null
+                        && (int)$row['paid_count'] >= (int)$row['registration_cap']) {
+                        $fullLevels[] = $level;
+                    }
+                }
+                $capStmt->close();
+
+                if (!empty($fullLevels)) {
+                    $msg = 'Registration is full for ' . implode(', ', $fullLevels)
+                         . ' on ' . $data['test_date']
+                         . '. Please choose another date or level.';
+                    logActivity('Cap blocked submission for ' . $data['email']
+                        . ' on ' . $data['test_date'] . ': ' . implode(',', $fullLevels), 'warning');
+                    jsonResponse(['success' => false, 'error' => $msg], 422);
+                }
+            }
+        }
+    } catch (Throwable $e) {
+        logActivity('Cap check query failed (fail-open): ' . $e->getMessage(), 'warning');
+    }
+
     // Handle file uploads
     $uploadResult = handleFileUploads($filesData);
 

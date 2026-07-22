@@ -11,9 +11,12 @@ CREATE TABLE IF NOT EXISTS exam_dates (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Create exam_levels table (junction table for many-to-many relationship)
+-- registration_cap: NULL = unlimited, 0 = closed, N = max paid registrations
 CREATE TABLE IF NOT EXISTS exam_levels (
     exam_date_id CHAR(36) NOT NULL,
     level ENUM('1Q/N1', '2Q/N2', '3Q/N3', '4Q/N4', '5Q/N5') NOT NULL,
+    registration_cap INT UNSIGNED NULL DEFAULT NULL
+        COMMENT 'Max paid registrations allowed for this (exam_date, level). NULL = unlimited.',
     PRIMARY KEY (exam_date_id, level),
     FOREIGN KEY (exam_date_id) REFERENCES exam_dates(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

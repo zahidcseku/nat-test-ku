@@ -11,9 +11,11 @@ CREATE TABLE IF NOT EXISTS exam_dates (
 );
 
 -- Create exam_levels table (junction table for many-to-many relationship)
+-- registration_cap: NULL = unlimited, 0 = closed, N = max paid registrations
 CREATE TABLE IF NOT EXISTS exam_levels (
     exam_date_id TEXT NOT NULL REFERENCES exam_dates(id) ON DELETE CASCADE,
     level TEXT NOT NULL CHECK(level IN ('1Q/N1', '2Q/N2', '3Q/N3', '4Q/N4', '5Q/N5')),
+    registration_cap INTEGER NULL DEFAULT NULL,
     PRIMARY KEY (exam_date_id, level)
 );
 
