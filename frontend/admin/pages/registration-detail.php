@@ -218,8 +218,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         logAudit('approve_registration', 'registrations', $id, ['approved' => 0], ['approved' => 1]);
 
         // Send confirmation email
-        $emailBody = renderEmailTemplate('confirmation', $registration);
-        sendEmail($registration['email'], 'NAT-TEST Registration Approved', $emailBody, $id, 'confirmation');
+        require_once __DIR__ . '/../lib/email-templates.php';
+        $email = renderEmailTemplate('confirmation', [
+            'full_name'  => $registration['full_name'],
+            'exam_level' => $registration['exam_level'],
+            'test_date'  => formatDate($registration['test_date']),
+        ]);
+        sendEmail($registration['email'], $email['subject'], $email['body'], $id, 'confirmation');
 
         setFlashMessage('Registration approved and confirmation email sent', 'success');
         header('Location: ' . BASE_URL . '/pages/registrations.php');
@@ -249,43 +254,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 require_once __DIR__ . '/../templates/header.php';
 
-// Helper function to render email templates
-function renderEmailTemplate($type, $data, $reasons = '') {
-    ob_start();
-    if ($type === 'confirmation') {
-        ?>
-        <h2 style="color: #1a202c; font-size: 24px; font-weight: 700; margin-bottom: 16px;">Registration Approved! 🎉</h2>
-        <p style="color: #4a5568; font-size: 16px; line-height: 1.6;">Dear <?php echo e($data['full_name']); ?>,</p>
-        <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin: 16px 0;">
-            Your registration for the Japanese NAT-TEST has been <strong>approved</strong>.
-        </p>
-        <div style="background: #f7fafc; border-left: 4px solid #48bb78; padding: 16px; margin: 24px 0;">
-            <p style="margin: 0;"><strong>Exam Details:</strong></p>
-            <p style="margin: 8px 0;">Level: <?php echo e($data['exam_level']); ?></p>
-            <p style="margin: 8px 0;">Date: <?php echo e(formatDate($data['test_date'])); ?></p>
-        </div>
-        <p style="color: #4a5568; font-size: 16px; line-height: 1.6;">
-            Your admission ticket will be emailed to you a few days before the exam.
-        </p>
-        <?php
-    } elseif ($type === 'rejection') {
-        ?>
-        <h2 style="color: #1a202c; font-size: 24px; font-weight: 700; margin-bottom: 16px;">Action Required: Registration Issues</h2>
-        <p style="color: #4a5568; font-size: 16px; line-height: 1.6;">Dear <?php echo e($data['full_name']); ?>,</p>
-        <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin: 16px 0;">
-            Your registration requires corrections. Please review the following issues:
-        </p>
-        <div style="background: #fed7d7; border-left: 4px solid #f56565; padding: 16px; margin: 24px 0;">
-            <strong>Issues Found:</strong>
-            <div style="margin-top: 8px;"><?php echo nl2br(e($reasons)); ?></div>
-        </div>
-        <p style="color: #4a5568; font-size: 16px; line-height: 1.6;">
-            Please reply to this email with the corrections and we'll update your application.
-        </p>
-        <?php
-    }
-    return ob_get_clean();
-}
 ?>
 
 <div class="page-header">

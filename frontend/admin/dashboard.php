@@ -17,7 +17,8 @@ $stats = [
     'pending' => 0,
     'approved' => 0,
     'rejected' => 0,
-    'revenue' => 0
+    'revenue' => 0,
+    'scores_sent' => 0
 ];
 
 if ($conn) {
@@ -43,6 +44,11 @@ if ($conn) {
     $stmt->execute();
     $revenueResult = $stmt->get_result()->fetch_assoc();
     $stats['revenue'] = $revenueResult['total'] ?? 0;
+
+    // Score reports sent (across all exam dates)
+    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM score_reports WHERE send_status = 'sent'");
+    $stmt->execute();
+    $stats['scores_sent'] = $stmt->get_result()->fetch_assoc()['count'];
 
     // Recent activity (last 10 actions)
     $stmt = $conn->prepare("
@@ -96,6 +102,11 @@ require_once __DIR__ . '/templates/header.php';
     <div style="background: white; border-radius: 12px; padding: 24px; border: 1px solid #e2e8f0;">
         <div style="font-size: 14px; color: #718096; margin-bottom: 8px;">Total Revenue</div>
         <div style="font-size: 36px; font-weight: 700; color: #1a202c;"><?php echo formatCurrency($stats['revenue']); ?></div>
+    </div>
+
+    <div style="background: white; border-radius: 12px; padding: 24px; border: 1px solid #e2e8f0;">
+        <div style="font-size: 14px; color: #718096; margin-bottom: 8px;">Scores Sent</div>
+        <div style="font-size: 36px; font-weight: 700; color: #38b2ac;"><?php echo number_format($stats['scores_sent']); ?></div>
     </div>
 </div>
 

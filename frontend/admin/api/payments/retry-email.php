@@ -48,30 +48,20 @@ try {
     // Generate retry link
     $retryLink = SITE_URL . '/payment-retry.html?token=' . $reg['payment_retry_token'];
 
-    // Send email (implement email sending logic)
-    $subject = 'Complete Your NAT-TEST Registration Payment';
-    $message = "
-Dear {$reg['full_name']},
-
-Your registration for NAT-TEST is pending payment completion.
-
-Registration Details:
-• Registration ID: {$registrationId}
-• Name: {$reg['full_name']}
-• Email: {$reg['email']}
-• Exam Level: {$reg['exam_level']}
-• Test Date: {$reg['test_date']}
-• Total Amount: {$reg['total_amount_paid']} BDT (includes {$reg['transaction_fee']} BDT online fee)
-
-PAYMENT STATUS: Unpaid
-To complete your registration, please make the payment using the link below:
-
-{$retryLink}
-
-This secure payment link will expire in 7 days.
-
-Need Help? Email: info@nat-test.ku.ac.bd
-";
+    // Render the payment-retry email from the editable template.
+    require_once __DIR__ . '/../../lib/email-templates.php';
+    $tpl = renderEmailTemplate('payment_retry', [
+        'full_name'       => $reg['full_name'],
+        'registration_id' => $registrationId,
+        'email'           => $reg['email'],
+        'exam_level'      => $reg['exam_level'],
+        'test_date'       => $reg['test_date'],
+        'total_amount'    => $reg['total_amount_paid'],
+        'transaction_fee' => $reg['transaction_fee'],
+        'retry_link'      => $retryLink,
+    ]);
+    $subject = $tpl['subject'] !== '' ? $tpl['subject'] : 'Complete Your NAT-TEST Registration Payment';
+    $message = $tpl['body'];
 
     // Send email
     $emailResult = sendEmail($reg['email'], $subject, $message, $registrationId, 'resend');

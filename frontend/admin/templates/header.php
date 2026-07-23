@@ -205,7 +205,9 @@ if (!defined('ADMIN_ACCESS')) {
             <a href="<?php echo BASE_URL; ?>/pages/exam-dates.php" <?php echo ($currentPage ?? '') === 'exam-dates' ? 'class="active"' : ''; ?>>Exam Dates</a>
             <a href="<?php echo BASE_URL; ?>/pages/participants.php" <?php echo ($currentPage ?? '') === 'participants' ? 'class="active"' : ''; ?>>Participants</a>
             <a href="<?php echo BASE_URL; ?>/pages/admission-tickets.php" <?php echo ($currentPage ?? '') === 'admission-tickets' ? 'class="active"' : ''; ?>>Tickets</a>
+            <a href="<?php echo BASE_URL; ?>/pages/scores.php" <?php echo ($currentPage ?? '') === 'scores' ? 'class="active"' : ''; ?>>Scores</a>
             <a href="<?php echo BASE_URL; ?>/pages/emails.php" <?php echo ($currentPage ?? '') === 'emails' ? 'class="active"' : ''; ?>>Emails</a>
+            <a href="<?php echo BASE_URL; ?>/pages/email-templates.php" <?php echo ($currentPage ?? '') === 'email-templates' ? 'class="active"' : ''; ?>>Templates</a>
             <a href="<?php echo BASE_URL; ?>/pages/content.php" <?php echo ($currentPage ?? '') === 'content' ? 'class="active"' : ''; ?>>Content</a>
             <?php if (isSuperAdmin()): ?>
             <a href="<?php echo BASE_URL; ?>/pages/users.php" <?php echo ($currentPage ?? '') === 'users' ? 'class="active"' : ''; ?>>Users</a>

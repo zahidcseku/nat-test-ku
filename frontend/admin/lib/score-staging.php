@@ -1,18 +1,20 @@
 <?php
 /**
- * Admission ticket staging + sending logic.
+ * Score report staging + sending logic.
  *
  * Used by:
- *   - /admin/api/admission-tickets/upload.php (stage from xlsx + zip)
- *   - /admin/api/admission-tickets/send.php   (send selected or all)
+ *   - /admin/api/scores/upload.php (stage from xlsx + zip)
+ *   - /admin/api/scores/send.php   (send selected or all)
  *
  * No HTTP concerns here — callers validate CSRF, method, and inputs.
  * This file is pure business logic + DB + filesystem.
  *
- * Schema (see admin/schema/redesign_admission_tickets.sql):
- *   admission_tickets(id, xlsx_id, reg_no, exam_date_id, file_path,
- *                     send_status, emailed_at, last_error,
- *                     created_by, created_at)
+ * Mirrors lib/ticket-staging.php minus the exam-guide attachment logic.
+ *
+ * Schema (see admin/schema/score_reports.sql):
+ *   score_reports(id, xlsx_id, reg_no, exam_date_id, file_path,
+ *                 send_status, emailed_at, last_error,
+ *                 created_by, created_at)
  *
  * Reg_no lookup: registration_sheet_numbers.reg_no -> registration_id
  * -> registrations(email, full_name)
@@ -21,7 +23,7 @@
 require_once __DIR__ . '/xlsx-reader.php';
 
 /**
- * Stage admission tickets from a paired xlsx + zip upload.
+ * Stage score reports from a paired xlsx + zip upload.
  *
  * @param string $xlsxTmpPath  $_FILES['...']['tmp_name'] of the xlsx
  * @param string $zipTmpPath   $_FILES['...']['tmp_name'] of the zip
@@ -31,7 +33,7 @@ require_once __DIR__ . '/xlsx-reader.php';
  *
  * @return array{success:bool, staged:int, warnings:string[], errors:string[]}
  */
-function stageTicketsFromUpload(string $xlsxTmpPath, string $zipTmpPath, string $examDateId, string $examDate, int $createdBy): array {
+function stageScoreReportsFromUpload(string $xlsxTmpPath, string $zipTmpPath, string $examDateId, string $examDate, int $createdBy): array {
     $warnings = [];
     $errors   = [];
     $staged   = 0;
@@ -58,7 +60,7 @@ function stageTicketsFromUpload(string $xlsxTmpPath, string $zipTmpPath, string 
     }
 
     // --- Extract zip to temp -----------------------------------------
-    $tempDir = sys_get_temp_dir() . '/tickets_' . bin2hex(random_bytes(8));
+    $tempDir = sys_get_temp_dir() . '/scores_' . bin2hex(random_bytes(8));
     if (!mkdir($tempDir, 0755, true)) {
         $errors[] = 'Could not create temp directory for zip extraction';
         return ['success' => false, 'staged' => 0, 'warnings' => $warnings, 'errors' => $errors];
@@ -97,7 +99,7 @@ function stageTicketsFromUpload(string $xlsxTmpPath, string $zipTmpPath, string 
         return ['success' => false, 'staged' => 0, 'warnings' => $warnings, 'errors' => $errors];
     }
 
-    $targetDir = UPLOAD_PATH . 'tickets/' . $examDate . '/';
+    $targetDir = UPLOAD_PATH . 'scores/' . $examDate . '/';
     if (!is_dir($targetDir)) {
         mkdir($targetDir, 0755, true);
     }
@@ -107,7 +109,7 @@ function stageTicketsFromUpload(string $xlsxTmpPath, string $zipTmpPath, string 
     // but warning per-row is friendlier than a single dup-key error).
     $seenIds = [];
     $insert  = $conn->prepare("
-        INSERT INTO admission_tickets
+        INSERT INTO score_reports
             (xlsx_id, reg_no, exam_date_id, file_path, send_status, created_by)
         VALUES (?, ?, ?, ?, 'staged', ?)
         ON DUPLICATE KEY UPDATE
@@ -177,18 +179,18 @@ function stageTicketsFromUpload(string $xlsxTmpPath, string $zipTmpPath, string 
     // Best-effort audit log.
     try {
         logAudit(
-            'stage_admission_tickets',
-            'admission_tickets',
+            'stage_score_reports',
+            'score_reports',
             null,
             null,
             ['exam_date_id' => $examDateId, 'staged' => $staged, 'warnings' => count($warnings)]
         );
     } catch (Throwable $e) {
-        error_log('ticket staging audit failed: ' . $e->getMessage());
+        error_log('score staging audit failed: ' . $e->getMessage());
     }
 
     if ($staged === 0) {
-        $errors[] = 'No tickets were staged';
+        $errors[] = 'No score reports were staged';
         return ['success' => false, 'staged' => 0, 'warnings' => $warnings, 'errors' => $errors];
     }
 
@@ -196,18 +198,14 @@ function stageTicketsFromUpload(string $xlsxTmpPath, string $zipTmpPath, string 
 }
 
 /**
- * Send one or more staged admission tickets by ID.
+ * Send one or more staged score reports by ID.
  *
- * If $examDateId is provided and the exam_date has a guide_pdf_path set,
- * that guide is attached as a second PDF alongside each admission ticket.
- *
- * @param array<int, int|string> $ticketIds  admission_tickets.id values
- * @param int                    $sentBy     admin_users.id
- * @param ?string                $examDateId exam_dates.id, for guide lookup
+ * @param array<int, int|string> $scoreIds  score_reports.id values
+ * @param int                    $sentBy    admin_users.id
  *
  * @return array{sent:int, failed:int, errors:string[]}
  */
-function sendTickets(array $ticketIds, int $sentBy, ?string $examDateId = null): array {
+function sendScoreReports(array $scoreIds, int $sentBy): array {
     $conn = getDbConnection();
     if (!$conn) {
         return ['sent' => 0, 'failed' => 0, 'errors' => ['Database connection failed']];
@@ -217,100 +215,83 @@ function sendTickets(array $ticketIds, int $sentBy, ?string $examDateId = null):
         require_once __DIR__ . '/../functions.php';
     }
 
-    // Resolve the exam guide once for the whole batch.
-    $guidePath = _resolveExamGuide($conn, $examDateId);
-
     $sent = 0;
     $failed = 0;
     $errors = [];
 
-    foreach ($ticketIds as $tid) {
-        $tid = (int) $tid;
-        if ($tid <= 0) continue;
+    foreach ($scoreIds as $sid) {
+        $sid = (int) $sid;
+        if ($sid <= 0) continue;
 
-        // Pull the ticket + JOIN through registration_sheet_numbers to
+        // Pull the score row + JOIN through registration_sheet_numbers to
         // registrations for the recipient email + name.
         $stmt = $conn->prepare("
-            SELECT at.id, at.xlsx_id, at.reg_no, at.file_path,
+            SELECT sr.id, sr.xlsx_id, sr.reg_no, sr.file_path,
                    r.email, r.full_name, r.id AS registration_id
-            FROM admission_tickets at
-            LEFT JOIN registration_sheet_numbers rsn ON rsn.reg_no = at.reg_no
+            FROM score_reports sr
+            LEFT JOIN registration_sheet_numbers rsn ON rsn.reg_no = sr.reg_no
             LEFT JOIN registrations r ON r.id = rsn.registration_id
-            WHERE at.id = ?
+            WHERE sr.id = ?
             ORDER BY rsn.id ASC
             LIMIT 1
         ");
-        $stmt->bind_param('i', $tid);
+        $stmt->bind_param('i', $sid);
         $stmt->execute();
-        $ticket = $stmt->get_result()->fetch_assoc();
+        $score = $stmt->get_result()->fetch_assoc();
         $stmt->close();
 
-        if (!$ticket) {
+        if (!$score) {
             $failed++;
-            $errors[] = "ticket {$tid}: not found";
+            $errors[] = "score {$sid}: not found";
             continue;
         }
 
         // No registration match -> can't send.
-        if (empty($ticket['email']) || empty($ticket['registration_id'])) {
+        if (empty($score['email']) || empty($score['registration_id'])) {
             $failed++;
-            $err = "ticket {$tid} (xlsx ID {$ticket['xlsx_id']}): no registration found for reg_no {$ticket['reg_no']}";
+            $err = "score {$sid} (xlsx ID {$score['xlsx_id']}): no registration found for reg_no {$score['reg_no']}";
             $errors[] = $err;
-            _markTicketFailed($conn, $tid, $err);
+            _markScoreFailed($conn, $sid, $err);
             continue;
         }
 
         // PDF readable?
-        if (!is_readable($ticket['file_path'])) {
+        if (!is_readable($score['file_path'])) {
             $failed++;
-            $err = "ticket {$tid}: PDF not readable at {$ticket['file_path']}";
+            $err = "score {$sid}: PDF not readable at {$score['file_path']}";
             $errors[] = $err;
-            _markTicketFailed($conn, $tid, $err);
+            _markScoreFailed($conn, $sid, $err);
             continue;
         }
 
-        // Render the admission-ticket email from the editable template.
+        // Render the score-report email from the editable template.
         require_once __DIR__ . '/email-templates.php';
-        $guideLine = $guidePath !== null
-            ? 'Your admission ticket and an exam guide are attached to this email. '
-              . 'Please print the admission ticket and bring it with you on the exam day. '
-              . 'Read the exam guide carefully before the exam — it covers reporting time, venue details, and rules.'
-            : 'Your admission ticket is attached to this email. '
-              . 'Please print it and bring it with you on the exam day.';
-        $tpl = renderEmailTemplate('admission_ticket', [
-            'full_name'  => $ticket['full_name'],
-            'xlsx_id'    => $ticket['xlsx_id'],
-            'reg_no'     => $ticket['reg_no'],
-            'guide_line' => $guideLine,
+        $tpl = renderEmailTemplate('score_report', [
+            'full_name' => $score['full_name'],
+            'xlsx_id'   => $score['xlsx_id'],
+            'reg_no'    => $score['reg_no'],
         ]);
         $body    = $tpl['body'];
-        $subject = $tpl['subject'] !== '' ? $tpl['subject'] : 'Your NAT-TEST Admission Ticket';
+        $subject = $tpl['subject'] !== '' ? $tpl['subject'] : 'Your NAT-TEST Score Report';
 
         $attachments = [[
-            'path' => $ticket['file_path'],
-            'name' => 'admission-ticket-' . $ticket['xlsx_id'] . '.pdf',
+            'path' => $score['file_path'],
+            'name' => 'score-report-' . $score['xlsx_id'] . '.pdf',
             'mime' => 'application/pdf',
         ]];
-        if ($guidePath !== null) {
-            $attachments[] = [
-                'path' => $guidePath,
-                'name' => 'exam-guide.pdf',
-                'mime' => 'application/pdf',
-            ];
-        }
 
         $ok = sendEmailWithAttachment(
-            $ticket['email'],
+            $score['email'],
             $subject,
             $body,
-            $ticket['registration_id'],
-            'admission_ticket',
+            $score['registration_id'],
+            'score_report',
             $attachments
         );
 
         if ($ok) {
-            $upd = $conn->prepare("UPDATE admission_tickets SET send_status='sent', emailed_at=NOW(), last_error=NULL WHERE id=?");
-            $upd->bind_param('i', $tid);
+            $upd = $conn->prepare("UPDATE score_reports SET send_status='sent', emailed_at=NOW(), last_error=NULL WHERE id=?");
+            $upd->bind_param('i', $sid);
             $upd->execute();
             $upd->close();
             $sent++;
@@ -320,32 +301,32 @@ function sendTickets(array $ticketIds, int $sentBy, ?string $examDateId = null):
             $lastErr = '';
             $logQ = $conn->prepare("
                 SELECT error_message FROM email_log
-                WHERE recipient_email = ? AND email_type = 'admission_ticket'
+                WHERE recipient_email = ? AND email_type = 'score_report'
                 ORDER BY id DESC LIMIT 1
             ");
-            $logQ->bind_param('s', $ticket['email']);
+            $logQ->bind_param('s', $score['email']);
             $logQ->execute();
             $logRow = $logQ->get_result()->fetch_assoc();
             $logQ->close();
             if (!empty($logRow['error_message'])) {
                 $lastErr = $logRow['error_message'];
             }
-            _markTicketFailed($conn, $tid, $lastErr ?: 'SMTP send failed (no error detail)');
+            _markScoreFailed($conn, $sid, $lastErr ?: 'SMTP send failed (no error detail)');
             $failed++;
-            $errors[] = "ticket {$tid} (xlsx ID {$ticket['xlsx_id']}): {$lastErr}";
+            $errors[] = "score {$sid} (xlsx ID {$score['xlsx_id']}): {$lastErr}";
         }
     }
 
     try {
         logAudit(
-            'send_admission_tickets',
-            'admission_tickets',
+            'send_score_reports',
+            'score_reports',
             null,
             null,
             ['sent' => $sent, 'failed' => $failed, 'sent_by' => $sentBy]
         );
     } catch (Throwable $e) {
-        error_log('ticket send audit failed: ' . $e->getMessage());
+        error_log('score send audit failed: ' . $e->getMessage());
     }
 
     return ['sent' => $sent, 'failed' => $failed, 'errors' => $errors];
@@ -367,29 +348,9 @@ function _findKey(array $row, array $candidates): ?string {
     return null;
 }
 
-/**
- * Look up the per-exam-date guide PDF. Returns absolute path if set and
- * readable, otherwise null. Caller treats null as "no guide attached".
- */
-function _resolveExamGuide(mysqli $conn, ?string $examDateId): ?string {
-    if ($examDateId === null || $examDateId === '') {
-        return null;
-    }
-    $stmt = $conn->prepare("SELECT guide_pdf_path FROM exam_dates WHERE id = ?");
-    $stmt->bind_param('s', $examDateId);
-    $stmt->execute();
-    $row = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-    $path = $row['guide_pdf_path'] ?? null;
-    if ($path && is_readable($path)) {
-        return $path;
-    }
-    return null;
-}
-
-function _markTicketFailed(mysqli $conn, int $ticketId, string $error): void {
-    $upd = $conn->prepare("UPDATE admission_tickets SET send_status='failed', last_error=? WHERE id=?");
-    $upd->bind_param('si', $error, $ticketId);
+function _markScoreFailed(mysqli $conn, int $scoreId, string $error): void {
+    $upd = $conn->prepare("UPDATE score_reports SET send_status='failed', last_error=? WHERE id=?");
+    $upd->bind_param('si', $error, $scoreId);
     $upd->execute();
     $upd->close();
 }
@@ -404,23 +365,13 @@ function _cleanupTemp(string $dir): void {
     @rmdir($dir);
 }
 
-function _renderTicketEmailBody(array $ticket, bool $hasGuide = false): string {
-    // Deprecated: kept for any external callers. The admission-ticket
-    // email is now rendered via renderEmailTemplate('admission_ticket', ...)
-    // using the editable email_templates row. This fallback returns the
-    // legacy hardcoded body in case the template system is unavailable.
-    $name = htmlspecialchars((string) ($ticket['full_name'] ?? 'Applicant'), ENT_QUOTES, 'UTF-8');
-    $id   = htmlspecialchars((string) $ticket['xlsx_id'],        ENT_QUOTES, 'UTF-8');
-    $reg  = htmlspecialchars((string) $ticket['reg_no'],         ENT_QUOTES, 'UTF-8');
+function _renderScoreEmailBody(array $score): string {
+    $name = htmlspecialchars((string) ($score['full_name'] ?? 'Applicant'), ENT_QUOTES, 'UTF-8');
+    $id   = htmlspecialchars((string) ($score['xlsx_id']),        ENT_QUOTES, 'UTF-8');
+    $reg  = htmlspecialchars((string) ($score['reg_no']),         ENT_QUOTES, 'UTF-8');
 
-    if ($hasGuide) {
-        $bodyLine = 'Your admission ticket and an exam guide are attached to this email. '
-                  . 'Please print the admission ticket and bring it with you on the exam day. '
-                  . 'Read the exam guide carefully before the exam — it covers reporting time, venue details, and rules.';
-    } else {
-        $bodyLine = 'Your admission ticket is attached to this email. '
-                  . 'Please print it and bring it with you on the exam day.';
-    }
+    $bodyLine = 'Your NAT-TEST score report is attached to this email. '
+             . 'Please review your results carefully.';
 
     return '<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;color:#1a202c;margin:0;padding:16px;">'
         . '<h2 style="color:#002147;">Japanese Language NAT-TEST — Khulna Test Center</h2>'
@@ -430,8 +381,7 @@ function _renderTicketEmailBody(array $ticket, bool $hasGuide = false): string {
         . '<strong>Examinee ID:</strong> ' . $id . '<br>'
         . '<strong>Reg. Number:</strong> ' . $reg
         . '</div>'
-        . '<p style="font-size:13px;color:#555;">Please arrive at the test center at least 30 minutes before the exam start time. '
-        . 'If you have any questions, reply to this email or contact '
+        . '<p style="font-size:13px;color:#555;">If you have any questions about your results, reply to this email or contact '
         . '<a href="mailto:info@nat-test.ku.ac.bd">info@nat-test.ku.ac.bd</a>.</p>'
         . '<p style="font-size:13px;color:#555;">This is an automated message — please do not reply directly.</p>'
         . '</body></html>';
