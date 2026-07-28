@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS certificate_requests (
     tracking_number                VARCHAR(100)  NULL,
 
     -- Audit.
-    ip_address                     VARCHAR(45)   NULL,
+    ip_address                     VARCHAR(64)   NULL COMMENT 'SHA256 hash of client IP (mirrors registrations.ip_hash)',
     created_at                     TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at                     TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
