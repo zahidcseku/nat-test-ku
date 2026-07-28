@@ -334,3 +334,77 @@ function sendRegistrationEmail(array $registration, string $variant): bool {
         return false;
     }
 }
+
+/**
+ * Build and send a certificate-related email to an examinee. Never throws.
+ *
+ * Used by the certificate IPN handler (template_key 'certificate_requested')
+ * after a 200 BDT payment is verified. Falls back to a hardcoded body if
+ * the editable template row is missing — same posture as
+ * sendRegistrationEmail().
+ *
+ * @param string $templateKey  'certificate_requested' (or future 'certificate_posted' if ever sent from intake)
+ * @param string $to           Recipient email (pulled from registrations)
+ * @param array  $vars         Template variables
+ * @return bool True if the transport accepted the message
+ */
+function sendCertificateEmail(string $templateKey, string $to, array $vars): bool {
+    try {
+        $mail = renderIntakeEmailTemplate($templateKey, $vars);
+        if ($mail === null) {
+            // Fallback body so a missing template row never silences the email.
+            $mail = [
+                'subject' => 'NAT-TEST Certificate Request Received',
+                'body'    => '<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;color:#1a202c;margin:0;padding:16px;">'
+                    . '<h2 style="color:#002147;">Japanese Language NAT-TEST — Khulna Test Center</h2>'
+                    . '<p>Dear ' . htmlspecialchars($vars['full_name'] ?? '', ENT_QUOTES, 'UTF-8') . ',</p>'
+                    . '<p>Your certificate request and 200 BDT payment have been received. '
+                    . 'We will notify you once the certificate has been posted.</p>'
+                    . '</body></html>',
+            ];
+        }
+
+        if ($to === '') {
+            logActivity('Certificate email skipped: no recipient address', 'warning');
+            return false;
+        }
+
+        if (getenv('SMTP_HOST') && getenv('SMTP_USER') && getenv('SMTP_PASS')) {
+            $result = smtpSendMail($to, $mail['subject'], $mail['body'], MAIL_FROM);
+            $success = $result['success'];
+            if (!$success) {
+                logActivity('SMTP send failed (certificate): ' . ($result['error'] ?? 'unknown'), 'warning');
+            }
+        } else {
+            $headers = 'From: ' . MAIL_FROM . "\r\n"
+                . "MIME-Version: 1.0\r\n"
+                . "Content-Type: text/html; charset=UTF-8\r\n";
+            $success = @mail($to, $mail['subject'], $mail['body'], $headers);
+        }
+
+        logActivity(($success ? 'Certificate email sent' : 'Certificate email FAILED')
+            . " ({$templateKey}) for certificate " . ($vars['id'] ?? 'unknown'), $success ? 'info' : 'warning');
+
+        // Best-effort email_log insert.
+        try {
+            $conn = getDbConnection();
+            if ($conn) {
+                $stmt = $conn->prepare('INSERT INTO email_log (registration_id, email_type, recipient_email, subject, body, sent_by, status) VALUES (?, ?, ?, ?, ?, NULL, ?)');
+                if ($stmt) {
+                    $regId = $vars['registration_id'] ?? null;
+                    $status = $success ? 'sent' : 'failed';
+                    $stmt->bind_param('ssssss', $regId, $templateKey, $to, $mail['subject'], $mail['body'], $status);
+                    $stmt->execute();
+                    $stmt->close();
+                }
+            }
+        } catch (Throwable $logErr) {
+            logActivity('email_log insert skipped (certificate): ' . $logErr->getMessage(), 'warning');
+        }
+
+        return (bool)$success;
+    } catch (Throwable $e) {
+        logActivity('Certificate email exception: ' . $e->getMessage(), 'warning');
+        return false;
+    }
+}

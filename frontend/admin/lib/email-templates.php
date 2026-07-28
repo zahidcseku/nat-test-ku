@@ -169,6 +169,7 @@ function _substituteTemplateVars(string $text, array $vars): string {
         'banner_pending'          => true,
         'guide_line'              => true,
         'rejection_reasons'       => true,
+        'tracking_block'          => true,
     ];
 
     foreach ($vars as $k => $v) {

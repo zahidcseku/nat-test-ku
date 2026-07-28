@@ -26,6 +26,13 @@ $outcomePages = [
     'cancel' => '/payment-cancelled.html'
 ];
 
+// Certificate requests use their own return pages so the copy matches the flow.
+$certificateOutcomePages = [
+    'success' => '/certificate-success.html',
+    'fail' => '/certificate-failed.html',
+    'cancel' => '/certificate-cancelled.html'
+];
+
 $outcome = $_GET['outcome'] ?? '';
 if (!array_key_exists($outcome, $outcomePages)) {
     // Unknown outcome: never show success by accident
@@ -38,11 +45,14 @@ $tranId = substr($tranId, 0, 50);
 $gatewayStatus = preg_replace('/[^A-Za-z_]/', '', $_POST['status'] ?? '');
 $gatewayStatus = substr($gatewayStatus, 0, 20);
 
+// Route by tran_id prefix: 'CRT' -> certificate pages, else -> registration pages.
+$pages = (strpos($tranId, 'CRT') === 0) ? $certificateOutcomePages : $outcomePages;
+
 logActivity("Payment return ({$outcome}) for transaction: " . ($tranId !== '' ? $tranId : 'unknown')
     . ($gatewayStatus !== '' ? ", gateway status: {$gatewayStatus}" : ''));
 
 // Build redirect target; pass sanitized reference info for display purposes
-$target = SITE_URL . $outcomePages[$outcome];
+$target = SITE_URL . $pages[$outcome];
 $params = [];
 if ($tranId !== '') {
     $params['tran_id'] = $tranId;

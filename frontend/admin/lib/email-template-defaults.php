@@ -281,5 +281,79 @@ function emailTemplateDefaults(): array {
                 ['key' => 'next_steps',    'label' => 'Auto: next-steps block',                  'example' => '<em>(next steps list rendered here)</em>'],
             ],
         ],
+
+        // ---------------------------------------------------------------
+        // 10. Certificate request received (intake, sent after 200 BDT payment verified)
+        // ---------------------------------------------------------------
+        'certificate_requested' => [
+            'name'        => 'Certificate Request Received',
+            'description' => 'Auto-sent after a certificate request payment (200 BDT) is verified as paid.',
+            'subject'     => 'NAT-TEST Certificate Request Received',
+            'body'        => '<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;color:#1a202c;margin:0;padding:16px;">'
+                . '<h2 style="color:#002147;">Japanese Language NAT-TEST — Khulna Test Center</h2>'
+                . '<p style="font-size:14px;">Dear {full_name},</p>'
+                . '<p style="font-size:15px;background:#e6f4ea;border-left:4px solid #1e8e3e;padding:10px 14px;">'
+                . '<strong>Certificate request received.</strong> '
+                . 'Your payment of <strong>200 BDT</strong> for postal delivery has been confirmed'
+                . ' (bank reference: {bank_tran_id}).</p>'
+                . '<div style="background:#f4f6f8;border-left:4px solid #667eea;padding:12px 16px;margin:16px 0;font-size:14px;">'
+                . '<strong>Reg. Number:</strong> {reg_no}<br>'
+                . '<strong>Exam Date:</strong> {exam_date}<br>'
+                . '<strong>Ship To:</strong> {recipient_name}, {house_street}, {area_thana}, {district} {postal_code}'
+                . '</div>'
+                . '<p style="font-size:14px;">We will process your certificate and post it to the address above. '
+                . 'You will receive another email once the certificate has been posted.</p>'
+                . '<p style="font-size:13px;color:#555;">Questions? Contact '
+                . '<a href="mailto:info@nat-test.ku.ac.bd">info@nat-test.ku.ac.bd</a>. '
+                . 'This is an automated message — please do not reply to this address.</p>'
+                . '</body></html>',
+            'variables' => [
+                ['key' => 'full_name',      'label' => 'Examinee full name',       'example' => 'Jane Doe'],
+                ['key' => 'reg_no',         'label' => 'Registration sheet number', 'example' => 'NAT-2026-0001'],
+                ['key' => 'exam_date',      'label' => 'Exam date (formatted)',     'example' => 'February 16, 2026'],
+                ['key' => 'recipient_name', 'label' => 'Shipping recipient name',   'example' => 'Jane Doe'],
+                ['key' => 'house_street',   'label' => 'House/street address',      'example' => '123 Main St'],
+                ['key' => 'area_thana',     'label' => 'Area/thana',                'example' => 'Daulatpur'],
+                ['key' => 'district',       'label' => 'District',                  'example' => 'Khulna'],
+                ['key' => 'postal_code',    'label' => 'Postal code',               'example' => '9204'],
+                ['key' => 'bank_tran_id',   'label' => 'Bank transaction ID',       'example' => 'BANK123456'],
+            ],
+        ],
+
+        // ---------------------------------------------------------------
+        // 11. Certificate posted (admin action)
+        // ---------------------------------------------------------------
+        'certificate_posted' => [
+            'name'        => 'Certificate Posted',
+            'description' => 'Sent when an admin marks a certificate as posted. {tracking_block} is filled with a tracking-number line when one was provided.',
+            'subject'     => 'Your NAT-TEST Certificate Has Been Posted',
+            'body'        => '<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;color:#1a202c;margin:0;padding:16px;">'
+                . '<h2 style="color:#002147;">Japanese Language NAT-TEST — Khulna Test Center</h2>'
+                . '<p style="font-size:14px;">Dear {full_name},</p>'
+                . '<p style="font-size:15px;background:#e6f4ea;border-left:4px solid #1e8e3e;padding:10px 14px;">'
+                . '<strong>Your certificate has been posted.</strong></p>'
+                . '<div style="background:#f4f6f8;border-left:4px solid #667eea;padding:12px 16px;margin:16px 0;font-size:14px;">'
+                . '<strong>Reg. Number:</strong> {reg_no}<br>'
+                . '<strong>Exam Date:</strong> {exam_date}<br>'
+                . '{tracking_block}'
+                . '<strong>Ship To:</strong> {recipient_name}, {house_street}, {area_thana}, {district} {postal_code}'
+                . '</div>'
+                . '<p style="font-size:14px;">Please allow 3-7 business days for delivery within Bangladesh. '
+                . 'If you do not receive your certificate, contact '
+                . '<a href="mailto:info@nat-test.ku.ac.bd">info@nat-test.ku.ac.bd</a>.</p>'
+                . '<p style="font-size:13px;color:#555;">This is an automated message — please do not reply to this address.</p>'
+                . '</body></html>',
+            'variables' => [
+                ['key' => 'full_name',      'label' => 'Examinee full name',                              'example' => 'Jane Doe'],
+                ['key' => 'reg_no',         'label' => 'Registration sheet number',                        'example' => 'NAT-2026-0001'],
+                ['key' => 'exam_date',      'label' => 'Exam date (formatted)',                            'example' => 'February 16, 2026'],
+                ['key' => 'recipient_name', 'label' => 'Shipping recipient name',                          'example' => 'Jane Doe'],
+                ['key' => 'house_street',   'label' => 'House/street address',                             'example' => '123 Main St'],
+                ['key' => 'area_thana',     'label' => 'Area/thana',                                       'example' => 'Daulatpur'],
+                ['key' => 'district',       'label' => 'District',                                         'example' => 'Khulna'],
+                ['key' => 'postal_code',    'label' => 'Postal code',                                      'example' => '9204'],
+                ['key' => 'tracking_block', 'label' => 'Auto: tracking-number HTML line (empty if none)',  'example' => ''],
+            ],
+        ],
     ];
 }

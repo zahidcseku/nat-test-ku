@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Request Certificate | NAT-TEST Centre</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+    .field-error {
+      color: #dc2626; font-size: 0.75rem; margin-top: 0.25rem;
+      display: none; font-weight: 500;
+    }
+    .field-error.show { display: block; }
+    .field-success {
+      color: #16a34a; font-size: 0.75rem; margin-top: 0.25rem; display: none;
+    }
+    .field-success.show { display: block; }
+
+    .step-section { display: none; }
+    .step-section.active { display: block; }
+
+    /* Loading overlay */
+    .loading-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: none; align-items: center; justify-content: center;
+      z-index: 100; color: white; font-size: 1.25rem; gap: 12px;
+    }
+    .loading-overlay.show { display: flex; }
+
+    .submit-banner {
+      padding: 12px 16px; border-radius: 8px; margin-top: 16px;
+      display: none; font-size: 14px;
+    }
+    .submit-banner.show { display: block; }
+    .submit-banner.error   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .submit-banner.success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+  </style>
+</head>
+<body class="bg-surface font-sans text-[#191c1e] antialiased">
+  <!-- Top Navigation -->
+  <nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto flex justify-between items-center px-8 py-4">
+      <a href="index.html" class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
+          <img src="images/logo_transparent.png" alt="NAT-TEST Centre" class="h-16 w-auto">
+          <img src="images/ku-logo.png" alt="Khulna University" class="h-16 w-auto">
+        </div>
+        <div class="text-sm text-secondary leading-tight">
+          <p class="font-semibold">JAPANESE LANGUAGE NAT-TEST</p>
+          <p>Khulna Test Center (Center No: 476)</p>
+        </div>
+      </a>
+      <div class="hidden md:flex items-center gap-10">
+        <a href="index.html"            class="text-base font-medium text-secondary hover:text-primary transition-colors">Home</a>
+        <a href="exam-info.html"        class="text-base font-medium text-secondary hover:text-primary transition-colors">NAT-TEST</a>
+        <a href="schedule.html"         class="text-base font-medium text-secondary hover:text-primary transition-colors">Schedule</a>
+        <a href="registration.html"     class="text-base font-medium text-secondary hover:text-primary transition-colors">Registration</a>
+        <a href="results.html"          class="text-base font-semibold text-primary border-b-2 border-primary pb-1">Results</a>
+        <a href="resources.html"        class="text-base font-medium text-secondary hover:text-primary transition-colors">Resources</a>
+        <a href="contact.html"          class="text-base font-medium text-secondary hover:text-primary transition-colors">Contact</a>
+      </div>
+    </div>
+    <div class="bg-surface-container-low h-[1px] opacity-20"></div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="pb-24 px-8 max-w-3xl mx-auto pt-40">
+    <!-- Header -->
+    <header class="mb-12 text-center">
+      <span class="text-primary font-bold tracking-[0.2em] text-sm uppercase">Certificate by Post</span>
+      <h1 class="text-5xl font-bold text-primary mt-3 mb-4">Request a Certificate</h1>
+      <p class="text-secondary text-lg leading-relaxed">
+        Appeared for a past NAT-TEST? Request your physical certificate by post for
+        <strong class="text-primary">200 BDT</strong>. Verify your identity, confirm your shipping address, and pay securely.
+      </p>
+    </header>
+
+    <!-- Step indicator -->
+    <div class="mb-8 flex items-center justify-center gap-4 text-sm">
+      <span id="step-1-badge" class="flex items-center gap-2 text-primary font-semibold">
+        <span class="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs">1</span>
+        Verify Identity
+      </span>
+      <span class="text-secondary">→</span>
+      <span id="step-2-badge" class="flex items-center gap-2 text-secondary">
+        <span class="w-7 h-7 rounded-full bg-surface-container-high flex items-center justify-center text-xs">2</span>
+        Shipping Address
+      </span>
+      <span class="text-secondary">→</span>
+      <span id="step-3-badge" class="flex items-center gap-2 text-secondary">
+        <span class="w-7 h-7 rounded-full bg-surface-container-high flex items-center justify-center text-xs">3</span>
+        Payment
+      </span>
+    </div>
+
+    <!-- Step 1: Identity -->
+    <section id="step-1" class="step-section active">
+      <div class="bg-white p-10 rounded-2xl shadow-sm">
+        <h2 class="text-2xl font-bold text-primary mb-2">Verify Your Identity</h2>
+        <p class="text-secondary mb-8 text-sm">Select the exam you appeared for, then enter your examinee details exactly as they appear on your admission ticket.</p>
+
+        <form id="verify-form" class="space-y-6">
+          <!-- Honeypot (anti-bot) -->
+          <input type="text" name="website" tabindex="-1" autocomplete="off"
+                 style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
+
+          <div>
+            <label class="block text-sm font-semibold text-primary mb-2">Exam Date</label>
+            <select id="exam_date_id" name="exam_date_id" required
+                    class="w-full px-4 py-3 bg-white border border-surface-container-highest rounded-lg focus:border-primary focus:outline-none">
+              <option value="">Loading past exams...</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-primary mb-2">Examinee Number</label>
+            <input type="text" id="reg_no" name="reg_no" required
+                   placeholder="e.g. NAT-2026-0001"
+                   class="w-full px-4 py-3 border border-surface-container-highest rounded-lg focus:border-primary focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-primary mb-2">Full Name</label>
+            <input type="text" id="full_name" name="full_name" required
+                   placeholder="As it appears on your application"
+                   class="w-full px-4 py-3 border border-surface-container-highest rounded-lg focus:border-primary focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-primary mb-2">Date of Birth</label>
+            <input type="date" id="dob" name="dob" required
+                   class="w-full px-4 py-3 border border-surface-container-highest rounded-lg focus:border-primary focus:outline-none">
+          </div>
+
+          <div id="verify-banner" class="submit-banner"></div>
+
+          <button type="submit" id="verify-btn"
+                  class="w-full bg-primary text-white py-4 rounded-lg font-bold text-lg hover:opacity-90 transition-all">
+            Verify Identity
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Step 2: Shipping Address -->
+    <section id="step-2" class="step-section">
+      <div class="bg-white p-10 rounded-2xl shadow-sm">
+        <h2 class="text-2xl font-bold text-primary mb-2">Confirm Shipping Address</h2>
+        <p class="text-secondary mb-8 text-sm">
+          Verified — <strong id="verified-name" class="text-primary"></strong>.
+          Edit the address below if needed. Your certificate will be posted here.
+        </p>
+
+        <form id="address-form" class="space-y-6">
+          <input type="hidden" id="registration_id" name="registration_id">
+          <input type="hidden" id="exam_date_id_held" name="exam_date_id">
+          <input type="hidden" id="reg_no_held" name="reg_no">
+          <!-- Honeypot -->
+          <input type="text" name="website" tabindex="-1" autocomplete="off"
+                 style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-semibold text-primary mb-2">Recipient Name</label>
+              <input type="text" id="recipient_name" name="recipient_name" required
+                     class="w-full px-4 py-3 border border-surface-container-highest rounded-lg focus:border-primary focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-primary mb-2">Recipient Phone</label>
+              <input type="tel" id="recipient_phone" name="recipient_phone" required
+                     placeholder="01XXXXXXXXX"
+                     class="w-full px-4 py-3 border border-surface-container-highest rounded-lg focus:border-primary focus:outline-none">
+              <div class="field-error" id="phone-error">Please enter a valid Bangladeshi phone number.</div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-primary mb-2">House / Street</label>
+            <input type="text" id="house_street" name="house_street" required
+                   placeholder="House no, road, street"
+                   class="w-full px-4 py-3 border border-surface-container-highest rounded-lg focus:border-primary focus:outline-none">
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-semibold text-primary mb-2">Area / Thana</label>
+              <input type="text" id="area_thana" name="area_thana" required
+                     class="w-full px-4 py-3 border border-surface-container-highest rounded-lg focus:border-primary focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-primary mb-2">District</label>
+              <input type="text" id="district" name="district" required
+                     class="w-full px-4 py-3 border border-surface-container-highest rounded-lg focus:border-primary focus:outline-none">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label class="block text-sm font-semibold text-primary mb-2">Postal Code</label>
+              <input type="text" id="postal_code" name="postal_code"
+                     class="w-full px-4 py-3 border border-surface-container-highest rounded-lg focus:border-primary focus:outline-none">
+            </div>
+            <div class="md:col-span-2 flex items-end">
+              <div class="bg-surface-container-low p-4 rounded-lg w-full text-sm text-secondary">
+                <strong class="text-primary">Certificate fee:</strong> 200.00 BDT (postal delivery within Bangladesh)
+              </div>
+            </div>
+          </div>
+
+          <div id="submit-banner" class="submit-banner"></div>
+
+          <div class="flex gap-4">
+            <button type="button" id="back-to-step-1"
+                    class="px-6 py-4 rounded-lg font-semibold text-primary border border-surface-container-highest hover:bg-surface-container-low transition-all">
+              Back
+            </button>
+            <button type="submit" id="pay-btn"
+                    class="flex-1 bg-primary text-white py-4 rounded-lg font-bold text-lg hover:opacity-90 transition-all">
+              Pay 200 BDT & Request
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <p class="mt-8 text-center text-sm text-secondary">
+      Questions about certificate requests? <a href="contact.html" class="text-primary hover:underline">Contact us</a>.
+    </p>
+  </main>
+
+  <!-- Loading overlay -->
+  <div id="loading-overlay" class="loading-overlay">
+    <span class="material-symbols-outlined animate-spin">progress_activity</span>
+    <span id="loading-text">Processing...</span>
+  </div>
+
+  <script src="js/certificate-request.js"></script>
+</body>
+</html>

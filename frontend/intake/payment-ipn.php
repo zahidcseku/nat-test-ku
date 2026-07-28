@@ -42,6 +42,15 @@ try {
     $cardType = $ipnData['card_type'] ?? '';
     $bankTranId = $ipnData['bank_tran_id'] ?? '';
 
+    // Dispatch by tran_id prefix: 'CRT' -> certificate_requests, else -> registrations.
+    // The certificate handler mirrors the registrations flow but updates a
+    // different table and fires the certificate_requested email.
+    if (strpos($transactionId, 'CRT') === 0) {
+        require_once __DIR__ . '/certificate-ipn-handler.php';
+        handleCertificateIPN($ipnData, $sslcz, $transactionId, $status, $bankTranId, $currency, $cardType);
+        return; // handleCertificateIPN exits via successResponse/errorResponse
+    }
+
     // Get database connection
     $conn = getDbConnection();
     if (!$conn) {
