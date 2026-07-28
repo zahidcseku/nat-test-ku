@@ -749,20 +749,6 @@ const RegistrationForm = (function() {
   }
 
   /**
-   * Toggle offline process accordion
-   */
-  function toggleOffline() {
-    // First switch to the pbt-offline tab
-    switchTab('pbt-offline');
-
-    // Then open the accordion
-    const accordion = document.getElementById('offline-accordion');
-    if (accordion) {
-      accordion.classList.add('open');
-    }
-  }
-
-  /**
    * Validate all steps
    */
   function validateAllSteps() {
@@ -1404,7 +1390,6 @@ const RegistrationForm = (function() {
     handleFileUpload,
     validateStep3,
     switchTab,
-    toggleOffline,
     submitForm,
     resetForm,
     validateAllSteps,

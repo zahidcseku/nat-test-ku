@@ -252,9 +252,6 @@
           <button data-tab="pbt-online" onclick="RegistrationForm.switchTab('pbt-online')" class="tab-button px-4 py-3 border-b-2 border-primary text-primary font-semibold text-sm transition-all">
             PBT Online Registration
           </button>
-          <button data-tab="pbt-offline" onclick="RegistrationForm.toggleOffline()" class="tab-button px-4 py-3 border-b-2 border-transparent text-secondary font-medium text-sm hover:text-primary transition-all">
-            PBT Offline Registration
-          </button>
           <button data-tab="cbt" onclick="RegistrationForm.switchTab('cbt')" class="tab-button px-4 py-3 border-b-2 border-transparent text-secondary font-medium text-sm hover:text-primary transition-all">
             CBT Registration
           </button>
@@ -590,129 +587,6 @@
               </div>
             </div>
           </form>
-        </div>
-      </div>
-
-      <!-- PBT Offline Registration Tab -->
-      <div id="tab-pbt-offline" class="tab-content">
-        <div class="accordion-content" id="offline-accordion">
-          <div class="bg-white p-10 lg:p-16 rounded-2xl">
-            <!-- Offline Registration Process Image -->
-            <div class="mb-8 flex justify-center">
-              <div class="max-w-sm">
-                <img src="resources/offline_reg_processV4.png" alt="Offline Registration Process" class="w-full h-auto">
-              </div>
-            </div>
-
-            <div class="space-y-8">
-              <div>
-                <h2 class="text-3xl font-bold text-primary mb-4">Offline Registration Process</h2>
-                <p class="text-secondary text-lg">
-                  Follow these steps to complete your registration offline:
-                </p>
-              </div>
-
-              <!-- Step 1 -->
-              <div class="flex gap-6">
-                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">1</div>
-                <div class="flex-1">
-                  <h3 class="font-bold text-xl text-primary mb-2">Download and Fill the Application Form</h3>
-                  <p class="text-secondary mb-4">
-                    Download the offline application form and fill it out completely with accurate information.
-                  </p>
-                  <a href="resources/offline_application_formV5.pdf" download class="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all">
-                    <span class="material-symbols-outlined">download</span>
-                    Download Offline Form (PDF)
-                  </a>
-                </div>
-              </div>
-
-              <!-- Step 2 -->
-              <div class="flex gap-6">
-                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">2</div>
-                <div class="flex-1">
-                  <h3 class="font-bold text-xl text-primary mb-2">Make the Payment</h3>
-                  <p class="text-secondary mb-4">
-                    Pay the application fee of <strong>BDT 4,000.00</strong> to the following bank account:
-                  </p>
-                  <div class="bg-surface-container-low p-6 rounded-lg space-y-2">
-                    <p><strong>Account Name:</strong> Test Site Director</p>
-                    <p><strong>Account Number:</strong> 0200025673722</p>
-                    <p><strong>Bank:</strong> Agrani Bank Plc.</p>
-                    <p><strong>Branch:</strong> Khulna University</p>
-                  </div>
-                  <div class="mt-4 p-4 bg-warning-container text-warning-dark rounded-lg text-sm">
-                    <p class="font-bold mb-1">Important Instructions:</p>
-                    <ul class="list-disc list-inside space-y-1">
-                      <li>- Do not make partial payments.</li>
-                      <li>- Keep the payment receipt until the exam ends.</li>
-                      <li>- Deposits are non refundable.</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Step 3 -->
-              <div class="flex gap-6">
-                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">3</div>
-                <div class="flex-1">
-                  <h3 class="font-bold text-xl text-primary mb-2">Prepare Required Documents</h3>
-                  <p class="text-secondary mb-4">Gather the following documents:</p>
-                  <ul class="list-disc list-inside space-y-2 text-secondary">
-                    <li>Two passport-size photographs (recent, plain background)</li>
-                    <li>Copy of ID card (Passport or National ID)</li>
-                    <li>Payment receipt/deposit slip</li>
-                    <li>Completed application form</li>
-                  </ul>
-                </div>
-              </div>
-
-              <!-- Step 4 -->
-              <div class="flex gap-6">
-                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">4</div>
-                <div class="flex-1">
-                  <h3 class="font-bold text-xl text-primary mb-2">Send Documents via Email</h3>
-                  <p class="text-secondary mb-4">
-                    Send all documents as attachments to:
-                  </p>
-                  <a href="mailto:offline_registration@nat-test.ku.ac.bd" class="text-primary font-bold text-lg underline">
-                    offline_registration@nat-test.ku.ac.bd
-                  </a>
-                  <p class="text-sm text-secondary mt-2">
-                    Include your full name and ID number in the email subject line
-                  </p>
-                </div>
-              </div>
-
-              <!-- Step 5 -->
-              <div class="flex gap-6">
-                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">5</div>
-                <div class="flex-1">
-                  <h3 class="font-bold text-xl text-primary mb-2">Receive Confirmation Email</h3>
-                  <p class="text-secondary">
-                    You will receive a confirmation email within 24-48 hours after we receive your application.
-                  </p>
-                </div>
-              </div>
-
-              <!-- Step 6 -->
-              <div class="flex gap-6">
-                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">6</div>
-                <div class="flex-1">
-                  <h3 class="font-bold text-xl text-primary mb-2">Receive Admission Ticket</h3>
-                  <p class="text-secondary">
-                    After your application is reviewed and approved, you will receive your admission ticket via email.
-                  </p>
-                </div>
-              </div>
-
-              <div class="pt-6 border-t border-surface-container-highest">
-                <p class="text-sm text-secondary">
-                  Questions? Contact us at <a href="mailto:info@nat-test.ku.ac.bd" class="text-primary underline">info@nat-test.ku.ac.bd</a>
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
