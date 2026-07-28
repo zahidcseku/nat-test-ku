@@ -297,7 +297,7 @@ function emailTemplateDefaults(): array {
                 . 'Your payment of <strong>200 BDT</strong> for postal delivery has been confirmed'
                 . ' (bank reference: {bank_tran_id}).</p>'
                 . '<div style="background:#f4f6f8;border-left:4px solid #667eea;padding:12px 16px;margin:16px 0;font-size:14px;">'
-                . '<strong>Reg. Number:</strong> {reg_no}<br>'
+                . '<strong>Examinee ID:</strong> {xlsx_id}<br>'
                 . '<strong>Exam Date:</strong> {exam_date}<br>'
                 . '<strong>Ship To:</strong> {recipient_name}, {house_street}, {area_thana}, {district} {postal_code}'
                 . '</div>'
@@ -309,7 +309,7 @@ function emailTemplateDefaults(): array {
                 . '</body></html>',
             'variables' => [
                 ['key' => 'full_name',      'label' => 'Examinee full name',       'example' => 'Jane Doe'],
-                ['key' => 'reg_no',         'label' => 'Registration sheet number', 'example' => 'NAT-2026-0001'],
+                ['key' => 'xlsx_id',        'label' => 'Examinee ID (14-digit)',    'example' => '26070047650100'],
                 ['key' => 'exam_date',      'label' => 'Exam date (formatted)',     'example' => 'February 16, 2026'],
                 ['key' => 'recipient_name', 'label' => 'Shipping recipient name',   'example' => 'Jane Doe'],
                 ['key' => 'house_street',   'label' => 'House/street address',      'example' => '123 Main St'],
@@ -333,7 +333,7 @@ function emailTemplateDefaults(): array {
                 . '<p style="font-size:15px;background:#e6f4ea;border-left:4px solid #1e8e3e;padding:10px 14px;">'
                 . '<strong>Your certificate has been posted.</strong></p>'
                 . '<div style="background:#f4f6f8;border-left:4px solid #667eea;padding:12px 16px;margin:16px 0;font-size:14px;">'
-                . '<strong>Reg. Number:</strong> {reg_no}<br>'
+                . '<strong>Examinee ID:</strong> {xlsx_id}<br>'
                 . '<strong>Exam Date:</strong> {exam_date}<br>'
                 . '{tracking_block}'
                 . '<strong>Ship To:</strong> {recipient_name}, {house_street}, {area_thana}, {district} {postal_code}'
@@ -345,7 +345,7 @@ function emailTemplateDefaults(): array {
                 . '</body></html>',
             'variables' => [
                 ['key' => 'full_name',      'label' => 'Examinee full name',                              'example' => 'Jane Doe'],
-                ['key' => 'reg_no',         'label' => 'Registration sheet number',                        'example' => 'NAT-2026-0001'],
+                ['key' => 'xlsx_id',        'label' => 'Examinee ID (14-digit)',                           'example' => '26070047650100'],
                 ['key' => 'exam_date',      'label' => 'Exam date (formatted)',                            'example' => 'February 16, 2026'],
                 ['key' => 'recipient_name', 'label' => 'Shipping recipient name',                          'example' => 'Jane Doe'],
                 ['key' => 'house_street',   'label' => 'House/street address',                             'example' => '123 Main St'],

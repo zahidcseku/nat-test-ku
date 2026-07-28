@@ -46,7 +46,7 @@ if (!$conn) {
 
 // Load the row, verify state, and pull the fields needed for the email.
 $stmt = $conn->prepare("
-    SELECT cr.id, cr.registration_id, cr.exam_date_id, cr.reg_no, cr.payment_status,
+    SELECT cr.id, cr.registration_id, cr.exam_date_id, cr.xlsx_id, cr.payment_status,
            cr.certificate_status, cr.recipient_name, cr.recipient_phone,
            cr.house_street, cr.area_thana, cr.district, cr.postal_code,
            r.full_name, r.email, ed.exam_date
@@ -121,7 +121,7 @@ $trackingBlock = $trackVal
 
 $mail = renderEmailTemplate('certificate_posted', [
     'full_name'      => $fullName,
-    'reg_no'         => $row['reg_no'],
+    'xlsx_id'        => $row['xlsx_id'],
     'exam_date'      => $examDateDisplay,
     'recipient_name' => $row['recipient_name'],
     'house_street'   => $row['house_street'],

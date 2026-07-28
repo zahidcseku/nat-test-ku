@@ -37,7 +37,7 @@ try {
     // Read input (strings only — arrays are coerced to '' by is_string checks).
     $registrationId = is_string($_POST['registration_id'] ?? null) ? trim($_POST['registration_id']) : '';
     $examDateId     = is_string($_POST['exam_date_id']     ?? null) ? trim($_POST['exam_date_id'])    : '';
-    $regNo          = is_string($_POST['reg_no']          ?? null) ? trim($_POST['reg_no'])          : '';
+    $xlsxId         = is_string($_POST['xlsx_id']         ?? null) ? trim($_POST['xlsx_id'])         : '';
 
     $recipientName  = is_string($_POST['recipient_name']  ?? null) ? trim($_POST['recipient_name'])  : '';
     $recipientPhone = is_string($_POST['recipient_phone'] ?? null) ? trim($_POST['recipient_phone']) : '';
@@ -49,6 +49,8 @@ try {
     // Basic format gate — keeps malformed input out of the DB.
     $uuidOk = preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $registrationId) === 1
            && preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $examDateId) === 1;
+    $xlsxIdOk = strlen($xlsxId) >= 4 && strlen($xlsxId) <= 50
+        && preg_match('/^[A-Za-z0-9._-]+$/', $xlsxId) === 1;
     $phoneOk = preg_match('/^(\+?880|0)?1[3-9]\d{8}$/', $recipientPhone) === 1;
     $lengthOk = strlen($recipientName) >= 2 && strlen($recipientName) <= 200
         && strlen($houseStreet) >= 3 && strlen($houseStreet) <= 300
@@ -56,7 +58,7 @@ try {
         && strlen($district) >= 2 && strlen($district) <= 100
         && strlen($postalCode) <= 20;
 
-    if (!$uuidOk || !$phoneOk || !$lengthOk || $regNo === '') {
+    if (!$uuidOk || !$xlsxIdOk || !$phoneOk || !$lengthOk) {
         logActivity('Certificate request rejected: invalid input from ' . hashIp(getClientIp()), 'info');
         errorResponse('Please check the address fields and try again.', 422);
     }
@@ -72,20 +74,20 @@ try {
         FROM registrations r
         INNER JOIN registration_sheet_numbers rsn ON rsn.registration_id = r.id
         INNER JOIN score_reports sr ON sr.reg_no = rsn.reg_no AND sr.exam_date_id = ?
-        WHERE r.id = ? AND rsn.reg_no = ?
+        WHERE r.id = ? AND sr.xlsx_id = ?
         LIMIT 1
     ");
     if (!$eligStmt) {
         logActivity('Prepare failed (certificate-request elig): ' . $conn->error, 'error');
         errorResponse('Service temporarily unavailable', 500);
     }
-    $eligStmt->bind_param('sss', $examDateId, $registrationId, $regNo);
+    $eligStmt->bind_param('sss', $examDateId, $registrationId, $xlsxId);
     $eligStmt->execute();
     $eligRow = $eligStmt->get_result()->fetch_assoc();
     $eligStmt->close();
 
     if (!$eligRow) {
-        logActivity('Certificate request eligibility failed for reg_no=' . $regNo, 'warning');
+        logActivity('Certificate request eligibility failed for xlsx_id=' . $xlsxId, 'warning');
         errorResponse('Eligibility check failed. Please contact the test center.', 403);
     }
 
@@ -155,7 +157,7 @@ try {
 
     $insert = $conn->prepare("
         INSERT INTO certificate_requests (
-            id, registration_id, exam_date_id, reg_no,
+            id, registration_id, exam_date_id, xlsx_id,
             recipient_name, recipient_phone, house_street, area_thana, district, postal_code,
             amount, payment_status, sslcommerz_transaction_id, sslcommerz_session_id,
             ip_address
@@ -171,7 +173,7 @@ try {
         $id,
         $registrationId,
         $examDateId,
-        $regNo,
+        $xlsxId,
         $recipientName,
         $recipientPhone,
         $houseStreet,
@@ -190,7 +192,7 @@ try {
     }
     $insert->close();
 
-    logActivity('Certificate request created: id=' . $id . ', reg_no=' . $regNo . ', tran_id=' . $sslczTranId);
+    logActivity('Certificate request created: id=' . $id . ', xlsx_id=' . $xlsxId . ', tran_id=' . $sslczTranId);
 
     successResponse([
         'id'           => $id,

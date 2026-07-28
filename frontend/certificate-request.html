@@ -121,10 +121,13 @@
           </div>
 
           <div>
-            <label class="block text-sm font-semibold text-primary mb-2">Examinee Number</label>
-            <input type="text" id="reg_no" name="reg_no" required
-                   placeholder="e.g. NAT-2026-0001"
+            <label class="block text-sm font-semibold text-primary mb-2">Examinee ID</label>
+            <input type="text" id="xlsx_id" name="xlsx_id" required
+                   inputmode="numeric" pattern="[A-Za-z0-9._-]{4,50}"
+                   placeholder="e.g. 26070047650100"
+                   title="The Examinee ID printed on your admission ticket and score report"
                    class="w-full px-4 py-3 border border-surface-container-highest rounded-lg focus:border-primary focus:outline-none">
+            <p class="text-xs text-secondary mt-1">14-digit number from your admission ticket or score report email.</p>
           </div>
 
           <div>
@@ -162,7 +165,7 @@
         <form id="address-form" class="space-y-6">
           <input type="hidden" id="registration_id" name="registration_id">
           <input type="hidden" id="exam_date_id_held" name="exam_date_id">
-          <input type="hidden" id="reg_no_held" name="reg_no">
+          <input type="hidden" id="xlsx_id_held" name="xlsx_id">
           <!-- Honeypot -->
           <input type="text" name="website" tabindex="-1" autocomplete="off"
                  style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">

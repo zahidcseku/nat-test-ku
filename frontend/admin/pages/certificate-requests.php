@@ -65,7 +65,7 @@ if (in_array($certFilter, ['requested', 'posted'], true)) {
     $types .= 's';
 }
 if ($search !== '') {
-    $where[] = '(r.full_name LIKE ? OR cr.reg_no LIKE ? OR cr.recipient_phone LIKE ? OR r.email LIKE ?)';
+    $where[] = '(r.full_name LIKE ? OR cr.xlsx_id LIKE ? OR cr.recipient_phone LIKE ? OR r.email LIKE ?)';
     $term = "%{$search}%";
     array_push($params, $term, $term, $term, $term);
     $types .= 'ssss';
@@ -199,7 +199,7 @@ require_once __DIR__ . '/../templates/header.php';
     </div>
     <div style="flex:1;min-width:200px;">
         <label>Search</label>
-        <input type="text" name="search" value="<?php echo e($search); ?>" placeholder="Name, reg no, phone, email">
+        <input type="text" name="search" value="<?php echo e($search); ?>" placeholder="Name, examinee id, phone, email">
     </div>
     <button type="submit" class="btn btn-primary">Filter</button>
     <a href="<?php echo e(BASE_URL); ?>/pages/certificate-requests.php" class="btn btn-secondary">Reset</a>
@@ -245,7 +245,7 @@ require_once __DIR__ . '/../templates/header.php';
                     </td>
                     <td style="padding:12px;">
                         <div style="font-weight:600;"><?php echo e(html_entity_decode($row['examinee_name'] ?? '', ENT_QUOTES, 'UTF-8')); ?></div>
-                        <div style="font-size:12px;color:#718096;">Reg: <?php echo e($row['reg_no']); ?></div>
+                        <div style="font-size:12px;color:#718096;">Examinee ID: <?php echo e($row['xlsx_id']); ?></div>
                         <div style="font-size:12px;color:#718096;"><?php echo e($row['email']); ?></div>
                     </td>
                     <td style="padding:12px;"><?php echo e($examLabel); ?></td>

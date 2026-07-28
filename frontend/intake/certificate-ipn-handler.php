@@ -39,7 +39,7 @@ function handleCertificateIPN(array $ipnData, $sslcz, string $transactionId, str
 
     // Find certificate row by transaction id.
     $stmt = $conn->prepare("
-        SELECT id, registration_id, exam_date_id, reg_no, amount,
+        SELECT id, registration_id, exam_date_id, xlsx_id, amount,
                recipient_name, recipient_phone, house_street, area_thana,
                district, postal_code, payment_status, sslcommerz_bank_transaction_id
         FROM certificate_requests
@@ -171,7 +171,7 @@ function handleCertificateIPN(array $ipnData, $sslcz, string $transactionId, str
             'id'              => $cert['id'],
             'registration_id' => $cert['registration_id'],
             'full_name'       => $fullName,
-            'reg_no'          => $cert['reg_no'],
+            'xlsx_id'         => $cert['xlsx_id'],
             'exam_date'       => $examDateDisplay,
             'recipient_name'  => $cert['recipient_name'],
             'recipient_phone' => $cert['recipient_phone'],

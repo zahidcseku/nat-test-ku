@@ -32,7 +32,7 @@ if (!empty($ids)) {
         $sql = "
             SELECT cr.recipient_name, cr.recipient_phone, cr.house_street,
                    cr.area_thana, cr.district, cr.postal_code,
-                   cr.reg_no, cr.tracking_number, cr.created_at,
+                   cr.xlsx_id, cr.tracking_number, cr.created_at,
                    ed.exam_date
             FROM certificate_requests cr
             LEFT JOIN exam_dates ed ON ed.id = cr.exam_date_id
@@ -187,7 +187,7 @@ if (!empty($ids)) {
                 <div class="addr-line"><?php echo e($lbl['district'] . ($lbl['postal_code'] ? ' ' . $lbl['postal_code'] : '')); ?></div>
                 <div class="addr-line">Bangladesh</div>
                 <div class="meta">
-                    Reg: <?php echo e($lbl['reg_no']); ?> · Exam: <?php echo e($examDate); ?><br>
+                    Examinee ID: <?php echo e($lbl['xlsx_id']); ?> · Exam: <?php echo e($examDate); ?><br>
                     ☎ <?php echo e($lbl['recipient_phone']); ?>
                 </div>
             </div>

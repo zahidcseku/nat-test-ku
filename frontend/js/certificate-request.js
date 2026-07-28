@@ -2,7 +2,7 @@
  * Certificate Request form logic.
  *
  * Two-step flow mirroring RegistrationForm (see js/registration.js):
- *   1. Verify identity (past exam date + reg_no + name + DOB) ->
+ *   1. Verify identity (past exam date + xlsx_id + name + DOB) ->
  *      pre-fill recipient_name / recipient_phone from the DB.
  *   2. Confirm shipping address -> POST to /intake/certificate-request.php ->
  *      redirect to SSLCommerz redirect_url.
@@ -104,7 +104,7 @@ const CertificateRequestForm = (function () {
 
     const form = ev.target;
     const fd = new FormData(form);
-    const fields = ['exam_date_id', 'reg_no', 'full_name', 'dob'];
+    const fields = ['exam_date_id', 'xlsx_id', 'full_name', 'dob'];
     for (const f of fields) {
       const v = (fd.get(f) || '').toString().trim();
       if (v === '') {
@@ -130,7 +130,7 @@ const CertificateRequestForm = (function () {
         // Pre-fill step 2.
         $('registration_id').value = verified.registration_id;
         $('exam_date_id_held').value = $('exam_date_id').value;
-        $('reg_no_held').value = (fd.get('reg_no') || '').toString().trim();
+        $('xlsx_id_held').value = (fd.get('xlsx_id') || '').toString().trim();
         $('recipient_name').value = verified.full_name || '';
         $('recipient_phone').value = verified.mobile || '';
         $('verified-name').textContent = verified.full_name || '';
@@ -165,7 +165,7 @@ const CertificateRequestForm = (function () {
     }
 
     const required = [
-      'registration_id', 'exam_date_id_held', 'reg_no_held',
+      'registration_id', 'exam_date_id_held', 'xlsx_id_held',
       'recipient_name', 'recipient_phone', 'house_street', 'area_thana', 'district',
     ];
     for (const id of required) {
@@ -180,7 +180,7 @@ const CertificateRequestForm = (function () {
     const fd = new FormData();
     fd.append('registration_id', $('registration_id').value);
     fd.append('exam_date_id',    $('exam_date_id_held').value);
-    fd.append('reg_no',          $('reg_no_held').value);
+    fd.append('xlsx_id',         $('xlsx_id_held').value);
     fd.append('recipient_name',  $('recipient_name').value.trim());
     fd.append('recipient_phone', $('recipient_phone').value.trim());
     fd.append('house_street',    $('house_street').value.trim());
