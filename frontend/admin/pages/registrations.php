@@ -285,7 +285,7 @@ if (!empty($activeFilters)):
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Status</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Payment Status</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Payment Time</th>
-                    <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Submitted</th>
+                    <th style="padding: 12px 16px; text-align: center; font-size: 13px; font-weight: 600; color: #4a5568;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -332,8 +332,29 @@ if (!empty($activeFilters)):
                             </span>
                         </td>
                         <td class="p-4"><?php echo $reg['payment_time'] ? date('M j, Y', strtotime($reg['payment_time'])) : '-'; ?></td>
-                        <td style="padding: 12px 16px; font-size: 14px; color: #718096;">
-                            <?php echo e(date('M j, Y', strtotime($reg['submitted_at']))); ?>
+                        <td style="padding: 12px 16px; text-align: center;">
+                            <div style="display: flex; gap: 6px; justify-content: center;">
+                                <a href="<?php echo BASE_URL; ?>/pages/registration-detail.php?id=<?php echo e($reg['id']); ?>"
+                                   class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">
+                                    👁️ View
+                                </a>
+                                <a href="<?php echo BASE_URL; ?>/pages/registration-detail.php?id=<?php echo e($reg['id']); ?>#edit"
+                                   class="btn btn-primary" style="padding: 6px 12px; font-size: 13px;">
+                                    ✏️ Edit
+                                </a>
+                                <?php if (isSuperAdmin()): ?>
+                                <form method="POST" action="<?php echo BASE_URL; ?>/api/registrations/delete.php"
+                                      style="display: inline;"
+                                      onsubmit="return confirm('Permanently delete this registration and its uploaded files? This cannot be undone.')">
+                                    <input type="hidden" name="csrf_token" value="<?php echo e(generateCsrfToken()); ?>">
+                                    <input type="hidden" name="id" value="<?php echo e($reg['id']); ?>">
+                                    <input type="hidden" name="return_query" value="<?php echo e($_SERVER['QUERY_STRING'] ?? ''); ?>">
+                                    <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 13px;">
+                                        🗑 Delete
+                                    </button>
+                                </form>
+                                <?php endif; ?>
+                            </div>
                         </td>
                     </tr>
                 <?php endforeach; ?>
