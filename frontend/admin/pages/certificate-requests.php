@@ -297,9 +297,9 @@ require_once __DIR__ . '/../templates/header.php';
     </table>
 
     <!-- Pagination -->
-    <?php if ($paginator['total_pages'] > 1): ?>
+    <?php if (($paginator['totalPages'] ?? 1) > 1): ?>
         <div class="pagination" style="margin-top:20px;display:flex;gap:6px;">
-            <?php for ($i = 1; $i <= $paginator['total_pages']; $i++): ?>
+            <?php for ($i = 1; $i <= $paginator['totalPages']; $i++): ?>
                 <a href="?<?php echo e($qs); ?>&page=<?php echo $i; ?>" class="btn <?php echo $i === $page ? 'btn-primary' : 'btn-secondary'; ?>" style="font-size:13px;padding:6px 12px;"><?php echo $i; ?></a>
             <?php endfor; ?>
         </div>
