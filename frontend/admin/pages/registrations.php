@@ -278,24 +278,24 @@ if (!empty($activeFilters)):
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr style="background: #f7fafc; border-bottom: 2px solid #e2e8f0;">
-                    <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">ID</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Name</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Email</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Level</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Test Date</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Status</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Payment Status</th>
-                    <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Amount</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Payment Time</th>
-                    <th style="padding: 12px 16px; text-align: center; font-size: 13px; font-weight: 600; color: #4a5568;">Actions</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Submitted</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($registrations as $reg): ?>
                     <tr style="border-bottom: 1px solid #e2e8f0; hover:bg-gray-50;">
-                        <td style="padding: 12px 16px; font-size: 14px;">#<?php echo e($reg['id']); ?></td>
                         <td style="padding: 12px 16px; font-size: 14px; font-weight: 500;">
-                            <?php echo e($reg['full_name']); ?>
+                            <a href="<?php echo BASE_URL; ?>/pages/registration-detail.php?id=<?php echo e($reg['id']); ?>"
+                               style="color: #1a202c; text-decoration: none;">
+                                <?php echo e($reg['full_name']); ?>
+                            </a>
                         </td>
                         <td style="padding: 12px 16px; font-size: 14px;">
                             <a href="mailto:<?php echo e($reg['email']); ?>" style="color: #667eea; text-decoration: none;">
@@ -304,12 +304,6 @@ if (!empty($activeFilters)):
                         </td>
                         <td style="padding: 12px 16px; font-size: 14px;">
                             <div class="font-semibold"><?php echo e($reg['exam_level']); ?></div>
-                            <div class="text-sm text-secondary">
-                                <?php
-                                $levelCount = count(explode(',', $reg['exam_level']));
-                                echo number_format($reg['total_amount']) . ' BDT (' . $levelCount . ' level(s))';
-                                ?>
-                            </div>
                         </td>
                         <td style="padding: 12px 16px; font-size: 14px;"><?php echo e(formatDate($reg['test_date'])); ?></td>
                         <td style="padding: 12px 16px;">
@@ -337,34 +331,9 @@ if (!empty($activeFilters)):
                                 <?php echo ucfirst($reg['payment_status']); ?>
                             </span>
                         </td>
-                        <td class="p-4">৳<?php echo number_format($reg['total_amount_paid']); ?></td>
                         <td class="p-4"><?php echo $reg['payment_time'] ? date('M j, Y', strtotime($reg['payment_time'])) : '-'; ?></td>
                         <td style="padding: 12px 16px; font-size: 14px; color: #718096;">
                             <?php echo e(date('M j, Y', strtotime($reg['submitted_at']))); ?>
-                        </td>
-                        <td style="padding: 12px 16px; text-align: center;">
-                            <div style="display: flex; gap: 6px; justify-content: center;">
-                                <a href="<?php echo BASE_URL; ?>/pages/registration-detail.php?id=<?php echo e($reg['id']); ?>"
-                                   class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">
-                                    👁️ View
-                                </a>
-                                <a href="<?php echo BASE_URL; ?>/pages/registration-detail.php?id=<?php echo e($reg['id']); ?>#edit"
-                                   class="btn btn-primary" style="padding: 6px 12px; font-size: 13px;">
-                                    ✏️ Edit
-                                </a>
-                                <?php if (isSuperAdmin()): ?>
-                                <form method="POST" action="<?php echo BASE_URL; ?>/api/registrations/delete.php"
-                                      style="display: inline;"
-                                      onsubmit="return confirm('Permanently delete this registration and its uploaded files? This cannot be undone.')">
-                                    <input type="hidden" name="csrf_token" value="<?php echo e(generateCsrfToken()); ?>">
-                                    <input type="hidden" name="id" value="<?php echo e($reg['id']); ?>">
-                                    <input type="hidden" name="return_query" value="<?php echo e($_SERVER['QUERY_STRING'] ?? ''); ?>">
-                                    <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 13px;">
-                                        🗑 Delete
-                                    </button>
-                                </form>
-                                <?php endif; ?>
-                            </div>
                         </td>
                     </tr>
                 <?php endforeach; ?>
