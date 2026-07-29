@@ -13,11 +13,18 @@ require_once __DIR__ . '/../auth/middleware.php';
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../functions.php';
 
-// Collect IDs from the query string (comma-separated) and sanitize to UUIDs.
+// Collect IDs from the query string and sanitize to UUIDs. Accept either
+// an array (checkbox submission: ?ids[]=...&ids[]=...) or a comma-separated
+// string (manual URL: ?ids=uuid1,uuid2).
 $rawIds = $_GET['ids'] ?? '';
+if (is_array($rawIds)) {
+    $candidates = array_values($rawIds);
+} else {
+    $candidates = explode(',', (string) $rawIds);
+}
 $ids = [];
-foreach (explode(',', $rawIds) as $candidate) {
-    $candidate = trim($candidate);
+foreach ($candidates as $candidate) {
+    $candidate = trim((string) $candidate);
     if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $candidate)) {
         $ids[] = $candidate;
     }
