@@ -279,7 +279,6 @@ require_once __DIR__ . '/../templates/header.php';
                                 <input type="checkbox" id="select-all" onclick="toggleAll(this)">
                             </th>
                             <th style="padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">ID</th>
-                            <th style="padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">RegNumber</th>
                             <th style="padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Name</th>
                             <th style="padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Email</th>
                             <th style="padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Phone</th>
@@ -305,7 +304,6 @@ require_once __DIR__ . '/../templates/header.php';
                                     <?php endif; ?>
                                 </td>
                                 <td style="padding: 10px 12px; font-family: monospace; font-size: 13px;"><?php echo e($s['xlsx_id']); ?></td>
-                                <td style="padding: 10px 12px; font-family: monospace; font-size: 13px;"><?php echo e($s['reg_no']); ?></td>
                                 <td style="padding: 10px 12px; font-size: 13px;">
                                     <?php if (!empty($s['full_name'])): ?>
                                         <?php echo e($s['full_name']); ?>
