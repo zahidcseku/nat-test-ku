@@ -208,6 +208,7 @@ if (!defined('ADMIN_ACCESS')) {
             <a href="<?php echo BASE_URL; ?>/pages/scores.php" <?php echo ($currentPage ?? '') === 'scores' ? 'class="active"' : ''; ?>>Scores</a>
             <a href="<?php echo BASE_URL; ?>/pages/certificate-requests.php" <?php echo ($currentPage ?? '') === 'certificate-requests' ? 'class="active"' : ''; ?>>Certificates</a>
             <a href="<?php echo BASE_URL; ?>/pages/emails.php" <?php echo ($currentPage ?? '') === 'emails' ? 'class="active"' : ''; ?>>Emails</a>
+            <a href="<?php echo BASE_URL; ?>/pages/broadcast-email.php" <?php echo ($currentPage ?? '') === 'broadcast-email' ? 'class="active"' : ''; ?>>Broadcast</a>
             <a href="<?php echo BASE_URL; ?>/pages/email-templates.php" <?php echo ($currentPage ?? '') === 'email-templates' ? 'class="active"' : ''; ?>>Templates</a>
             <a href="<?php echo BASE_URL; ?>/pages/content.php" <?php echo ($currentPage ?? '') === 'content' ? 'class="active"' : ''; ?>>Content</a>
             <?php if (isSuperAdmin()): ?>
