@@ -68,11 +68,14 @@ try {
 
     // If no exams found, return empty
     if (!empty($all_exams)) {
-        // Find the starting point: first exam with deadline >= today
+        // Find the starting point: first exam with deadline strictly in the
+        // future. Uses ">" (not ">=") to match get_next_exam.php — on the
+        // deadline day itself, registration is considered closed and the
+        // dropdown should advance to the next exam.
         $start_index = 0;
         $found_upcoming = false;
         for ($i = 0; $i < count($all_exams); $i++) {
-            if ($all_exams[$i]['registration_deadline'] >= $today) {
+            if ($all_exams[$i]['registration_deadline'] > $today) {
                 $start_index = $i;
                 $found_upcoming = true;
                 break;

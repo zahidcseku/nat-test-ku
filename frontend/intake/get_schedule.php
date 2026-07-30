@@ -157,17 +157,19 @@ try {
             // More than 2 weeks after exam - show results, no badge
             $status = '';
             $link = 'https://nat-test.ku.ac.bd/results.html';
+        } elseif ($current_timestamp > $deadline_timestamp) {
+            // Registration deadline has passed but exam cycle still active.
+            // Checked before window membership so exams that just got shifted
+            // out of the active window still show "Closed" instead of
+            // "Opening Soon".
+            $status = 'Closed';
+            $link = '';
         } elseif (in_array($index, $open_exams)) {
-            // This exam is in the current 3-month registration window
-            if ($current_timestamp > $deadline_timestamp) {
-                // Registration deadline has passed but still in window
-                $status = 'Closed';
-                $link = '';
-            } else {
-                // Registration is open
-                $status = 'Open';
-                $link = 'https://nat-test.ku.ac.bd/registration.html';
-            }
+            // This exam is in the current 3-month registration window and
+            // registration is still open (deadline check above already handled
+            // the passed-deadline case).
+            $status = 'Open';
+            $link = 'https://nat-test.ku.ac.bd/registration.html';
         } else {
             // Future exams not in the 3-month window
             $status = 'Opening Soon';
