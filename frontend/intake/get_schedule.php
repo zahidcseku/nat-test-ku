@@ -157,11 +157,13 @@ try {
             // More than 2 weeks after exam - show results, no badge
             $status = '';
             $link = 'https://nat-test.ku.ac.bd/results.html';
-        } elseif ($current_timestamp > $deadline_timestamp) {
-            // Registration deadline has passed but exam cycle still active.
-            // Checked before window membership so exams that just got shifted
-            // out of the active window still show "Closed" instead of
-            // "Opening Soon".
+        } elseif ($current_timestamp >= $deadline_timestamp) {
+            // Registration is closed once the deadline day is reached. Uses
+            // ">=" (not ">") to match get_next_exam.php, whose SQL filter
+            // `registration_deadline > today` drops the exam on its deadline
+            // day — so the schedule must mark it "Closed" on that same day to
+            // stay consistent. Checked before window membership so exams
+            // shifted out of the active window also land here.
             $status = 'Closed';
             $link = '';
         } elseif (in_array($index, $open_exams)) {
