@@ -90,8 +90,13 @@ if ($selectedExamDateId !== '') {
     $scoreCounts['total'] = $scoreCounts['staged'] + $scoreCounts['sent'] + $scoreCounts['failed'];
 
     // Paginated score rows. Qualify all columns with `sr.` because we
-    // JOIN registration_sheet_numbers and registrations, which share
-    // column names (reg_no, id).
+    // JOIN exam_dates, registration_sheet_numbers, and registrations,
+    // which share column names (reg_no, id).
+    //
+    // Period filter on rsn: registration_sheet_numbers.reg_no is only
+    // unique within (reg_no, year, month) — same reg_no reappears every
+    // month pointing to a different applicant. Pin to this exam's period
+    // so name/email shown per row belongs to THIS exam's registrant.
     $where = ['sr.exam_date_id = ?'];
     $params = [$selectedExamDateId];
     $types = 's';
@@ -117,7 +122,11 @@ if ($selectedExamDateId !== '') {
                sr.send_status, sr.emailed_at, sr.last_error,
                r.full_name, r.email, r.mobile
         FROM score_reports sr
-        LEFT JOIN registration_sheet_numbers rsn ON rsn.reg_no = sr.reg_no
+        LEFT JOIN exam_dates ed ON ed.id = sr.exam_date_id
+        LEFT JOIN registration_sheet_numbers rsn
+            ON rsn.reg_no = sr.reg_no
+            AND rsn.year  = YEAR(ed.exam_date)
+            AND rsn.month = MONTH(ed.exam_date)
         LEFT JOIN registrations r ON r.id = rsn.registration_id
         WHERE $whereClause
         GROUP BY sr.id
@@ -126,7 +135,11 @@ if ($selectedExamDateId !== '') {
     $countQuery = "
         SELECT COUNT(*) AS cnt
         FROM score_reports sr
-        LEFT JOIN registration_sheet_numbers rsn ON rsn.reg_no = sr.reg_no
+        LEFT JOIN exam_dates ed ON ed.id = sr.exam_date_id
+        LEFT JOIN registration_sheet_numbers rsn
+            ON rsn.reg_no = sr.reg_no
+            AND rsn.year  = YEAR(ed.exam_date)
+            AND rsn.month = MONTH(ed.exam_date)
         LEFT JOIN registrations r ON r.id = rsn.registration_id
         WHERE $whereClause
     ";
@@ -256,13 +269,13 @@ require_once __DIR__ . '/../templates/header.php';
             <div style="display: flex; gap: 8px; margin-bottom: 12px;">
                 <button type="submit"
                         class="btn btn-primary"
-                        onclick="document.getElementById('scores-action').value='send_selected';"
+                        onclick="return confirmSend('send_selected', 0);"
                         <?php if ($scoreCounts['staged'] + $scoreCounts['failed'] === 0) echo 'disabled'; ?>>
                     Send Selected
                 </button>
                 <button type="submit"
                         class="btn btn-secondary"
-                        onclick="document.getElementById('scores-action').value='send_all';"
+                        onclick="return confirmSend('send_all', <?php echo $scoreCounts['staged'] + $scoreCounts['failed']; ?>);"
                         <?php if ($scoreCounts['staged'] + $scoreCounts['failed'] === 0) echo 'disabled'; ?>>
                     Send All (<?php echo $scoreCounts['staged'] + $scoreCounts['failed']; ?> staged/failed)
                 </button>
@@ -441,6 +454,25 @@ function updateCount() {
     var n = document.querySelectorAll('input.score-checkbox[type="checkbox"]:checked').length;
     var el = document.getElementById('selected-count');
     if (el) el.textContent = n;
+}
+// Gate every send action behind a confirm so a stray click can't email
+// applicants. 'send_all' is the mass-send case; 'send_selected' still
+// asks (with the live selection count) because email sends are irreversible.
+function confirmSend(action, allCount) {
+    var n = action === 'send_all'
+        ? allCount
+        : document.querySelectorAll('input.score-checkbox[type="checkbox"]:checked').length;
+    if (n <= 0) {
+        alert('No scores selected. Tick rows first, or use Send All.');
+        return false;
+    }
+    var msg = 'Email score reports to ' + n + ' examinee' + (n === 1 ? '' : 's') + ' for this exam date?';
+    if (action === 'send_all') {
+        msg += '\n\nThis sends to every staged or failed row. It cannot be undone.';
+    }
+    if (!confirm(msg)) return false;
+    document.getElementById('scores-action').value = action;
+    return true;
 }
 document.addEventListener('DOMContentLoaded', updateCount);
 

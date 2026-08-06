@@ -230,14 +230,24 @@ function sendTickets(array $ticketIds, int $sentBy, ?string $examDateId = null):
 
         // Pull the ticket + JOIN through registration_sheet_numbers to
         // registrations for the recipient email + name.
+        //
+        // IMPORTANT: registration_sheet_numbers.reg_no is only unique within
+        // (reg_no, year, month) — the same reg_no reappears every month for
+        // a different applicant. Filter rsn by the exam_date's period so we
+        // resolve to THIS exam's registrant, not a prior month's. Without
+        // this filter the JOIN returns one row per month and ORDER BY
+        // rsn.id ASC LIMIT 1 silently picks the oldest (wrong) one.
         $stmt = $conn->prepare("
             SELECT at.id, at.xlsx_id, at.reg_no, at.file_path,
                    r.email, r.full_name, r.id AS registration_id
             FROM admission_tickets at
-            LEFT JOIN registration_sheet_numbers rsn ON rsn.reg_no = at.reg_no
+            LEFT JOIN exam_dates ed ON ed.id = at.exam_date_id
+            LEFT JOIN registration_sheet_numbers rsn
+                ON rsn.reg_no = at.reg_no
+                AND rsn.year  = YEAR(ed.exam_date)
+                AND rsn.month = MONTH(ed.exam_date)
             LEFT JOIN registrations r ON r.id = rsn.registration_id
             WHERE at.id = ?
-            ORDER BY rsn.id ASC
             LIMIT 1
         ");
         $stmt->bind_param('i', $tid);
