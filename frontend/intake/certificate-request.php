@@ -69,11 +69,16 @@ try {
     }
 
     // Re-verify eligibility server-side. Never trust the client.
+    // score_reports.reg_no is stored as YYYYMM + 8-digit reg_no (see
+    // admin/lib/score-staging.php), so SUBSTRING(sr.reg_no, 7) strips
+    // the prefix to match rsn.reg_no.
     $eligStmt = $conn->prepare("
         SELECT r.id, r.email, r.full_name
         FROM registrations r
         INNER JOIN registration_sheet_numbers rsn ON rsn.registration_id = r.id
-        INNER JOIN score_reports sr ON sr.reg_no = rsn.reg_no AND sr.exam_date_id = ?
+        INNER JOIN score_reports sr
+            ON SUBSTRING(sr.reg_no, 7) = rsn.reg_no
+            AND sr.exam_date_id = ?
         WHERE r.id = ? AND sr.xlsx_id = ?
         LIMIT 1
     ");

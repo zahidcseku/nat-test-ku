@@ -54,11 +54,17 @@ try {
     }
 
     // Eligibility: xlsx_id -> score_reports -> reg_no -> registration.
+    // score_reports.reg_no is stored internally as YYYYMM + 8-digit reg_no
+    // (see admin/lib/score-staging.php), so strip the prefix with
+    // SUBSTRING(sr.reg_no, 7) to match rsn.reg_no. Period filter via
+    // exam_date_id and r.dob/name match keeps the lookup unambiguous.
     $stmt = $conn->prepare("
         SELECT r.id, r.full_name, r.email, r.mobile
         FROM registrations r
         INNER JOIN registration_sheet_numbers rsn ON rsn.registration_id = r.id
-        INNER JOIN score_reports sr ON sr.reg_no = rsn.reg_no AND sr.exam_date_id = ?
+        INNER JOIN score_reports sr
+            ON SUBSTRING(sr.reg_no, 7) = rsn.reg_no
+            AND sr.exam_date_id = ?
         WHERE sr.xlsx_id = ?
           AND r.dob = ?
           AND LOWER(r.full_name) = LOWER(?)
