@@ -122,11 +122,21 @@ function stageTicketsFromUpload(string $xlsxTmpPath, string $zipTmpPath, string 
     foreach ($rows as $r) {
         $rowCount++;
         $xlsxId = trim((string) ($r[$idKey] ?? ''));
-        $regNo  = trim((string) ($r[$regNoKey] ?? ''));
-        if ($xlsxId === '' || $regNo === '') {
+        $regNoRaw = trim((string) ($r[$regNoKey] ?? ''));
+        if ($xlsxId === '' || $regNoRaw === '') {
             $warnings[] = "xlsx row {$rowCount}: missing ID or RegNumber, skipped";
             continue;
         }
+
+        // Prefix reg_no with YYYYMM (from exam_date) so the stored value
+        // is globally unique. The same reg_no (e.g. 47650019) is reused
+        // every month for a different applicant — without the prefix,
+        // the stored value collides across exam periods. The prefix is
+        // stripped back off at lookup/display time.
+        //   Example: 47650019 for Aug 2026 exam -> 20260847650019
+        $yyyymm = substr($examDate, 0, 4) . substr($examDate, 5, 2);
+        $regNo  = $yyyymm . $regNoRaw;
+
         if (isset($seenIds[$xlsxId])) {
             $warnings[] = "xlsx row {$rowCount}: duplicate ID '{$xlsxId}', skipped";
             continue;
@@ -231,19 +241,24 @@ function sendTickets(array $ticketIds, int $sentBy, ?string $examDateId = null):
         // Pull the ticket + JOIN through registration_sheet_numbers to
         // registrations for the recipient email + name.
         //
-        // IMPORTANT: registration_sheet_numbers.reg_no is only unique within
-        // (reg_no, year, month) — the same reg_no reappears every month for
-        // a different applicant. Filter rsn by the exam_date's period so we
-        // resolve to THIS exam's registrant, not a prior month's. Without
-        // this filter the JOIN returns one row per month and ORDER BY
-        // rsn.id ASC LIMIT 1 silently picks the oldest (wrong) one.
+        // at.reg_no is stored as YYYYMM + original_reg_no (e.g.
+        // 20260847650019). Strip the 6-char prefix with SUBSTRING(reg_no, 7)
+        // to match rsn.reg_no (8-digit form). Also scope rsn by year/month
+        // of the exam for safety — reg_no is only unique within
+        // (reg_no, year, month).
+        //
+        // SELECT the unprefixed reg_no so email templates and downstream
+        // code see the human-readable 8-digit form (47650019), not the
+        // internal storage form.
         $stmt = $conn->prepare("
-            SELECT at.id, at.xlsx_id, at.reg_no, at.file_path,
+            SELECT at.id, at.xlsx_id,
+                   SUBSTRING(at.reg_no, 7) AS reg_no,
+                   at.file_path,
                    r.email, r.full_name, r.id AS registration_id
             FROM admission_tickets at
             LEFT JOIN exam_dates ed ON ed.id = at.exam_date_id
             LEFT JOIN registration_sheet_numbers rsn
-                ON rsn.reg_no = at.reg_no
+                ON rsn.reg_no = SUBSTRING(at.reg_no, 7)
                 AND rsn.year  = YEAR(ed.exam_date)
                 AND rsn.month = MONTH(ed.exam_date)
             LEFT JOIN registrations r ON r.id = rsn.registration_id
@@ -319,7 +334,9 @@ function sendTickets(array $ticketIds, int $sentBy, ?string $examDateId = null):
         );
 
         if ($ok) {
-            $upd = $conn->prepare("UPDATE admission_tickets SET send_status='sent', emailed_at=NOW(), last_error=NULL WHERE id=?");
+            // Clear the incorrect-disposal marker on re-send so the row
+            // looks clean after a successful corrective send.
+            $upd = $conn->prepare("UPDATE admission_tickets SET send_status='sent', emailed_at=NOW(), last_error=NULL, incorrect_disposal_at=NULL, incorrect_disposal_by=NULL WHERE id=?");
             $upd->bind_param('i', $tid);
             $upd->execute();
             $upd->close();

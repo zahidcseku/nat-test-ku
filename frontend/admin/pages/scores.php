@@ -93,10 +93,9 @@ if ($selectedExamDateId !== '') {
     // JOIN exam_dates, registration_sheet_numbers, and registrations,
     // which share column names (reg_no, id).
     //
-    // Period filter on rsn: registration_sheet_numbers.reg_no is only
-    // unique within (reg_no, year, month) — same reg_no reappears every
-    // month pointing to a different applicant. Pin to this exam's period
-    // so name/email shown per row belongs to THIS exam's registrant.
+    // sr.reg_no is stored internally as YYYYMM + original_reg_no.
+    // SUBSTRING(reg_no, 7) yields the 8-digit reg_no for both JOIN and
+    // SELECT (so the admin table shows the human-readable form).
     $where = ['sr.exam_date_id = ?'];
     $params = [$selectedExamDateId];
     $types = 's';
@@ -118,13 +117,15 @@ if ($selectedExamDateId !== '') {
     $whereClause = implode(' AND ', $where);
 
     $dataQuery = "
-        SELECT sr.id, sr.xlsx_id, sr.reg_no, sr.file_path,
+        SELECT sr.id, sr.xlsx_id,
+               SUBSTRING(sr.reg_no, 7) AS reg_no,
+               sr.file_path,
                sr.send_status, sr.emailed_at, sr.last_error,
                r.full_name, r.email, r.mobile
         FROM score_reports sr
         LEFT JOIN exam_dates ed ON ed.id = sr.exam_date_id
         LEFT JOIN registration_sheet_numbers rsn
-            ON rsn.reg_no = sr.reg_no
+            ON rsn.reg_no = SUBSTRING(sr.reg_no, 7)
             AND rsn.year  = YEAR(ed.exam_date)
             AND rsn.month = MONTH(ed.exam_date)
         LEFT JOIN registrations r ON r.id = rsn.registration_id
@@ -137,7 +138,7 @@ if ($selectedExamDateId !== '') {
         FROM score_reports sr
         LEFT JOIN exam_dates ed ON ed.id = sr.exam_date_id
         LEFT JOIN registration_sheet_numbers rsn
-            ON rsn.reg_no = sr.reg_no
+            ON rsn.reg_no = SUBSTRING(sr.reg_no, 7)
             AND rsn.year  = YEAR(ed.exam_date)
             AND rsn.month = MONTH(ed.exam_date)
         LEFT JOIN registrations r ON r.id = rsn.registration_id

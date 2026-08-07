@@ -102,10 +102,11 @@ if ($selectedExamDateId !== '') {
     // JOIN exam_dates, registration_sheet_numbers, and registrations,
     // which share column names (reg_no, id).
     //
-    // Period filter on rsn: registration_sheet_numbers.reg_no is only
-    // unique within (reg_no, year, month) — same reg_no reappears every
-    // month pointing to a different applicant. Pin to this exam's period
-    // so name/email shown per row belongs to THIS exam's registrant.
+    // at.reg_no is stored internally as YYYYMM + original_reg_no
+    // (e.g. 20260847650019). Strip the prefix with SUBSTRING(reg_no, 7)
+    // for both the JOIN (rsn.reg_no is the 8-digit form) and the SELECT
+    // (so the admin table shows the human-readable reg_no). The search
+    // box still works because LIKE matches anywhere in the stored value.
     $where = ['at.exam_date_id = ?'];
     $params = [$selectedExamDateId];
     $types = 's';
@@ -127,13 +128,16 @@ if ($selectedExamDateId !== '') {
     $whereClause = implode(' AND ', $where);
 
     $dataQuery = "
-        SELECT at.id, at.xlsx_id, at.reg_no, at.file_path,
+        SELECT at.id, at.xlsx_id,
+               SUBSTRING(at.reg_no, 7) AS reg_no,
+               at.file_path,
                at.send_status, at.emailed_at, at.last_error,
+               at.incorrect_disposal_at,
                r.full_name, r.email, r.mobile
         FROM admission_tickets at
         LEFT JOIN exam_dates ed ON ed.id = at.exam_date_id
         LEFT JOIN registration_sheet_numbers rsn
-            ON rsn.reg_no = at.reg_no
+            ON rsn.reg_no = SUBSTRING(at.reg_no, 7)
             AND rsn.year  = YEAR(ed.exam_date)
             AND rsn.month = MONTH(ed.exam_date)
         LEFT JOIN registrations r ON r.id = rsn.registration_id
@@ -146,7 +150,7 @@ if ($selectedExamDateId !== '') {
         FROM admission_tickets at
         LEFT JOIN exam_dates ed ON ed.id = at.exam_date_id
         LEFT JOIN registration_sheet_numbers rsn
-            ON rsn.reg_no = at.reg_no
+            ON rsn.reg_no = SUBSTRING(at.reg_no, 7)
             AND rsn.year  = YEAR(ed.exam_date)
             AND rsn.month = MONTH(ed.exam_date)
         LEFT JOIN registrations r ON r.id = rsn.registration_id
@@ -352,9 +356,33 @@ require_once __DIR__ . '/../templates/header.php';
                    <?php echo $ticketCounts['sent'] === 0 ? 'title="No sent tickets yet"' : 'title="Open printable seat tags in a new tab"'; ?>>
                     🖨️ Print Seat Tags (<?php echo $ticketCounts['sent']; ?>)
                 </a>
+                <?php if (isSuperAdmin()): ?>
+                <!--
+                    Super-admin manual cleanup: marks the selected sent
+                    tickets as incorrect disposals and unstages them for
+                    review/re-send. Uses formaction so it posts to a
+                    different endpoint than the Send actions above while
+                    still sharing the per-row checkboxes in this form.
+                    Note: ticket PDFs are named by xlsx_id (the "reg_id"
+                    column from Examinee List.xlsx), NOT by RegNumber.
+                -->
+                <button type="submit"
+                        class="btn btn-danger"
+                        formaction="<?php echo BASE_URL; ?>/api/admission-tickets/mark-incorrect.php"
+                        onclick="return confirmMarkIncorrect();"
+                        style="margin-left: auto;">
+                    ⚠ Mark Selected Incorrect &amp; Unstage
+                </button>
+                <?php else: ?>
                 <span style="font-size: 12px; color: #718096; align-self: center; margin-left: auto;">
                     Selected: <span id="selected-count">0</span>
                 </span>
+                <?php endif; ?>
+                <?php if (isSuperAdmin()): ?>
+                <span style="font-size: 12px; color: #718096; align-self: center;">
+                    Selected: <span id="selected-count">0</span>
+                </span>
+                <?php endif; ?>
             </div>
 
             <div style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
@@ -378,13 +406,17 @@ require_once __DIR__ . '/../templates/header.php';
                             $statusColors = ['staged' => '#ed8936', 'sent' => '#48bb78', 'failed' => '#f56565'];
                             $color = $statusColors[$t['send_status']] ?? '#718096';
                             $staged  = in_array($t['send_status'], ['staged', 'failed'], true);
-                            // Web URL for the PDF. file_path is absolute; strip
-                            // the document root to get a path under /admin/uploads/.
+                            // Super admins can also pick sent rows (to mark them
+                            // as incorrect disposals via the Mark Selected button).
+                            $canCheck = $staged || isSuperAdmin();
+                            // Web URL for the PDF. PDFs are named by xlsx_id
+                            // (the "reg_id" / ID column from Examinee List.xlsx),
+                            // NOT by RegNumber — see lib/ticket-staging.php.
                             $pdfUrl = _ticketWebUrl($t['file_path']);
                         ?>
                             <tr style="border-bottom: 1px solid #e2e8f0;">
                                 <td style="padding: 10px 12px; text-align: center;">
-                                    <?php if ($staged): ?>
+                                    <?php if ($canCheck): ?>
                                         <input type="checkbox" name="ticket_ids[]" value="<?php echo (int) $t['id']; ?>" class="ticket-checkbox" onchange="updateCount()">
                                     <?php else: ?>
                                         <input type="checkbox" disabled title="Already sent">
@@ -424,6 +456,17 @@ require_once __DIR__ . '/../templates/header.php';
                                     <span style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; background: <?php echo $color; ?>20; color: <?php echo $color; ?>;">
                                         <?php echo ucfirst($t['send_status']); ?>
                                     </span>
+                                    <?php if (!empty($t['incorrect_disposal_at'])): ?>
+                                        <div style="margin-top: 4px;">
+                                            <span style="display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #fed7d7; color: #c53030;"
+                                                  title="<?php echo e('Marked incorrect on ' . date('M j, Y g:i A', strtotime($t['incorrect_disposal_at']))); ?>">
+                                                ⚠ Marked incorrect
+                                            </span>
+                                            <div style="font-size: 10px; color: #c53030; margin-top: 2px;">
+                                                <?php echo e(date('M j, Y', strtotime($t['incorrect_disposal_at']))); ?>
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
                                     <?php if ($t['send_status'] === 'sent' && !empty($t['emailed_at'])): ?>
                                         <div style="font-size: 11px; color: #718096; margin-top: 2px;">
                                             <?php echo e(date('M j, Y g:i A', strtotime($t['emailed_at']))); ?>
@@ -548,6 +591,23 @@ function confirmSend(action, allCount) {
     if (!confirm(msg)) return false;
     document.getElementById('tickets-action').value = action;
     return true;
+}
+// Super-admin manual cleanup. Marks selected sent rows as incorrect
+// disposals and unstages them. Doesn't email anyone — just resets the
+// row state and stamps a marker for the audit trail.
+function confirmMarkIncorrect() {
+    var n = document.querySelectorAll('input.ticket-checkbox[type="checkbox"]:checked').length;
+    if (n <= 0) {
+        alert('No tickets selected. Tick rows first.');
+        return false;
+    }
+    return confirm(
+        'Mark ' + n + ' ticket(s) as INCORRECT disposal and reset to staged?\n\n' +
+        'This does NOT email anyone. It only:\n' +
+        '  - sets the row back to staged (so it can be re-sent later)\n' +
+        '  - stamps a marker so the audit trail records this was flagged incorrect\n' +
+        '  - clears the emailed_at timestamp on the row'
+    );
 }
 document.addEventListener('DOMContentLoaded', updateCount);
 

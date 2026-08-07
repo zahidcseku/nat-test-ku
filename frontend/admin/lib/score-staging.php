@@ -124,11 +124,19 @@ function stageScoreReportsFromUpload(string $xlsxTmpPath, string $zipTmpPath, st
     foreach ($rows as $r) {
         $rowCount++;
         $xlsxId = trim((string) ($r[$idKey] ?? ''));
-        $regNo  = trim((string) ($r[$regNoKey] ?? ''));
-        if ($xlsxId === '' || $regNo === '') {
+        $regNoRaw = trim((string) ($r[$regNoKey] ?? ''));
+        if ($xlsxId === '' || $regNoRaw === '') {
             $warnings[] = "xlsx row {$rowCount}: missing ID or RegNumber, skipped";
             continue;
         }
+
+        // Prefix reg_no with YYYYMM (from exam_date) so the stored value
+        // is globally unique. Same reg_no is reused every month for a
+        // different applicant; prefix disambiguates. See lib/ticket-staging.php
+        // for the full rationale.
+        $yyyymm = substr($examDate, 0, 4) . substr($examDate, 5, 2);
+        $regNo  = $yyyymm . $regNoRaw;
+
         if (isset($seenIds[$xlsxId])) {
             $warnings[] = "xlsx row {$rowCount}: duplicate ID '{$xlsxId}', skipped";
             continue;
@@ -226,19 +234,19 @@ function sendScoreReports(array $scoreIds, int $sentBy): array {
         // Pull the score row + JOIN through registration_sheet_numbers to
         // registrations for the recipient email + name.
         //
-        // IMPORTANT: registration_sheet_numbers.reg_no is only unique within
-        // (reg_no, year, month) — the same reg_no reappears every month for
-        // a different applicant. Filter rsn by the exam_date's period so we
-        // resolve to THIS exam's registrant, not a prior month's. Without
-        // this filter the JOIN returns one row per month and ORDER BY
-        // rsn.id ASC LIMIT 1 silently picks the oldest (wrong) one.
+        // sr.reg_no is stored as YYYYMM + original_reg_no. Strip the
+        // 6-char prefix with SUBSTRING(reg_no, 7) to match rsn.reg_no.
+        // Period filter on rsn for safety. See lib/ticket-staging.php for
+        // full rationale.
         $stmt = $conn->prepare("
-            SELECT sr.id, sr.xlsx_id, sr.reg_no, sr.file_path,
+            SELECT sr.id, sr.xlsx_id,
+                   SUBSTRING(sr.reg_no, 7) AS reg_no,
+                   sr.file_path,
                    r.email, r.full_name, r.id AS registration_id
             FROM score_reports sr
             LEFT JOIN exam_dates ed ON ed.id = sr.exam_date_id
             LEFT JOIN registration_sheet_numbers rsn
-                ON rsn.reg_no = sr.reg_no
+                ON rsn.reg_no = SUBSTRING(sr.reg_no, 7)
                 AND rsn.year  = YEAR(ed.exam_date)
                 AND rsn.month = MONTH(ed.exam_date)
             LEFT JOIN registrations r ON r.id = rsn.registration_id

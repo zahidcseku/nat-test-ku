@@ -35,12 +35,20 @@ if ($conn && $examDateId !== '') {
 }
 
 // Pull examinees with sent admission tickets.
+//
+// at.reg_no is stored internally as YYYYMM + original_reg_no.
+// SUBSTRING(reg_no, 7) yields the 8-digit reg_no to JOIN against rsn.
+// Period filter scopes rsn to the exam month.
 $examinees = [];
 if ($conn && $examDateId !== '') {
     $sql = "
         SELECT at.xlsx_id, r.full_name, r.dob, r.photo_storage_path
         FROM admission_tickets at
-        LEFT JOIN registration_sheet_numbers rsn ON rsn.reg_no = at.reg_no
+        LEFT JOIN exam_dates ed ON ed.id = at.exam_date_id
+        LEFT JOIN registration_sheet_numbers rsn
+            ON rsn.reg_no = SUBSTRING(at.reg_no, 7)
+            AND rsn.year  = YEAR(ed.exam_date)
+            AND rsn.month = MONTH(ed.exam_date)
         LEFT JOIN registrations r ON r.id = rsn.registration_id
         WHERE at.exam_date_id = ? AND at.send_status = 'sent'
         ORDER BY CAST(at.xlsx_id AS UNSIGNED), at.xlsx_id ASC
