@@ -1,13 +1,14 @@
 -- add_incorrect_disposal_columns.sql
 --
--- Super admins need a manual way to flag a sent admission ticket as an
--- incorrect disposal (wrong recipient, wrong PDF, etc.) and unstage it
--- for review / re-send. This migration adds two columns to track that
--- marker on admission_tickets.
+-- Super admins need a manual way to flag a sent admission ticket (or
+-- score report) as an incorrect disposal (wrong recipient, wrong PDF,
+-- etc.) and unstage it for review / re-send. This migration adds two
+-- columns to track that marker on admission_tickets AND score_reports.
 --
 -- incorrect_disposal_at: NULL by default. Set to NOW() when a super
 --   admin marks the row. Cleared again on the next successful send
---   (see lib/ticket-staging.php sendTickets()).
+--   (see lib/ticket-staging.php sendTickets() and lib/score-staging.php
+--   sendScoreReports()).
 -- incorrect_disposal_by: NULL by default. The admin_users.id of the
 --   super admin who marked it.
 --
@@ -18,6 +19,7 @@
 
 START TRANSACTION;
 
+-- admission_tickets
 SET @has_at = (SELECT COUNT(*) FROM information_schema.columns
     WHERE table_schema = DATABASE() AND table_name = 'admission_tickets'
       AND column_name = 'incorrect_disposal_at');
@@ -34,13 +36,36 @@ SET @sql = IF(@has_by = 0,
     'SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
+-- score_reports (same pattern)
+SET @has_at_sr = (SELECT COUNT(*) FROM information_schema.columns
+    WHERE table_schema = DATABASE() AND table_name = 'score_reports'
+      AND column_name = 'incorrect_disposal_at');
+SET @sql = IF(@has_at_sr = 0,
+    'ALTER TABLE score_reports ADD COLUMN incorrect_disposal_at TIMESTAMP NULL DEFAULT NULL COMMENT ''Set when a super admin marks a sent score report as an incorrect disposal; cleared on next successful send''',
+    'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @has_by_sr = (SELECT COUNT(*) FROM information_schema.columns
+    WHERE table_schema = DATABASE() AND table_name = 'score_reports'
+      AND column_name = 'incorrect_disposal_by');
+SET @sql = IF(@has_by_sr = 0,
+    'ALTER TABLE score_reports ADD COLUMN incorrect_disposal_by INT NULL DEFAULT NULL COMMENT ''admin_users.id of the super admin who marked this disposal incorrect''',
+    'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
 COMMIT;
 
 -- Sanity check.
 SELECT
     (SELECT COUNT(*) FROM information_schema.columns
        WHERE table_schema = DATABASE() AND table_name = 'admission_tickets'
-         AND column_name = 'incorrect_disposal_at') AS has_at,
+         AND column_name = 'incorrect_disposal_at') AS tickets_has_at,
     (SELECT COUNT(*) FROM information_schema.columns
        WHERE table_schema = DATABASE() AND table_name = 'admission_tickets'
-         AND column_name = 'incorrect_disposal_by') AS has_by;
+         AND column_name = 'incorrect_disposal_by') AS tickets_has_by,
+    (SELECT COUNT(*) FROM information_schema.columns
+       WHERE table_schema = DATABASE() AND table_name = 'score_reports'
+         AND column_name = 'incorrect_disposal_at') AS scores_has_at,
+    (SELECT COUNT(*) FROM information_schema.columns
+       WHERE table_schema = DATABASE() AND table_name = 'score_reports'
+         AND column_name = 'incorrect_disposal_by') AS scores_has_by;

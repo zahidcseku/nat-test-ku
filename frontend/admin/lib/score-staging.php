@@ -308,7 +308,9 @@ function sendScoreReports(array $scoreIds, int $sentBy): array {
         );
 
         if ($ok) {
-            $upd = $conn->prepare("UPDATE score_reports SET send_status='sent', emailed_at=NOW(), last_error=NULL WHERE id=?");
+            // Clear the incorrect-disposal marker on re-send so the row
+            // looks clean after a successful corrective send.
+            $upd = $conn->prepare("UPDATE score_reports SET send_status='sent', emailed_at=NOW(), last_error=NULL, incorrect_disposal_at=NULL, incorrect_disposal_by=NULL WHERE id=?");
             $upd->bind_param('i', $sid);
             $upd->execute();
             $upd->close();

@@ -121,6 +121,7 @@ if ($selectedExamDateId !== '') {
                SUBSTRING(sr.reg_no, 7) AS reg_no,
                sr.file_path,
                sr.send_status, sr.emailed_at, sr.last_error,
+               sr.incorrect_disposal_at,
                r.full_name, r.email, r.mobile
         FROM score_reports sr
         LEFT JOIN exam_dates ed ON ed.id = sr.exam_date_id
@@ -280,9 +281,30 @@ require_once __DIR__ . '/../templates/header.php';
                         <?php if ($scoreCounts['staged'] + $scoreCounts['failed'] === 0) echo 'disabled'; ?>>
                     Send All (<?php echo $scoreCounts['staged'] + $scoreCounts['failed']; ?> staged/failed)
                 </button>
+                <?php if (isSuperAdmin()): ?>
+                <!--
+                    Super-admin manual cleanup for score reports: marks
+                    the selected sent rows as incorrect disposals and
+                    unstages them for review/re-send. Uses formaction so
+                    it posts to a different endpoint than the Send actions.
+                -->
+                <button type="submit"
+                        class="btn btn-danger"
+                        formaction="<?php echo BASE_URL; ?>/api/scores/mark-incorrect.php"
+                        onclick="return confirmMarkIncorrect();"
+                        style="margin-left: auto;">
+                    ⚠ Mark Selected Incorrect &amp; Unstage
+                </button>
+                <?php else: ?>
                 <span style="font-size: 12px; color: #718096; align-self: center; margin-left: auto;">
                     Selected: <span id="selected-count">0</span>
                 </span>
+                <?php endif; ?>
+                <?php if (isSuperAdmin()): ?>
+                <span style="font-size: 12px; color: #718096; align-self: center;">
+                    Selected: <span id="selected-count">0</span>
+                </span>
+                <?php endif; ?>
             </div>
 
             <div style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
@@ -305,13 +327,17 @@ require_once __DIR__ . '/../templates/header.php';
                             $statusColors = ['staged' => '#ed8936', 'sent' => '#48bb78', 'failed' => '#f56565'];
                             $color = $statusColors[$s['send_status']] ?? '#718096';
                             $staged  = in_array($s['send_status'], ['staged', 'failed'], true);
-                            // Web URL for the PDF. file_path is absolute; strip
-                            // the document root to get a path under /admin/uploads/.
+                            // Super admins can also pick sent rows (to mark
+                            // them as incorrect disposals).
+                            $canCheck = $staged || isSuperAdmin();
+                            // Web URL for the PDF. Score report PDFs are
+                            // named by xlsx_id (the "reg_id" / ID column
+                            // from Examinee List.xlsx), not by RegNumber.
                             $pdfUrl = _scoreWebUrl($s['file_path']);
                         ?>
                             <tr style="border-bottom: 1px solid #e2e8f0;">
                                 <td style="padding: 10px 12px; text-align: center;">
-                                    <?php if ($staged): ?>
+                                    <?php if ($canCheck): ?>
                                         <input type="checkbox" name="score_ids[]" value="<?php echo (int) $s['id']; ?>" class="score-checkbox" onchange="updateCount()">
                                     <?php else: ?>
                                         <input type="checkbox" disabled title="Already sent">
@@ -350,6 +376,17 @@ require_once __DIR__ . '/../templates/header.php';
                                     <span style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; background: <?php echo $color; ?>20; color: <?php echo $color; ?>;">
                                         <?php echo ucfirst($s['send_status']); ?>
                                     </span>
+                                    <?php if (!empty($s['incorrect_disposal_at'])): ?>
+                                        <div style="margin-top: 4px;">
+                                            <span style="display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #fed7d7; color: #c53030;"
+                                                  title="<?php echo e('Marked incorrect on ' . date('M j, Y g:i A', strtotime($s['incorrect_disposal_at']))); ?>">
+                                                ⚠ Marked incorrect
+                                            </span>
+                                            <div style="font-size: 10px; color: #c53030; margin-top: 2px;">
+                                                <?php echo e(date('M j, Y', strtotime($s['incorrect_disposal_at']))); ?>
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
                                     <?php if ($s['send_status'] === 'sent' && !empty($s['emailed_at'])): ?>
                                         <div style="font-size: 11px; color: #718096; margin-top: 2px;">
                                             <?php echo e(date('M j, Y g:i A', strtotime($s['emailed_at']))); ?>
@@ -474,6 +511,23 @@ function confirmSend(action, allCount) {
     if (!confirm(msg)) return false;
     document.getElementById('scores-action').value = action;
     return true;
+}
+// Super-admin manual cleanup. Marks selected sent rows as incorrect
+// disposals and unstages them. Doesn't email anyone — just resets the
+// row state and stamps a marker for the audit trail.
+function confirmMarkIncorrect() {
+    var n = document.querySelectorAll('input.score-checkbox[type="checkbox"]:checked').length;
+    if (n <= 0) {
+        alert('No scores selected. Tick rows first.');
+        return false;
+    }
+    return confirm(
+        'Mark ' + n + ' score report(s) as INCORRECT disposal and reset to staged?\n\n' +
+        'This does NOT email anyone. It only:\n' +
+        '  - sets the row back to staged (so it can be re-sent later)\n' +
+        '  - stamps a marker so the audit trail records this was flagged incorrect\n' +
+        '  - clears the emailed_at timestamp on the row'
+    );
 }
 document.addEventListener('DOMContentLoaded', updateCount);
 
