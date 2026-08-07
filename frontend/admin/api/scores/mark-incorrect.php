@@ -85,10 +85,17 @@ if (!$stmt) {
     exit;
 }
 
-$bindTypes = 'siss' . $types;
+// 3 leading placeholders (s note, i user_id, s exam_date_id) + one i per id.
+$bindTypes = 'sis' . $types;
 $params    = array_merge([$bindTypes, $note, $userId, $examDateId], $ids);
 $stmt->bind_param(...$params);
-$stmt->execute();
+if (!$stmt->execute()) {
+    $err = $stmt->error;
+    $stmt->close();
+    setFlashMessage('Update failed: ' . $err, 'error');
+    header('Location: ' . BASE_URL . '/pages/scores.php?exam_date_id=' . urlencode($examDateId));
+    exit;
+}
 $affected = $stmt->affected_rows;
 $stmt->close();
 
