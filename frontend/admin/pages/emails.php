@@ -50,8 +50,11 @@ if (!empty($search)) {
 
 $whereClause = implode(' AND ', $where);
 
-// Get email log entries
-$query = "
+// Paginated email log entries (no LIMIT — paginateQuery adds it).
+$page    = max(1, (int) ($_GET['page'] ?? 1));
+$perPage = 50;
+
+$dataQuery = "
     SELECT
         el.*,
         r.full_name,
@@ -62,15 +65,15 @@ $query = "
     LEFT JOIN admin_users au ON el.sent_by = au.id
     WHERE $whereClause
     ORDER BY el.sent_at DESC
-    LIMIT 100
+";
+$countQuery = "
+    SELECT COUNT(*) AS cnt
+    FROM email_log el
+    WHERE $whereClause
 ";
 
-$stmt = $conn->prepare($query);
-if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
-}
-$stmt->execute();
-$emails = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$paginator = paginateQuery($dataQuery, $countQuery, $params, $types, $page, $perPage);
+$emails    = $paginator['rows'];
 
 // Get email statistics
 $stmt = $conn->prepare("
@@ -129,10 +132,23 @@ require_once __DIR__ . '/../templates/header.php';
             <label style="display: block; font-size: 13px; font-weight: 500; color: #4a5568; margin-bottom: 4px;">Email Type</label>
             <select name="type" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px;">
                 <option value="">All Types</option>
-                <option value="confirmation" <?php echo $emailType === 'confirmation' ? 'selected' : ''; ?>>Confirmation</option>
-                <option value="rejection" <?php echo $emailType === 'rejection' ? 'selected' : ''; ?>>Rejection</option>
-                <option value="admission_ticket" <?php echo $emailType === 'admission_ticket' ? 'selected' : ''; ?>>Admission Ticket</option>
-                <option value="resend" <?php echo $emailType === 'resend' ? 'selected' : ''; ?>>Resend</option>
+                <?php
+                $typeOptions = [
+                    'confirmation'         => 'Confirmation',
+                    'rejection'            => 'Rejection',
+                    'admission_ticket'     => 'Admission Ticket',
+                    'score_report'         => 'Score Report',
+                    'broadcast'            => 'Broadcast',
+                    'submission_receipt'   => 'Submission Receipt',
+                    'payment_confirmation' => 'Payment Confirmation',
+                    'certificate_requested'=> 'Certificate Requested',
+                    'certificate_posted'   => 'Certificate Posted',
+                    'resend'               => 'Resend',
+                ];
+                foreach ($typeOptions as $value => $label):
+                ?>
+                    <option value="<?php echo e($value); ?>" <?php echo $emailType === $value ? 'selected' : ''; ?>><?php echo e($label); ?></option>
+                <?php endforeach; ?>
             </select>
         </div>
 
@@ -181,16 +197,28 @@ require_once __DIR__ . '/../templates/header.php';
                         <td style="padding: 12px 16px; font-size: 14px;">
                             <?php
                             $typeColors = [
-                                'confirmation' => '#48bb78',
-                                'rejection' => '#f56565',
-                                'admission_ticket' => '#667eea',
-                                'resend' => '#ed8936'
+                                'confirmation'         => '#48bb78',
+                                'rejection'            => '#f56565',
+                                'admission_ticket'     => '#667eea',
+                                'score_report'         => '#9f7aea',
+                                'broadcast'            => '#ed64a6',
+                                'submission_receipt'   => '#38b2ac',
+                                'payment_confirmation' => '#2b6cb0',
+                                'certificate_requested'=> '#4299e1',
+                                'certificate_posted'   => '#2f855a',
+                                'resend'               => '#ed8936',
                             ];
                             $typeLabels = [
-                                'confirmation' => 'Confirmation',
-                                'rejection' => 'Rejection',
-                                'admission_ticket' => 'Admission Ticket',
-                                'resend' => 'Resend'
+                                'confirmation'         => 'Confirmation',
+                                'rejection'            => 'Rejection',
+                                'admission_ticket'     => 'Admission Ticket',
+                                'score_report'         => 'Score Report',
+                                'broadcast'            => 'Broadcast',
+                                'submission_receipt'   => 'Submission Receipt',
+                                'payment_confirmation' => 'Payment Confirmation',
+                                'certificate_requested'=> 'Certificate Requested',
+                                'certificate_posted'   => 'Certificate Posted',
+                                'resend'               => 'Resend',
                             ];
                             ?>
                             <span style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; background: <?php echo $typeColors[$email['email_type']] ?? '#718096'; ?>20; color: <?php echo $typeColors[$email['email_type']] ?? '#718096'; ?>;">
@@ -251,6 +279,22 @@ require_once __DIR__ . '/../templates/header.php';
             </tbody>
         </table>
     </div>
+
+    <?php
+    echo renderPagination(
+        $paginator['page'],
+        $paginator['totalPages'],
+        $paginator['total'],
+        $paginator['perPage'],
+        BASE_URL . '/pages/emails.php',
+        array_filter([
+            'type'      => $emailType,
+            'search'    => $search,
+            'date_from' => $dateFrom,
+            'date_to'   => $dateTo,
+        ])
+    );
+    ?>
 <?php else: ?>
     <div style="background: white; border-radius: 12px; padding: 48px; text-align: center; border: 1px solid #e2e8f0;">
         <div style="font-size: 48px; margin-bottom: 16px;">📧</div>
