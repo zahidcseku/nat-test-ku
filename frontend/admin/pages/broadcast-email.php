@@ -303,10 +303,18 @@ async function batchBroadcastSend() {
 
             var resp = await fetch(sendUrl, {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: params.toString()
             });
-            var data = await resp.json();
+            var text = await resp.text();
+            try {
+                var data = JSON.parse(text);
+            } catch (e) {
+                if (text.indexOf('<!DOCTYPE') !== -1 || text.indexOf('<html') !== -1)
+                    throw new Error('Session expired or request blocked. Reload the page and try again.');
+                throw new Error('Unexpected server response: ' + text.substring(0, 200));
+            }
             if (data.error) throw new Error(data.error);
 
             totalSent += data.sent;
