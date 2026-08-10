@@ -1,149 +1,190 @@
 <?php
 /**
- * Send staged score reports — either the rows the admin selected
- * (score_ids[]) or every staged row for the exam (send_all=1).
+ * Send staged score reports using progressive batch processing.
  *
- * POST /admin/api/scores/send.php
- *   csrf_token
- *   exam_date_id
- *   action: 'send_selected' | 'send_all'
- *   score_ids[]: array of score_reports.id (only for send_selected)
- *   batch_mode: '1' to return JSON instead of redirecting (AJAX caller)
+ * Each HTTP request processes at most BATCH_SIZE reports, then renders a
+ * minimal auto-submitting progress page that triggers the next batch.
  *
- * Batch mode: processes at most BATCH_SIZE reports per request and
- * returns JSON {sent, failed, errors, processed, remaining}. Same
- * pattern as admission-tickets/send.php — prevents Apache timeouts.
+ * State is carried in $_SESSION['sr_batch'] between requests.
+ *
+ * POST parameters:
+ *   First request:   csrf_token, exam_date_id, action, score_ids[] (selected only)
+ *   Continuation:    csrf_token, continue_batch=1
  */
 
 require_once __DIR__ . '/../../auth/middleware.php';
+require_once __DIR__ . '/../../lib/score-staging.php';
 
-/** @var int Max reports per HTTP request in batch mode. */
+/** @var int Reports per HTTP request. */
 const BATCH_SIZE = 15;
 
-$isBatch = ($_POST['batch_mode'] ?? '') === '1';
-
-$jsonError = function (string $message) {
-    header('Content-Type: application/json');
-    echo json_encode(['error' => $message]);
-    exit;
-};
+$redirectUrl = BASE_URL . '/pages/scores.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    if ($isBatch) { $jsonError('Send requires POST'); }
     setFlashMessage('Send requires POST', 'error');
-    header('Location: ' . BASE_URL . '/pages/scores.php');
+    header('Location: ' . $redirectUrl);
     exit;
 }
 if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
-    if ($isBatch) { $jsonError('Invalid CSRF token'); }
+    unset($_SESSION['sr_batch']);
     setFlashMessage('Invalid CSRF token', 'error');
-    header('Location: ' . BASE_URL . '/pages/scores.php');
+    header('Location: ' . $redirectUrl);
     exit;
 }
 
-$examDateId = trim($_POST['exam_date_id'] ?? '');
-$action     = $_POST['action'] ?? '';
 $sentBy     = (int) ($_SESSION['user_id'] ?? 0);
+$isContinue = ($_POST['continue_batch'] ?? '') === '1';
+$conn       = getDbConnection();
 
-if ($examDateId === '') {
-    if ($isBatch) { $jsonError('Exam date is required'); }
-    setFlashMessage('Exam date is required', 'error');
-    header('Location: ' . BASE_URL . '/pages/scores.php');
-    exit;
-}
+if ($isContinue && isset($_SESSION['sr_batch'])) {
+    $batch     = $_SESSION['sr_batch'];
+    $action    = $batch['action'];
+    $examDateId = $batch['exam_date_id'];
+    $total     = $batch['total'];
+    $totalSent = $batch['sent'];
+    $totalFailed = $batch['failed'];
 
-require_once __DIR__ . '/../../lib/score-staging.php';
-
-$conn = getDbConnection();
-
-if ($action === 'send_all') {
-    $stmt = $conn->prepare("
-        SELECT id FROM score_reports
-        WHERE exam_date_id = ? AND send_status IN ('staged','failed')
-        ORDER BY id ASC
-    ");
-    $stmt->bind_param('s', $examDateId);
-    $stmt->execute();
-    $res  = $stmt->get_result();
-    $ids  = array_column($res->fetch_all(MYSQLI_ASSOC), 'id');
-    $stmt->close();
+    if ($action === 'send_all') {
+        $stmt = $conn->prepare("SELECT id FROM score_reports WHERE exam_date_id = ? AND send_status IN ('staged','failed') ORDER BY id ASC");
+        $stmt->bind_param('s', $examDateId);
+        $stmt->execute();
+        $remainingIds = array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'id');
+        $stmt->close();
+    } else {
+        $remainingIds = $batch['remaining'] ?? [];
+    }
 } else {
-    $raw = $_POST['score_ids'] ?? [];
-    if (!is_array($raw) || empty($raw)) {
-        $msg = 'No scores selected. Tick the checkbox next to each row, or use "Send All Staged".';
-        if ($isBatch) { $jsonError($msg); }
-        setFlashMessage($msg, 'error');
-        header('Location: ' . BASE_URL . '/pages/scores.php?exam_date_id=' . urlencode($examDateId));
+    $action     = $_POST['action'] ?? '';
+    $examDateId = trim($_POST['exam_date_id'] ?? '');
+
+    if ($examDateId === '') {
+        setFlashMessage('Exam date is required', 'error');
+        header('Location: ' . $redirectUrl);
         exit;
     }
-    $ids = array_map('intval', array_filter($raw, fn($v) => (int) $v > 0));
-    if (empty($ids)) {
-        if ($isBatch) { $jsonError('No valid score IDs in selection'); }
-        setFlashMessage('No valid score IDs in selection', 'error');
-        header('Location: ' . BASE_URL . '/pages/scores.php?exam_date_id=' . urlencode($examDateId));
+
+    if ($action === 'send_all') {
+        $stmt = $conn->prepare("SELECT id FROM score_reports WHERE exam_date_id = ? AND send_status IN ('staged','failed') ORDER BY id ASC");
+        $stmt->bind_param('s', $examDateId);
+        $stmt->execute();
+        $remainingIds = array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'id');
+        $stmt->close();
+    } else {
+        $raw = $_POST['score_ids'] ?? [];
+        if (!is_array($raw) || empty($raw)) {
+            setFlashMessage('No scores selected. Tick the checkbox next to each row, or use "Send All Staged".', 'error');
+            header('Location: ' . $redirectUrl . '?exam_date_id=' . urlencode($examDateId));
+            exit;
+        }
+        $remainingIds = array_map('intval', array_filter($raw, fn($v) => (int) $v > 0));
+        if (empty($remainingIds)) {
+            setFlashMessage('No valid score IDs in selection', 'error');
+            header('Location: ' . $redirectUrl . '?exam_date_id=' . urlencode($examDateId));
+            exit;
+        }
+    }
+
+    $total = count($remainingIds);
+    if ($total === 0) {
+        setFlashMessage('No staged or failed score reports to send.', 'error');
+        header('Location: ' . $redirectUrl . '?exam_date_id=' . urlencode($examDateId));
         exit;
     }
+
+    $totalSent   = 0;
+    $totalFailed = 0;
+
+    $batch = [
+        'action'       => $action,
+        'exam_date_id' => $examDateId,
+        'total'        => $total,
+        'sent'         => 0,
+        'failed'       => 0,
+    ];
 }
 
-// In batch mode, process only BATCH_SIZE per request.
-$batchIds  = $ids;
-$remaining = 0;
-if ($isBatch && count($ids) > BATCH_SIZE) {
-    $batchIds  = array_slice($ids, 0, BATCH_SIZE);
-    $remaining = count($ids) - count($batchIds);
-}
-
+$batchIds = array_slice($remainingIds, 0, BATCH_SIZE);
 set_time_limit(120);
 
 try {
     $result = sendScoreReports($batchIds, $sentBy);
 } catch (Throwable $e) {
-    error_log('Score report send FAILED: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
-    if ($isBatch) {
-        header('Content-Type: application/json');
-        echo json_encode(['error' => $e->getMessage(), 'sent' => 0, 'failed' => count($batchIds)]);
-        exit;
-    }
+    error_log('Score report send FAILED: ' . $e->getMessage());
+    unset($_SESSION['sr_batch']);
     setFlashMessage('Send failed: ' . $e->getMessage(), 'error');
-    header('Location: ' . BASE_URL . '/pages/scores.php?exam_date_id=' . urlencode($examDateId));
+    header('Location: ' . $redirectUrl . '?exam_date_id=' . urlencode($examDateId));
     exit;
 }
 
-// For send_all batch mode: recount remaining staged/failed rows.
-if ($isBatch && $action === 'send_all') {
-    $stmt = $conn->prepare("
-        SELECT COUNT(*) AS cnt FROM score_reports
-        WHERE exam_date_id = ? AND send_status IN ('staged','failed')
-    ");
+$totalSent   += $result['sent'];
+$totalFailed += $result['failed'];
+
+if ($action === 'send_all') {
+    $stmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM score_reports WHERE exam_date_id = ? AND send_status IN ('staged','failed')");
     $stmt->bind_param('s', $examDateId);
     $stmt->execute();
-    $remaining = (int) $stmt->get_result()->fetch_assoc()['cnt'];
+    $remainingCount = (int) $stmt->get_result()->fetch_assoc()['cnt'];
     $stmt->close();
+} else {
+    $remainingIds = array_slice($remainingIds, BATCH_SIZE);
+    $remainingCount = count($remainingIds);
+    $batch['remaining'] = $remainingIds;
 }
 
-if ($isBatch) {
-    header('Content-Type: application/json');
-    echo json_encode([
-        'sent'      => $result['sent'],
-        'failed'    => $result['failed'],
-        'errors'    => array_slice($result['errors'], 0, 3),
-        'processed' => count($batchIds),
-        'remaining' => $remaining,
-    ]);
+if ($remainingCount === 0 || ($result['sent'] === 0 && $result['failed'] > 0)) {
+    unset($_SESSION['sr_batch']);
+    $msg = "Sent {$totalSent} of {$total} score report(s).";
+    if ($totalFailed > 0) {
+        $msg .= " {$totalFailed} failed.";
+        if (!empty($result['errors'])) {
+            $msg .= ' First error: ' . implode(' | ', array_slice($result['errors'], 0, 3));
+        }
+    }
+    setFlashMessage($msg, $totalFailed > 0 ? 'error' : 'success');
+    header('Location: ' . $redirectUrl . '?exam_date_id=' . urlencode($examDateId));
     exit;
 }
 
-$attempted = count($ids);
-$msg = "Sent {$result['sent']} of {$attempted} score report(s).";
-if ($result['failed'] > 0) {
-    $msg .= " {$result['failed']} failed.";
-    if (!empty($result['errors'])) {
-        $msg .= ' First error: ' . implode(' | ', array_slice($result['errors'], 0, 3));
-        if (count($result['errors']) > 3) {
-            $msg .= ' (+' . (count($result['errors']) - 3) . ' more)';
-        }
-    }
-}
-setFlashMessage($msg, $result['failed'] > 0 ? 'error' : 'success');
-header('Location: ' . BASE_URL . '/pages/scores.php?exam_date_id=' . urlencode($examDateId));
-exit;
+$batch['sent']   = $totalSent;
+$batch['failed'] = $totalFailed;
+$_SESSION['sr_batch'] = $batch;
+
+session_write_close();
+
+$processed = $total - $remainingCount;
+$pct       = $total > 0 ? round(($processed / $total) * 100) : 100;
+$csrfToken = generateCsrfToken();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sending score reports…</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#f7fafc; color:#1a202c; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+        .card { background:white; border-radius:12px; padding:40px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.1); min-width:380px; max-width:500px; }
+        h2 { font-size:20px; margin-bottom:20px; }
+        .count { font-size:28px; font-weight:700; margin-bottom:8px; }
+        .sub { font-size:14px; color:#718096; margin-bottom:20px; }
+        .bar-bg { background:#edf2f7; border-radius:8px; height:12px; overflow:hidden; margin-bottom:8px; }
+        .bar { background:#667eea; height:100%; border-radius:8px; transition:width 0.3s; }
+        .note { font-size:12px; color:#a0aec0; margin-top:16px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Sending score reports…</h2>
+        <div class="count"><?php echo $totalSent; ?> sent<?php echo $totalFailed ? ', ' . $totalFailed . ' failed' : ''; ?></div>
+        <div class="sub"><?php echo $processed; ?> of <?php echo $total; ?> processed</div>
+        <div class="bar-bg"><div class="bar" style="width:<?php echo $pct; ?>%"></div></div>
+        <p class="note">Do not close this page.</p>
+    </div>
+    <form id="continue-form" method="POST" action="">
+        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+        <input type="hidden" name="continue_batch" value="1">
+    </form>
+    <script>setTimeout(function(){ document.getElementById('continue-form').submit(); }, 300);</script>
+</body>
+</html>

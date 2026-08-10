@@ -187,13 +187,13 @@ require_once __DIR__ . '/../templates/header.php';
 
     <!-- Confirm / Edit actions -->
     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <form method="POST" action="<?php echo BASE_URL; ?>/api/broadcast-email/send.php" id="broadcast-send-form" onsubmit="return false;">
+        <form method="POST" action="<?php echo BASE_URL; ?>/api/broadcast-email/send.php" style="flex: 0;">
             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
             <input type="hidden" name="exam_date_id" value="<?php echo e($draft['exam_date_id']); ?>">
             <input type="hidden" name="subject" value="<?php echo e($draft['subject']); ?>">
             <input type="hidden" name="body" value="<?php echo e($draft['body']); ?>">
             <input type="hidden" name="previewed_count" value="<?php echo $recipientCount; ?>">
-            <button type="button" class="btn btn-primary" onclick="batchBroadcastSend()">Confirm &amp; Send to <?php echo $recipientCount; ?></button>
+            <button type="submit" class="btn btn-primary">Confirm &amp; Send to <?php echo $recipientCount; ?></button>
         </form>
         <form method="POST" action="<?php echo BASE_URL; ?>/pages/broadcast-email.php" style="flex: 0;">
             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
@@ -249,105 +249,5 @@ require_once __DIR__ . '/../templates/header.php';
     </p>
 
 <?php endif; ?>
-
-<!-- Batch send progress overlay -->
-<div id="send-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-    <div style="background:white; padding:32px; border-radius:12px; text-align:center; min-width:360px; max-width:480px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-        <h3 style="font-size:18px; margin:0 0 16px; color:#1a202c;">Sending broadcast…</h3>
-        <p id="send-progress" style="font-size:20px; font-weight:600; margin:0 0 16px; color:#1a202c;">0 sent</p>
-        <div style="background:#edf2f7; border-radius:8px; height:8px; overflow:hidden;">
-            <div id="send-bar" style="background:#667eea; height:100%; width:0%; transition:width 0.3s ease;"></div>
-        </div>
-        <p style="font-size:12px; color:#718096; margin:12px 0 0;">Do not close this page while sending.</p>
-        <p id="send-errors" style="color:#c53030; margin-top:8px; font-size:13px; display:none; text-align:left;"></p>
-    </div>
-</div>
-
-<script>
-async function batchBroadcastSend() {
-    var form = document.getElementById('broadcast-send-form');
-    var csrfToken = form.querySelector('[name=csrf_token]').value;
-    var examDateId = form.querySelector('[name=exam_date_id]').value;
-    var subject = form.querySelector('[name=subject]').value;
-    var body = form.querySelector('[name=body]').value;
-    var previewedCount = form.querySelector('[name=previewed_count]').value;
-    var sendUrl = form.action;
-    var total = parseInt(previewedCount) || 0;
-
-    var overlay = document.getElementById('send-overlay');
-    var bar = document.getElementById('send-bar');
-    var text = document.getElementById('send-progress');
-    var errs = document.getElementById('send-errors');
-    errs.style.display = 'none';
-    errs.textContent = '';
-    bar.style.width = '0%';
-    text.textContent = 'Starting…';
-    overlay.style.display = 'flex';
-
-    // Disable the button so the user can't double-click
-    var btn = form.querySelector('button');
-    if (btn) btn.disabled = true;
-
-    var totalSent = 0, totalFailed = 0, offset = 0;
-
-    try {
-        for (var iter = 0; iter < 200; iter++) {
-            var params = new URLSearchParams();
-            params.set('csrf_token', csrfToken);
-            params.set('exam_date_id', examDateId);
-            params.set('subject', subject);
-            params.set('body', body);
-            params.set('previewed_count', previewedCount);
-            params.set('batch_mode', '1');
-            params.set('batch_offset', offset);
-
-            var resp = await fetch(sendUrl, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params.toString()
-            });
-            var text = await resp.text();
-            try {
-                var data = JSON.parse(text);
-            } catch (e) {
-                if (text.indexOf('<!DOCTYPE') !== -1 || text.indexOf('<html') !== -1)
-                    throw new Error('Session expired or request blocked. Reload the page and try again.');
-                throw new Error('Unexpected server response: ' + text.substring(0, 200));
-            }
-            if (data.error) throw new Error(data.error);
-
-            totalSent += data.sent;
-            totalFailed += data.failed;
-            offset = data.offset;
-
-            var pct = total > 0 ? Math.round((offset / total) * 100) : 100;
-            bar.style.width = pct + '%';
-            text.textContent = totalSent + ' sent' + (totalFailed ? ', ' + totalFailed + ' failed' : '') + ' (' + offset + '/' + total + ')';
-
-            if (data.done) break;
-            // If the entire batch failed, stop — likely SMTP is down.
-            if (data.sent === 0 && data.failed > 0) {
-                throw new Error('All sends in this batch failed. Check SMTP settings or Gmail sending limits.');
-            }
-        }
-
-        bar.style.width = '100%';
-        text.textContent = 'Done: ' + totalSent + ' sent' + (totalFailed ? ', ' + totalFailed + ' failed' : '');
-        await sleep(1500);
-    } catch (e) {
-        errs.textContent = e.message;
-        errs.style.display = 'block';
-        text.textContent = 'Stopped after ' + totalSent + ' sent' + (totalFailed ? ', ' + totalFailed + ' failed' : '');
-        if (btn) btn.disabled = false;
-        await sleep(4000);
-    }
-
-    overlay.style.display = 'none';
-    window.location.href = '<?php echo BASE_URL; ?>/pages/broadcast-email.php?last_send=1';
-}
-
-function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
-</script>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

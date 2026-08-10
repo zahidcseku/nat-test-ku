@@ -561,19 +561,6 @@ require_once __DIR__ . '/../templates/header.php';
 
 <?php endif; ?>
 
-<!-- Batch send progress overlay -->
-<div id="send-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-    <div style="background:white; padding:32px; border-radius:12px; text-align:center; min-width:360px; max-width:480px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-        <h3 style="font-size:18px; margin:0 0 16px; color:#1a202c;">Sending admission tickets…</h3>
-        <p id="send-progress" style="font-size:20px; font-weight:600; margin:0 0 16px; color:#1a202c;">0 sent</p>
-        <div style="background:#edf2f7; border-radius:8px; height:8px; overflow:hidden;">
-            <div id="send-bar" style="background:#667eea; height:100%; width:0%; transition:width 0.3s ease;"></div>
-        </div>
-        <p style="font-size:12px; color:#718096; margin:12px 0 0;">Do not close this page while sending.</p>
-        <p id="send-errors" style="color:#c53030; margin-top:8px; font-size:13px; display:none; text-align:left;"></p>
-    </div>
-</div>
-
 <script>
 function toggleAll(master) {
     document.querySelectorAll('input.ticket-checkbox[type="checkbox"]').forEach(function (cb) {
@@ -602,116 +589,9 @@ function confirmSend(action, allCount) {
         msg += '\n\nThis sends to every staged or failed row. It cannot be undone.';
     }
     if (!confirm(msg)) return false;
-    // Start AJAX batch send instead of submitting the form (which times
-    // out on the server for large batches).
-    batchSend(action);
-    return false; // prevent traditional form submit
+    document.getElementById('tickets-action').value = action;
+    return true;
 }
-
-// Batch send: processes tickets in groups of 15 via sequential AJAX
-// requests, so each HTTP request finishes well within the server's
-// timeout. Shows a progress overlay and reloads on completion.
-async function batchSend(action) {
-    var form = document.getElementById('tickets-form');
-    var csrfToken = form.querySelector('input[name="csrf_token"]').value;
-    var examDateId = form.querySelector('input[name="exam_date_id"]').value;
-    var sendUrl = form.action;
-
-    var overlay = document.getElementById('send-overlay');
-    var bar = document.getElementById('send-bar');
-    var text = document.getElementById('send-progress');
-    var errs = document.getElementById('send-errors');
-    errs.style.display = 'none';
-    errs.textContent = '';
-    bar.style.width = '0%';
-    text.textContent = 'Starting…';
-    overlay.style.display = 'flex';
-
-    var totalSent = 0, totalFailed = 0, processed = 0;
-
-    try {
-        if (action === 'send_selected') {
-            var allIds = [];
-            document.querySelectorAll('input.ticket-checkbox[type="checkbox"]:checked').forEach(function (cb) {
-                allIds.push(parseInt(cb.value));
-            });
-            var total = allIds.length;
-
-            for (var i = 0; i < allIds.length; i += 15) {
-                var batch = allIds.slice(i, i + 15);
-                var params = new URLSearchParams();
-                params.set('csrf_token', csrfToken);
-                params.set('exam_date_id', examDateId);
-                params.set('action', 'send_selected');
-                params.set('batch_mode', '1');
-                batch.forEach(function (id) { params.append('ticket_ids[]', id); });
-
-                var data = await postBatch(sendUrl, params);
-                totalSent += data.sent;
-                totalFailed += data.failed;
-                processed += data.processed;
-
-                bar.style.width = Math.round((processed / total) * 100) + '%';
-                text.textContent = totalSent + ' sent' + (totalFailed ? ', ' + totalFailed + ' failed' : '') + ' (' + processed + '/' + total + ')';
-            }
-        } else {
-            // send_all: server picks the next batch each time
-            for (var iter = 0; iter < 100; iter++) {
-                var params = new URLSearchParams();
-                params.set('csrf_token', csrfToken);
-                params.set('exam_date_id', examDateId);
-                params.set('action', 'send_all');
-                params.set('batch_mode', '1');
-
-                var data = await postBatch(sendUrl, params);
-                totalSent += data.sent;
-                totalFailed += data.failed;
-                processed += data.processed;
-
-                text.textContent = totalSent + ' sent' + (totalFailed ? ', ' + totalFailed + ' failed' : '') + ' — ' + data.remaining + ' remaining';
-
-                if (data.remaining === 0) break;
-                // If the entire batch failed, stop — likely SMTP is down.
-                if (data.sent === 0 && data.failed > 0) {
-                    throw new Error('All sends in this batch failed. ' + (data.errors[0] || 'Check SMTP settings.'));
-                }
-            }
-        }
-
-        bar.style.width = '100%';
-        text.textContent = 'Done: ' + totalSent + ' sent' + (totalFailed ? ', ' + totalFailed + ' failed' : '');
-        await sleep(1500);
-    } catch (e) {
-        errs.textContent = e.message;
-        errs.style.display = 'block';
-        text.textContent = 'Stopped after ' + totalSent + ' sent' + (totalFailed ? ', ' + totalFailed + ' failed' : '');
-        await sleep(4000);
-    }
-
-    overlay.style.display = 'none';
-    window.location.reload();
-}
-
-async function postBatch(url, params) {
-    var resp = await fetch(url, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params.toString()
-    });
-    var text = await resp.text();
-    try {
-        var data = JSON.parse(text);
-    } catch (e) {
-        if (text.indexOf('<!DOCTYPE') !== -1 || text.indexOf('<html') !== -1)
-            throw new Error('Session expired or request blocked. Reload the page and try again.');
-        throw new Error('Unexpected server response: ' + text.substring(0, 200));
-    }
-    if (data.error) throw new Error(data.error);
-    return data;
-}
-
-function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 // Super-admin manual cleanup. Marks selected sent rows as incorrect
 // disposals and unstages them. Doesn't email anyone — just resets the
 // row state and stamps a marker for the audit trail.

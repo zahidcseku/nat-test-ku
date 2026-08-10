@@ -1,81 +1,134 @@
 <?php
 /**
- * Send a broadcast email to every approved examinee for a chosen exam date.
+ * Send a broadcast email using progressive batch processing.
  *
- * POST /admin/api/broadcast-email/send.php
- *   csrf_token
- *   exam_date_id      exam_dates.id (UUID)
- *   subject           email subject (may contain {full_name}, {exam_date})
- *   body              HTML email body (may contain {full_name}, {exam_date})
- *   previewed_count   recipient count the admin saw on the preview step
- *   batch_mode        '1' to return JSON instead of redirecting (AJAX)
- *   batch_offset      int offset for batch mode (which recipients to send)
+ * Each HTTP request processes at most BATCH_SIZE recipients, then renders
+ * a minimal auto-submitting progress page that triggers the next batch.
+ * This avoids Apache's "Script timed out before returning headers" error.
  *
- * Recipients are re-queried here (never trusted from the form) so approvals
- * that happened between preview and send are correctly included. One email
- * per unique address (de-duped), personalised via _substituteTemplateVars().
+ * State is carried in $_SESSION['be_batch'] between requests.
  *
- * Batch mode: processes at most BATCH_SIZE recipients per request and
- * returns JSON {sent, failed, processed, total, offset, done}. The
- * frontend loops with increasing offsets until done. This is necessary
- * because Apache kills any single request exceeding its Timeout directive.
+ * POST parameters:
+ *   First request:   csrf_token, exam_date_id, subject, body, previewed_count
+ *   Continuation:    csrf_token, continue_batch=1
  */
 
 require_once __DIR__ . '/../../auth/middleware.php';
 require_once __DIR__ . '/../../lib/email-templates.php';
 require_once __DIR__ . '/../../lib/broadcast-email.php';
 
-/** @var int Max recipients per HTTP request in batch mode. */
+/** @var int Recipients per HTTP request. */
 const BATCH_SIZE = 15;
 
-$isBatch     = ($_POST['batch_mode'] ?? '') === '1';
-$batchOffset = max(0, (int) ($_POST['batch_offset'] ?? 0));
 $pageUrl     = BASE_URL . '/pages/broadcast-email.php';
+$redirectUrl = $pageUrl;
 
-$jsonError = function (string $message) {
-    header('Content-Type: application/json');
-    echo json_encode(['error' => $message]);
-    exit;
-};
-
+// --- Validation ---
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    if ($isBatch) { $jsonError('Broadcast send requires POST'); }
     setFlashMessage('Broadcast send requires POST', 'error');
-    header('Location: ' . $pageUrl);
+    header('Location: ' . $redirectUrl);
     exit;
 }
 if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
-    if ($isBatch) { $jsonError('Invalid CSRF token'); }
+    unset($_SESSION['be_batch'], $_SESSION['broadcast_draft']);
     setFlashMessage('Invalid CSRF token', 'error');
-    header('Location: ' . $pageUrl);
+    header('Location: ' . $redirectUrl);
     exit;
 }
 
-$examDateId    = trim($_POST['exam_date_id'] ?? '');
-$subject       = trim($_POST['subject'] ?? '');
-$body          = $_POST['body'] ?? '';
-$previewedCount = (int) ($_POST['previewed_count'] ?? 0);
+$sentBy     = (int) ($_SESSION['user_id'] ?? 0);
+$isContinue = ($_POST['continue_batch'] ?? '') === '1';
+$conn       = getDbConnection();
 
-// Repopulate the compose form if we bounce back (non-batch only).
-$stashDraft = function () use ($examDateId, $subject, $body) {
-    $_SESSION['broadcast_draft'] = [
+if ($isContinue && isset($_SESSION['be_batch'])) {
+    // --- Continuation: pull state from session ---
+    $batch     = $_SESSION['be_batch'];
+    $examDateId = $batch['exam_date_id'];
+    $subject   = $batch['subject'];
+    $body      = $batch['body'];
+    $offset    = $batch['offset'];
+    $total     = $batch['total'];
+    $totalSent = $batch['sent'];
+    $totalFailed = $batch['failed'];
+} else {
+    // --- First request ---
+    $examDateId    = trim($_POST['exam_date_id'] ?? '');
+    $subject       = trim($_POST['subject'] ?? '');
+    $body          = $_POST['body'] ?? '';
+    $previewedCount = (int) ($_POST['previewed_count'] ?? 0);
+
+    if ($examDateId === '' || $subject === '' || $body === '') {
+        $_SESSION['broadcast_draft'] = [
+            'exam_date_id' => $examDateId,
+            'subject'      => $subject,
+            'body'         => $body,
+        ];
+        setFlashMessage('Exam date, subject, and body are all required', 'error');
+        header('Location: ' . $redirectUrl);
+        exit;
+    }
+
+    // Resolve exam date
+    $dateStmt = $conn->prepare('SELECT exam_date FROM exam_dates WHERE id = ?');
+    $dateStmt->bind_param('s', $examDateId);
+    $dateStmt->execute();
+    $examDate = ($dateStmt->get_result()->fetch_assoc() ?? [])['exam_date'] ?? null;
+    $dateStmt->close();
+
+    if ($examDate === null) {
+        setFlashMessage('Selected exam date no longer exists', 'error');
+        header('Location: ' . $redirectUrl);
+        exit;
+    }
+
+    // Fetch recipients
+    $recipients = fetchBroadcastRecipients($conn, $examDate);
+    $liveCount  = count($recipients);
+
+    if ($liveCount === 0) {
+        setFlashMessage('No approved examinees found for ' . formatDate($examDate), 'error');
+        header('Location: ' . $redirectUrl);
+        exit;
+    }
+
+    // Count drift check (first request only)
+    if ($previewedCount > 0 && abs($liveCount - $previewedCount) > 5) {
+        $_SESSION['broadcast_draft'] = [
+            'exam_date_id' => $examDateId,
+            'subject'      => $subject,
+            'body'         => $body,
+        ];
+        setFlashMessage(
+            'Recipient count changed from ' . $previewedCount . ' to ' . $liveCount
+            . ' since preview — please review and confirm again.',
+            'error'
+        );
+        header('Location: ' . $redirectUrl);
+        exit;
+    }
+
+    $total       = $liveCount;
+    $offset      = 0;
+    $totalSent   = 0;
+    $totalFailed = 0;
+
+    $batch = [
         'exam_date_id' => $examDateId,
-        'subject'      => $subject,
-        'body'         => $body,
+        'subject'       => $subject,
+        'body'          => $body,
+        'total'         => $total,
+        'offset'        => 0,
+        'sent'          => 0,
+        'failed'        => 0,
     ];
-};
 
-if ($examDateId === '' || $subject === '' || $body === '') {
-    if ($isBatch) { $jsonError('Exam date, subject, and body are all required'); }
-    $stashDraft();
-    setFlashMessage('Exam date, subject, and body are all required', 'error');
-    header('Location: ' . $pageUrl);
-    exit;
+    // Clear draft — the send has started
+    unset($_SESSION['broadcast_draft']);
 }
 
-$conn = getDbConnection();
-
-// Resolve the DATE for this exam_dates.id.
+// --- Fetch recipients for this batch ---
+// Re-query each time so new approvals between batches are included.
+// Use the stored offset to skip already-processed recipients.
 $dateStmt = $conn->prepare('SELECT exam_date FROM exam_dates WHERE id = ?');
 $dateStmt->bind_param('s', $examDateId);
 $dateStmt->execute();
@@ -83,145 +136,119 @@ $examDate = ($dateStmt->get_result()->fetch_assoc() ?? [])['exam_date'] ?? null;
 $dateStmt->close();
 
 if ($examDate === null) {
-    if ($isBatch) { $jsonError('Selected exam date no longer exists'); }
-    $stashDraft();
-    setFlashMessage('Selected exam date no longer exists', 'error');
-    header('Location: ' . $pageUrl);
+    unset($_SESSION['be_batch']);
+    setFlashMessage('Exam date no longer exists', 'error');
+    header('Location: ' . $redirectUrl);
     exit;
 }
 
-// De-duped recipients: one row per unique email, earliest created_at wins.
-$recipients = fetchBroadcastRecipients($conn, $examDate);
-$liveCount  = count($recipients);
+$recipients    = fetchBroadcastRecipients($conn, $examDate);
+$batchRecipients = array_slice($recipients, $offset, BATCH_SIZE);
 
-if ($liveCount === 0) {
-    if ($isBatch) { $jsonError('No approved examinees found for ' . formatDate($examDate)); }
-    $stashDraft();
-    setFlashMessage('No approved examinees found for ' . formatDate($examDate), 'error');
-    header('Location: ' . $pageUrl);
-    exit;
-}
-
-// Guard against significant drift since preview (non-batch only — in batch
-// mode the user already confirmed and we're mid-send).
-if (!$isBatch && $previewedCount > 0 && abs($liveCount - $previewedCount) > 5) {
-    $stashDraft();
-    setFlashMessage(
-        'Recipient count changed from ' . $previewedCount . ' to ' . $liveCount
-        . ' since preview — please review the updated list and confirm again.',
-        'error'
-    );
-    header('Location: ' . $pageUrl);
-    exit;
-}
-
-// In batch mode, process only BATCH_SIZE recipients from the offset.
-$batchRecipients = $recipients;
-if ($isBatch) {
-    $batchRecipients = array_slice($recipients, $batchOffset, BATCH_SIZE);
-}
-
-// Lift PHP's own time limit for this batch (15 SMTP connections ≈ 30-45s).
 set_time_limit(120);
 
 $formattedDate = formatDate($examDate);
-
 $sent   = 0;
 $failed = 0;
-$failedRecipients = [];
 
-try {
-    foreach ($batchRecipients as $r) {
-        $vars = [
-            'full_name' => $r['full_name'],
-            'exam_date' => $formattedDate,
-        ];
-        $renderedSubject = _substituteTemplateVars($subject, $vars);
-        $renderedBody    = _substituteTemplateVars($body, $vars);
+foreach ($batchRecipients as $r) {
+    $vars = [
+        'full_name' => $r['full_name'],
+        'exam_date' => $formattedDate,
+    ];
+    $renderedSubject = _substituteTemplateVars($subject, $vars);
+    $renderedBody    = _substituteTemplateVars($body, $vars);
 
+    try {
         $ok = sendEmail($r['email'], $renderedSubject, $renderedBody, $r['id'], 'broadcast');
-
-        if ($ok) {
-            $sent++;
-        } else {
-            $failed++;
-            $failedRecipients[] = [
-                'name'  => $r['full_name'],
-                'email' => $r['email'],
-            ];
-        }
+    } catch (Throwable $e) {
+        error_log('Broadcast send failed for ' . $r['email'] . ': ' . $e->getMessage());
+        $ok = false;
     }
-} catch (Throwable $e) {
-    error_log(
-        'Broadcast send FAILED after ' . $sent . ' sent, ' . $failed . ' failed'
-        . ' (last recipient: ' . ($r['email'] ?? 'n/a') . '): '
-        . $e->getMessage() . "\n" . $e->getTraceAsString()
-    );
-    if ($isBatch) {
-        header('Content-Type: application/json');
-        echo json_encode([
-            'error'  => $e->getMessage(),
-            'sent'   => $sent,
-            'failed' => $failed,
-            'offset' => $batchOffset + count($batchRecipients),
-            'total'  => $liveCount,
-            'done'   => false,
+
+    if ($ok) {
+        $sent++;
+    } else {
+        $failed++;
+    }
+}
+
+$totalSent   += $sent;
+$totalFailed += $failed;
+$offset      += count($batchRecipients);
+
+// --- Check completion ---
+$isDone = $offset >= $total;
+if (!$isDone && $sent === 0 && $failed > 0) {
+    // Entire batch failed — likely SMTP issue. Stop.
+    $isDone = true;
+}
+
+if ($isDone) {
+    unset($_SESSION['be_batch']);
+
+    // Audit
+    try {
+        logAudit('broadcast_send', null, null, null, [
+            'exam_date' => $examDate,
+            'subject'   => $subject,
+            'recipients'=> $total,
+            'sent'      => $totalSent,
+            'failed'    => $totalFailed,
         ]);
-        exit;
+    } catch (Throwable $e) {
+        error_log('broadcast send audit failed: ' . $e->getMessage());
     }
-    $stashDraft();
-    setFlashMessage('Broadcast failed after ' . $sent . ' sent: ' . $e->getMessage(), 'error');
-    header('Location: ' . $pageUrl);
+
+    $msg = "Broadcast sent: {$totalSent} of {$total} succeeded";
+    if ($totalFailed > 0) $msg .= ", {$totalFailed} failed";
+    $msg .= '.';
+    setFlashMessage($msg, $totalFailed > 0 ? 'error' : 'success');
+    header('Location: ' . $redirectUrl . '?last_send=1');
     exit;
 }
 
-if ($isBatch) {
-    $nextOffset = $batchOffset + count($batchRecipients);
-    header('Content-Type: application/json');
-    echo json_encode([
-        'sent'      => $sent,
-        'failed'    => $failed,
-        'processed' => count($batchRecipients),
-        'total'     => $liveCount,
-        'offset'    => $nextOffset,
-        'done'      => $nextOffset >= $liveCount,
-    ]);
-    exit;
-}
+// --- Save state and render progress page ---
+$batch['offset']  = $offset;
+$batch['sent']    = $totalSent;
+$batch['failed']  = $totalFailed;
+$_SESSION['be_batch'] = $batch;
 
-// --- Traditional (non-batch) completion path ---
+session_write_close();
 
-// Audit is best-effort — never blocks the send result.
-try {
-    logAudit(
-        'broadcast_send',
-        null,
-        null,
-        null,
-        [
-            'exam_date'  => $examDate,
-            'subject'    => $subject,
-            'previewed'  => $previewedCount,
-            'recipients' => $liveCount,
-            'sent'       => $sent,
-            'failed'     => $failed,
-        ]
-    );
-} catch (Throwable $e) {
-    error_log('broadcast send audit failed: ' . $e->getMessage());
-}
-
-unset($_SESSION['broadcast_draft']);
-
-if ($failed > 0) {
-    $_SESSION['broadcast_failures'] = $failedRecipients;
-}
-
-$msg = "Broadcast sent: {$sent} of {$liveCount} succeeded";
-if ($failed > 0) {
-    $msg .= ", {$failed} failed";
-}
-$msg .= '.';
-setFlashMessage($msg, $failed > 0 ? 'error' : 'success');
-header('Location: ' . $pageUrl . '?last_send=1');
-exit;
+$pct = $total > 0 ? round(($offset / $total) * 100) : 100;
+$csrfToken = generateCsrfToken();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sending broadcast…</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#f7fafc; color:#1a202c; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+        .card { background:white; border-radius:12px; padding:40px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.1); min-width:380px; max-width:500px; }
+        h2 { font-size:20px; margin-bottom:20px; }
+        .count { font-size:28px; font-weight:700; margin-bottom:8px; }
+        .sub { font-size:14px; color:#718096; margin-bottom:20px; }
+        .bar-bg { background:#edf2f7; border-radius:8px; height:12px; overflow:hidden; margin-bottom:8px; }
+        .bar { background:#667eea; height:100%; border-radius:8px; transition:width 0.3s; }
+        .note { font-size:12px; color:#a0aec0; margin-top:16px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Sending broadcast…</h2>
+        <div class="count"><?php echo $totalSent; ?> sent<?php echo $totalFailed ? ', ' . $totalFailed . ' failed' : ''; ?></div>
+        <div class="sub"><?php echo $offset; ?> of <?php echo $total; ?> processed</div>
+        <div class="bar-bg"><div class="bar" style="width:<?php echo $pct; ?>%"></div></div>
+        <p class="note">Do not close this page.</p>
+    </div>
+    <form id="continue-form" method="POST" action="">
+        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+        <input type="hidden" name="continue_batch" value="1">
+    </form>
+    <script>setTimeout(function(){ document.getElementById('continue-form').submit(); }, 300);</script>
+</body>
+</html>
