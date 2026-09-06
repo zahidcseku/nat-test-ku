@@ -6,11 +6,16 @@
  * a minimal auto-submitting progress page that triggers the next batch.
  * This avoids Apache's "Script timed out before returning headers" error.
  *
- * State is carried in $_SESSION['be_batch'] between requests.
+ * Progress is tracked IN THE DATABASE, not the session: the first request
+ * snapshots the recipient list into broadcast_recipients, and every send
+ * marks its row sent/failed immediately. A resumed or re-confirmed
+ * broadcast therefore never re-emails anyone already sent, and a mid-batch
+ * PHP death loses at most the single in-flight recipient.
  *
  * POST parameters:
  *   First request:   csrf_token, exam_date_id, subject, body, previewed_count
  *   Continuation:    csrf_token, continue_batch=1
+ *   Resume button:   csrf_token, resume=1, broadcast_id
  */
 
 require_once __DIR__ . '/../../auth/middleware.php';
@@ -18,7 +23,7 @@ require_once __DIR__ . '/../../lib/email-templates.php';
 require_once __DIR__ . '/../../lib/broadcast-email.php';
 
 /** @var int Recipients per HTTP request. */
-const BATCH_SIZE = 15;
+const BATCH_SIZE = 10;
 
 $pageUrl     = BASE_URL . '/pages/broadcast-email.php';
 $redirectUrl = $pageUrl;
@@ -37,24 +42,53 @@ if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
 }
 
 $sentBy     = (int) ($_SESSION['user_id'] ?? 0);
-$isContinue = ($_POST['continue_batch'] ?? '') === '1';
 $conn       = getDbConnection();
+$adoptNotice = null;
 
-if ($isContinue && isset($_SESSION['be_batch'])) {
-    // --- Continuation: pull state from session ---
-    $batch     = $_SESSION['be_batch'];
-    $examDateId = $batch['exam_date_id'];
-    $subject   = $batch['subject'];
-    $body      = $batch['body'];
-    $offset    = $batch['offset'];
-    $total     = $batch['total'];
-    $totalSent = $batch['sent'];
-    $totalFailed = $batch['failed'];
+if (($_POST['resume'] ?? '') === '1') {
+    // --- Resume: continue an existing broadcast job ---
+    $broadcastId = (int) ($_POST['broadcast_id'] ?? 0);
+
+    $jobStmt = $conn->prepare('SELECT id FROM broadcasts WHERE id = ?');
+    $jobStmt->bind_param('i', $broadcastId);
+    $jobStmt->execute();
+    $jobExists = $jobStmt->get_result()->fetch_assoc() !== null;
+    $jobStmt->close();
+
+    if (!$jobExists) {
+        setFlashMessage('That broadcast no longer exists (its exam date may have been deleted)', 'error');
+        header('Location: ' . $redirectUrl);
+        exit;
+    }
+
+    // A human clicking Resume means no send chain is alive: any rows stuck
+    // in 'sending' came from an interrupted run and never completed.
+    $sweep = $conn->prepare(
+        "UPDATE broadcast_recipients
+         SET status = 'failed', last_error = 'Interrupted mid-send (recovered by resume)'
+         WHERE broadcast_id = ? AND status = 'sending'"
+    );
+    $sweep->bind_param('i', $broadcastId);
+    $sweep->execute();
+    $sweep->close();
+
+    $adoptNotice = 'Resuming broadcast #' . $broadcastId;
+} elseif (($_POST['continue_batch'] ?? '') === '1') {
+    // --- Continuation: pull the job id from session ---
+    $broadcastId = (int) ($_SESSION['be_batch']['broadcast_id'] ?? 0);
+    if ($broadcastId <= 0) {
+        // Stale auto-submit after the run stopped/finished — recoverable
+        // from the Recent broadcasts table, so point the admin there.
+        unset($_SESSION['be_batch']);
+        setFlashMessage('Send state lost — use the Resume button on the Broadcast Email page', 'error');
+        header('Location: ' . $redirectUrl);
+        exit;
+    }
 } else {
-    // --- First request ---
-    $examDateId    = trim($_POST['exam_date_id'] ?? '');
-    $subject       = trim($_POST['subject'] ?? '');
-    $body          = $_POST['body'] ?? '';
+    // --- First request: validate, then create (or adopt) the job ---
+    $examDateId     = trim($_POST['exam_date_id'] ?? '');
+    $subject        = trim($_POST['subject'] ?? '');
+    $body           = $_POST['body'] ?? '';
     $previewedCount = (int) ($_POST['previewed_count'] ?? 0);
 
     if ($examDateId === '' || $subject === '' || $body === '') {
@@ -64,6 +98,16 @@ if ($isContinue && isset($_SESSION['be_batch'])) {
             'body'         => $body,
         ];
         setFlashMessage('Exam date, subject, and body are all required', 'error');
+        header('Location: ' . $redirectUrl);
+        exit;
+    }
+    if (mb_strlen($subject) > 255) {
+        $_SESSION['broadcast_draft'] = [
+            'exam_date_id' => $examDateId,
+            'subject'      => $subject,
+            'body'         => $body,
+        ];
+        setFlashMessage('Subject must be 255 characters or fewer', 'error');
         header('Location: ' . $redirectUrl);
         exit;
     }
@@ -107,116 +151,277 @@ if ($isContinue && isset($_SESSION['be_batch'])) {
         exit;
     }
 
-    $total       = $liveCount;
-    $offset      = 0;
-    $totalSent   = 0;
-    $totalFailed = 0;
+    // Duplicate guard: re-confirming an unfinished broadcast resumes it
+    // instead of re-emailing everyone from scratch.
+    $existingId = findResumableBroadcast($conn, $examDateId, $subject, $body);
+    if ($existingId !== null) {
+        $broadcastId = $existingId;
+        $adoptNotice = 'Continuing unfinished broadcast #' . $existingId
+            . ' — recipients already sent will be skipped';
+    } else {
+        $insert = $conn->prepare(
+            'INSERT INTO broadcasts (exam_date_id, exam_date, subject, body, created_by)
+             VALUES (?, ?, ?, ?, ?)'
+        );
+        $insert->bind_param('ssssi', $examDateId, $examDate, $subject, $body, $sentBy);
+        $insert->execute();
+        $broadcastId = (int) $insert->insert_id;
+        $insert->close();
 
-    $batch = [
-        'exam_date_id' => $examDateId,
-        'subject'       => $subject,
-        'body'          => $body,
-        'total'         => $total,
-        'offset'        => 0,
-        'sent'          => 0,
-        'failed'        => 0,
-    ];
+        // Snapshot the recipient list. INSERT IGNORE + the UNIQUE(broadcast_id,
+        // email) key dedupe rows the recipient query may return twice (two
+        // registrations sharing an email AND a created_at timestamp).
+        $snapped = 0;
+        foreach (array_chunk($recipients, 100) as $chunk) {
+            $values = [];
+            $params = [];
+            $types  = '';
+            foreach ($chunk as $r) {
+                $values[] = '(?, ?, ?, ?)';
+                $params[] = $broadcastId;
+                $params[] = $r['id'];
+                $params[] = $r['email'];
+                $params[] = $r['full_name'];
+                $types   .= 'isss';
+            }
+            $snap = $conn->prepare(
+                'INSERT IGNORE INTO broadcast_recipients (broadcast_id, registration_id, email, full_name)
+                 VALUES ' . implode(', ', $values)
+            );
+            $snap->bind_param($types, ...$params);
+            $snap->execute();
+            $snapped += $snap->affected_rows;
+            $snap->close();
+        }
+
+        if ($snapped === 0) {
+            // Defensive: nothing snapshotted means nothing can ever be sent.
+            $del = $conn->prepare('DELETE FROM broadcasts WHERE id = ?');
+            $del->bind_param('i', $broadcastId);
+            $del->execute();
+            $del->close();
+            setFlashMessage('Broadcast could not be prepared — no recipients were recorded', 'error');
+            header('Location: ' . $redirectUrl);
+            exit;
+        }
+    }
 
     // Clear draft — the send has started
     unset($_SESSION['broadcast_draft']);
 }
 
-// --- Fetch recipients for this batch ---
-// Re-query each time so new approvals between batches are included.
-// Use the stored offset to skip already-processed recipients.
-$dateStmt = $conn->prepare('SELECT exam_date FROM exam_dates WHERE id = ?');
-$dateStmt->bind_param('s', $examDateId);
-$dateStmt->execute();
-$examDate = ($dateStmt->get_result()->fetch_assoc() ?? [])['exam_date'] ?? null;
-$dateStmt->close();
+// --- Load the job ---
+$jobStmt = $conn->prepare(
+    'SELECT subject, body, exam_date, finished_at FROM broadcasts WHERE id = ?'
+);
+$jobStmt->bind_param('i', $broadcastId);
+$jobStmt->execute();
+$job = $jobStmt->get_result()->fetch_assoc();
+$jobStmt->close();
 
-if ($examDate === null) {
+if ($job === null) {
+    // Exam date deleted mid-run cascades the job away — stop cleanly.
     unset($_SESSION['be_batch']);
-    setFlashMessage('Exam date no longer exists', 'error');
+    setFlashMessage('Exam date for this broadcast was deleted; broadcast cancelled', 'error');
+    header('Location: ' . $redirectUrl);
+    exit;
+}
+// Note: a job whose finished_at is already set is NOT bounced here — a
+// finished job may still have failed recipients worth retrying via Resume,
+// and the claim query + recount below resolve "nothing left" gracefully.
+
+// --- Authoritative recount helper (no session counters) ---
+$recount = static function (int $broadcastId) use ($conn): array {
+    $counts = ['sent' => 0, 'failed' => 0, 'pending' => 0, 'sending' => 0];
+    $stmt = $conn->prepare(
+        'SELECT status, COUNT(*) AS cnt FROM broadcast_recipients WHERE broadcast_id = ? GROUP BY status'
+    );
+    $stmt->bind_param('i', $broadcastId);
+    $stmt->execute();
+    foreach ($stmt->get_result()->fetch_all(MYSQLI_ASSOC) as $row) {
+        $counts[$row['status']] = (int) $row['cnt'];
+    }
+    $stmt->close();
+    $counts['total']     = array_sum($counts);
+    $counts['remaining'] = $counts['pending'] + $counts['failed'] + $counts['sending'];
+    return $counts;
+};
+
+$finishJob = function (int $broadcastId, array $job, array $counts) use ($conn, $redirectUrl): void {
+    $finish = $conn->prepare('UPDATE broadcasts SET finished_at = NOW() WHERE id = ? AND finished_at IS NULL');
+    $finish->bind_param('i', $broadcastId);
+    $finish->execute();
+    $wasOpen = $finish->affected_rows === 1;
+    $finish->close();
+
+    // Audit + success flash only for the request that actually closed the
+    // job — a stale continue arriving after completion must not add a
+    // second audit row for the same broadcast.
+    if ($wasOpen) {
+        try {
+            logAudit('broadcast_send', 'broadcasts', $broadcastId, null, [
+                'exam_date'  => $job['exam_date'],
+                'subject'    => $job['subject'],
+                'recipients' => $counts['total'],
+                'sent'       => $counts['sent'],
+                'failed'     => $counts['failed'],
+            ]);
+        } catch (Throwable $e) {
+            error_log('broadcast send audit failed: ' . $e->getMessage());
+        }
+
+        $msg = "Broadcast sent: {$counts['sent']} of {$counts['total']} succeeded";
+        if ($counts['failed'] > 0) $msg .= ", {$counts['failed']} failed";
+        $msg .= '.';
+        setFlashMessage($msg, $counts['failed'] > 0 ? 'error' : 'success');
+    } else {
+        setFlashMessage('That broadcast already finished — nothing left to send', 'info');
+    }
+    header('Location: ' . $redirectUrl . '?last_send=1&broadcast_id=' . $broadcastId);
+    exit;
+};
+
+// Stale request (e.g. a continue posted after a concurrent tab completed the
+// job, or adopting an unfinished job whose rows are all resolved already).
+$preCounts = $recount($broadcastId);
+if ($preCounts['remaining'] === 0) {
+    unset($_SESSION['be_batch']);
+    $finishJob($broadcastId, $job, $preCounts);
+}
+
+// --- Claim and send this batch ---
+set_time_limit(180);
+
+$claimStmt = $conn->prepare(
+    "SELECT id, registration_id, email, full_name
+     FROM broadcast_recipients
+     WHERE broadcast_id = ? AND status IN ('pending','failed')
+     ORDER BY id ASC
+     LIMIT " . BATCH_SIZE
+);
+$claimStmt->bind_param('i', $broadcastId);
+$claimStmt->execute();
+$candidates = $claimStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$claimStmt->close();
+
+if ($candidates === []) {
+    // Nothing claimable, yet the job isn't finished: every remaining row is
+    // 'sending' — held by a concurrent request (which will resolve it) or
+    // stranded by one that died mid-batch. Either way this chain must not
+    // auto-loop with nothing to do; Resume sweeps stranded rows.
+    unset($_SESSION['be_batch']);
+    setFlashMessage(
+        'No pending recipients right now — ' . $preCounts['remaining']
+        . ' send(s) still in flight. Refresh this page in a moment; if they stay unfinished, use Resume.',
+        'info'
+    );
     header('Location: ' . $redirectUrl);
     exit;
 }
 
-$recipients    = fetchBroadcastRecipients($conn, $examDate);
-$batchRecipients = array_slice($recipients, $offset, BATCH_SIZE);
+$takeStmt = $conn->prepare(
+    "UPDATE broadcast_recipients
+     SET status = 'sending', attempts = attempts + 1
+     WHERE id = ? AND status IN ('pending','failed')"
+);
+$markSent = $conn->prepare(
+    "UPDATE broadcast_recipients SET status = 'sent', sent_at = NOW() WHERE id = ?"
+);
+$markFailed = $conn->prepare(
+    'UPDATE broadcast_recipients SET status = ?, last_error = ? WHERE id = ?'
+);
 
-set_time_limit(120);
+$formattedDate = formatDate($job['exam_date']);
+$vars = ['exam_date' => $formattedDate];
+$sentThisBatch = 0;
+$failedThisBatch = 0;
+$attempted = 0;
 
-$formattedDate = formatDate($examDate);
-$sent   = 0;
-$failed = 0;
+foreach ($candidates as $r) {
+    // Pace the burst of per-message SMTP connections — the relay throttled
+    // us at ~90 rapid sends. Sleep between attempts, not before the first.
+    if ($attempted > 0) {
+        usleep(BROADCAST_SEND_DELAY_MS * 1000);
+    }
 
-foreach ($batchRecipients as $r) {
-    $vars = [
-        'full_name' => $r['full_name'],
-        'exam_date' => $formattedDate,
-    ];
-    $renderedSubject = _substituteTemplateVars($subject, $vars);
-    $renderedBody    = _substituteTemplateVars($body, $vars);
+    // Atomic claim: if another request (browser POST retry, second tab)
+    // already took this row, affected_rows is 0 — skip it, no duplicate.
+    $takeStmt->bind_param('i', $r['id']);
+    $takeStmt->execute();
+    if ($takeStmt->affected_rows !== 1) {
+        continue;
+    }
+    $attempted++;
 
+    $vars['full_name'] = $r['full_name'];
+    $renderedSubject = _substituteTemplateVars($job['subject'], $vars);
+    $renderedBody    = _substituteTemplateVars($job['body'], $vars);
+
+    $sendError = null;
     try {
-        $ok = sendEmail($r['email'], $renderedSubject, $renderedBody, $r['id'], 'broadcast');
+        $ok = sendEmail($r['email'], $renderedSubject, $renderedBody, $r['registration_id'], 'broadcast');
     } catch (Throwable $e) {
         error_log('Broadcast send failed for ' . $r['email'] . ': ' . $e->getMessage());
         $ok = false;
+        $sendError = $e->getMessage();
     }
 
+    // Record the outcome BEFORE anything else can go wrong, so a mid-batch
+    // death never re-sends an already-delivered email on the next resume.
     if ($ok) {
-        $sent++;
+        $sentThisBatch++;
+        $markSent->bind_param('i', $r['id']);
+        $markSent->execute();
     } else {
-        $failed++;
+        $failedThisBatch++;
+        $failureStatus = 'failed';
+        $failureReason = $sendError ?? 'SMTP send failed — see the Emails page for the error';
+        $markFailed->bind_param('sss', $failureStatus, $failureReason, $r['id']);
+        $markFailed->execute();
     }
 }
 
-$totalSent   += $sent;
-$totalFailed += $failed;
-$offset      += count($batchRecipients);
+$takeStmt->close();
+$markSent->close();
+$markFailed->close();
 
-// --- Check completion ---
-$isDone = $offset >= $total;
-if (!$isDone && $sent === 0 && $failed > 0) {
-    // Entire batch failed — likely SMTP issue. Stop.
-    $isDone = true;
-}
+// --- Authoritative recount after the batch ---
+$counts     = $recount($broadcastId);
+$total      = $counts['total'];
+$totalSent  = $counts['sent'];
+$totalFailed = $counts['failed'];
+$remaining  = $counts['remaining'];
+$processed  = $totalSent + $totalFailed;
+
+// --- Completion: nothing left to send ---
+$isDone = $remaining === 0;
+
+// --- Circuit breaker: every claimed send this request failed. Stop the
+// chain (SMTP problem) but keep the job resumable via the Resume button.
+$breakerTripped = !$isDone && $attempted > 0 && $sentThisBatch === 0 && $failedThisBatch > 0;
 
 if ($isDone) {
     unset($_SESSION['be_batch']);
+    $finishJob($broadcastId, $job, $counts);
+}
 
-    // Audit
-    try {
-        logAudit('broadcast_send', null, null, null, [
-            'exam_date' => $examDate,
-            'subject'   => $subject,
-            'recipients'=> $total,
-            'sent'      => $totalSent,
-            'failed'    => $totalFailed,
-        ]);
-    } catch (Throwable $e) {
-        error_log('broadcast send audit failed: ' . $e->getMessage());
-    }
-
-    $msg = "Broadcast sent: {$totalSent} of {$total} succeeded";
-    if ($totalFailed > 0) $msg .= ", {$totalFailed} failed";
-    $msg .= '.';
-    setFlashMessage($msg, $totalFailed > 0 ? 'error' : 'success');
-    header('Location: ' . $redirectUrl . '?last_send=1');
+if ($breakerTripped) {
+    // Do NOT set finished_at — the job stays resumable.
+    unset($_SESSION['be_batch']);
+    $msg = "Sending stopped: the last {$failedThisBatch} attempt" . ($failedThisBatch === 1 ? '' : 's')
+        . " all failed (SMTP problem). {$totalSent} of {$total} sent, {$remaining} remaining."
+        . ' Use the Resume button on this page later to continue.';
+    setFlashMessage($msg, 'error');
+    header('Location: ' . $redirectUrl);
     exit;
 }
 
 // --- Save state and render progress page ---
-$batch['offset']  = $offset;
-$batch['sent']    = $totalSent;
-$batch['failed']  = $totalFailed;
-$_SESSION['be_batch'] = $batch;
+$_SESSION['be_batch'] = ['broadcast_id' => $broadcastId];
 
 session_write_close();
 
-$pct = $total > 0 ? round(($offset / $total) * 100) : 100;
+$pct = $total > 0 ? round(($processed / $total) * 100) : 100;
 $csrfToken = generateCsrfToken();
 ?>
 <!DOCTYPE html>
@@ -235,20 +440,24 @@ $csrfToken = generateCsrfToken();
         .bar-bg { background:#edf2f7; border-radius:8px; height:12px; overflow:hidden; margin-bottom:8px; }
         .bar { background:#667eea; height:100%; border-radius:8px; transition:width 0.3s; }
         .note { font-size:12px; color:#a0aec0; margin-top:16px; }
+        .adopt { font-size:13px; color:#4a5568; background:#f7fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px; margin-bottom:16px; }
     </style>
 </head>
 <body>
     <div class="card">
+        <?php if ($adoptNotice !== null): ?>
+            <div class="adopt"><?php echo e($adoptNotice); ?></div>
+        <?php endif; ?>
         <h2>Sending broadcast…</h2>
         <div class="count"><?php echo $totalSent; ?> sent<?php echo $totalFailed ? ', ' . $totalFailed . ' failed' : ''; ?></div>
-        <div class="sub"><?php echo $offset; ?> of <?php echo $total; ?> processed</div>
+        <div class="sub"><?php echo $processed; ?> of <?php echo $total; ?> processed</div>
         <div class="bar-bg"><div class="bar" style="width:<?php echo $pct; ?>%"></div></div>
-        <p class="note">Do not close this page.</p>
+        <p class="note">Do not close this page. Already-sent recipients are recorded, so if this page is interrupted you can safely resume.</p>
     </div>
     <form id="continue-form" method="POST" action="">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
         <input type="hidden" name="continue_batch" value="1">
     </form>
-    <script>setTimeout(function(){ document.getElementById('continue-form').submit(); }, 300);</script>
+    <script>setTimeout(function(){ document.getElementById('continue-form').submit(); }, 1000);</script>
 </body>
 </html>

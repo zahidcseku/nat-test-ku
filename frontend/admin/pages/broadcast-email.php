@@ -6,6 +6,10 @@
  * date. Two-step flow: compose → preview recipient list + sample email →
  * confirm and send (handled by api/broadcast-email/send.php).
  *
+ * Sends are tracked per recipient in the broadcast_recipients table, so an
+ * interrupted send can be Resumed from the "Recent broadcasts" table below
+ * without re-emailing anyone who already received the message.
+ *
  * Placeholders {full_name} and {exam_date} are substituted per recipient
  * in both subject and body.
  */
@@ -77,12 +81,16 @@ if ($edStmt) {
     $edStmt->close();
 }
 
-// --- Send results (failures) after a send-handler redirect ---
-$failures = null;
-if (isset($_GET['last_send']) && isset($_SESSION['broadcast_failures'])) {
-    $failures = $_SESSION['broadcast_failures'];
-    unset($_SESSION['broadcast_failures']);
+// --- Failed deliveries for a broadcast (?last_send=1&broadcast_id=N).
+// Read straight from the DB so the panel stays accurate any time, not
+// just right after a send.
+$failureData = null;
+if (isset($_GET['last_send'], $_GET['broadcast_id'])) {
+    $failureData = getBroadcastFailures($conn, (int) $_GET['broadcast_id']);
 }
+
+// --- Recent broadcasts (Resume lives here) ---
+$recentBroadcasts = getRecentBroadcasts($conn);
 
 $csrfToken = generateCsrfToken();
 
@@ -94,10 +102,13 @@ require_once __DIR__ . '/../templates/header.php';
     <p class="page-subtitle">Send an announcement to all approved examinees for an exam date</p>
 </div>
 
-<?php if ($failures !== null): ?>
+<?php if ($failureData !== null && $failureData['job'] !== null): ?>
     <div style="background: #fff5f5; border: 1px solid #feb2b2; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-        <h3 style="font-size: 16px; font-weight: 600; color: #c53030; margin: 0 0 12px;">Failed deliveries</h3>
-        <?php if (empty($failures)): ?>
+        <h3 style="font-size: 16px; font-weight: 600; color: #c53030; margin: 0 0 4px;">Failed deliveries</h3>
+        <p style="color: #4a5568; font-size: 13px; margin: 0 0 12px;">
+            <?php echo e($failureData['job']['subject']); ?> — <?php echo e(formatDate($failureData['job']['exam_date'])); ?>
+        </p>
+        <?php if (empty($failureData['failed'])): ?>
             <p style="color: #4a5568; font-size: 14px; margin: 0;">No failures — every recipient received the broadcast.</p>
         <?php else: ?>
             <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
@@ -105,18 +116,22 @@ require_once __DIR__ . '/../templates/header.php';
                     <tr style="border-bottom: 1px solid #feb2b2; text-align: left;">
                         <th style="padding: 8px 12px;">Name</th>
                         <th style="padding: 8px 12px;">Email</th>
+                        <th style="padding: 8px 12px;">Tries</th>
+                        <th style="padding: 8px 12px;">Last error</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($failures as $f): ?>
+                    <?php foreach ($failureData['failed'] as $f): ?>
                         <tr style="border-bottom: 1px solid #fed7d7;">
-                            <td style="padding: 8px 12px;"><?php echo e($f['name']); ?></td>
+                            <td style="padding: 8px 12px;"><?php echo e($f['full_name']); ?></td>
                             <td style="padding: 8px 12px;"><?php echo e($f['email']); ?></td>
+                            <td style="padding: 8px 12px;"><?php echo (int) $f['attempts']; ?></td>
+                            <td style="padding: 8px 12px; color: #718096;"><?php echo e($f['last_error'] ?? '—'); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
-            <p style="color: #718096; font-size: 13px; margin: 12px 0 0;">See the Emails page for the full SMTP error on each row.</p>
+            <p style="color: #718096; font-size: 13px; margin: 12px 0 0;">See the Emails page for the full SMTP error on each row. Use Resume to retry these recipients.</p>
         <?php endif; ?>
     </div>
 <?php endif; ?>
@@ -140,6 +155,10 @@ require_once __DIR__ . '/../templates/header.php';
                         . '</body></html>';
         $visibleCount   = min(50, $recipientCount);
         $hiddenCount    = $recipientCount - $visibleCount;
+
+        // Identical (exam date + subject + body) broadcast already fully
+        // sent? Warn, but let the admin send again if it's intentional.
+        $identicalFinished = findFinishedIdenticalBroadcast($conn, $draft['exam_date_id'], $draft['subject'], $draft['body']);
     ?>
 
     <div style="background: white; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
@@ -184,6 +203,16 @@ require_once __DIR__ . '/../templates/header.php';
         <div style="font-size: 13px; font-weight: 600; color: #4a5568; margin-bottom: 4px;">Preview (rendered for <?php echo e($firstRecipient['full_name']); ?>)</div>
         <iframe srcdoc="<?php echo e($sampleDoc); ?>" style="width: 100%; height: 360px; border: 1px solid #e2e8f0; border-radius: 8px; background: white;"></iframe>
     </div>
+
+    <?php if ($identicalFinished !== null): ?>
+        <div style="background: #fffaf0; border: 1px solid #f6ad55; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; color: #7b341e; font-size: 14px;">
+            <strong>An identical broadcast was already fully sent</strong> on
+            <?php echo e(formatDate($identicalFinished['finished_at'], 'M j, Y g:i a')); ?>
+            (delivered to <?php echo (int) $identicalFinished['sent_count']; ?> recipients, subject
+            &ldquo;<?php echo e($draft['subject']); ?>&rdquo;). Sending again will email everyone once more —
+            continue only if this is intentional.
+        </div>
+    <?php endif; ?>
 
     <!-- Confirm / Edit actions -->
     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
@@ -243,6 +272,65 @@ require_once __DIR__ . '/../templates/header.php';
             <button type="submit" class="btn btn-primary">Preview Recipients</button>
         </form>
     </div>
+
+    <?php if (!empty($recentBroadcasts)): ?>
+    <div style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; margin-top: 24px;">
+        <div style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
+            <h3 style="font-size: 15px; font-weight: 600; color: #1a202c; margin: 0 0 2px;">Recent broadcasts</h3>
+            <div style="font-size: 13px; color: #718096;">Resume continues an interrupted send — recipients already emailed are skipped.</div>
+        </div>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <thead>
+                    <tr style="background: #f7fafc; border-bottom: 2px solid #e2e8f0;">
+                        <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Subject</th>
+                        <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Exam date</th>
+                        <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Progress</th>
+                        <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Created</th>
+                        <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Status</th>
+                        <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($recentBroadcasts as $b):
+                        $remainingCount = $b['pending_count'] + $b['failed_count'];
+                        $isComplete = $b['finished_at'] !== null && $remainingCount === 0;
+                    ?>
+                        <tr style="border-bottom: 1px solid #edf2f7;">
+                            <td style="padding: 10px 16px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?php echo e($b['subject']); ?>"><?php echo e($b['subject']); ?></td>
+                            <td style="padding: 10px 16px; white-space: nowrap;"><?php echo e(formatDate($b['exam_date'])); ?></td>
+                            <td style="padding: 10px 16px; white-space: nowrap;">
+                                <span style="color: #2f855a;"><?php echo (int) $b['sent_count']; ?> sent</span><?php if ($b['failed_count'] > 0): ?>, <span style="color: #c53030;"><?php echo (int) $b['failed_count']; ?> failed</span><?php endif; ?><?php if ($b['pending_count'] > 0): ?>, <span style="color: #b7791f;"><?php echo (int) $b['pending_count']; ?> pending</span><?php endif; ?>
+                                <span style="color: #a0aec0;">of <?php echo (int) $b['total_count']; ?></span>
+                            </td>
+                            <td style="padding: 10px 16px; white-space: nowrap; color: #718096;"><?php echo e(formatDate($b['created_at'], 'M j, Y g:i a')); ?></td>
+                            <td style="padding: 10px 16px; white-space: nowrap;">
+                                <?php if ($isComplete): ?>
+                                    <span style="background: #c6f6d5; color: #22543d; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;">Complete</span>
+                                <?php else: ?>
+                                    <span style="background: #feebc8; color: #7b341e; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;">Incomplete</span>
+                                <?php endif; ?>
+                            </td>
+                            <td style="padding: 10px 16px; white-space: nowrap;">
+                                <?php if ($remainingCount > 0): ?>
+                                    <form method="POST" action="<?php echo BASE_URL; ?>/api/broadcast-email/send.php" style="display: inline;">
+                                        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                                        <input type="hidden" name="resume" value="1">
+                                        <input type="hidden" name="broadcast_id" value="<?php echo (int) $b['id']; ?>">
+                                        <button type="submit" class="btn btn-primary" style="padding: 6px 12px; font-size: 13px;">Resume (<?php echo (int) $remainingCount; ?> left)</button>
+                                    </form>
+                                <?php endif; ?>
+                                <?php if ($b['failed_count'] > 0): ?>
+                                    <a href="<?php echo BASE_URL; ?>/pages/broadcast-email.php?last_send=1&amp;broadcast_id=<?php echo (int) $b['id']; ?>" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">View failures</a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <p style="color: #718096; font-size: 13px; margin-top: 16px;">
         Recipients are every approved registration for the selected date. Duplicate email addresses receive only one copy.

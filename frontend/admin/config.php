@@ -75,8 +75,12 @@ define('CSRF_TOKEN_NAME', getenv('CSRF_TOKEN_NAME') ?: 'csrf_token');
 define('PASSWORD_MIN_LENGTH', (int)(getenv('PASSWORD_MIN_LENGTH') ?: 8));
 define('MAX_LOGIN_ATTEMPTS', (int)(getenv('MAX_LOGIN_ATTEMPTS') ?: 5));
 define('LOGIN_ATTEMPT_WINDOW', (int)(getenv('LOGIN_ATTEMPT_WINDOW') ?: 900));
-define('MAX_UPLOAD_SIZE', (int)(getenv('MAX_UPLOAD_SIZE') ?: 52428800));
+define('MAX_UPLOAD_SIZE', (int)(getenv('MAX_UPLOAD_SIZE') ?: 209715200));
 define('UPLOAD_PATH', __DIR__ . '/' . (getenv('UPLOAD_PATH') ?: 'uploads/'));
+// Pause between individual broadcast emails (milliseconds). Paces the burst
+// of per-message SMTP connections so the relay doesn't throttle us (~90
+// rapid messages was where it gave up). Tune via env if limits change.
+define('BROADCAST_SEND_DELAY_MS', (int)(getenv('BROADCAST_SEND_DELAY_MS') ?: 1000));
 
 // Intake uploads directory — where applicant photos/IDs/receipts live.
 // Admin writes replacements here when correcting an applicant's uploads.
