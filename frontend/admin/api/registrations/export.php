@@ -24,6 +24,9 @@ if (!empty($status)) {
         $where[] = '(r.approved IS NULL OR r.approved = 0)';
     } elseif ($status === 'approved') {
         $where[] = 'r.approved = 1';
+    } elseif ($status === 'paid') {
+        // Same criterion as the Participants page and Exam Dates seat counts
+        $where[] = "r.payment_status = 'paid'";
     } elseif ($status === 'rejected') {
         $where[] = 'r.approved = 0'; // For now, rejected is same as pending
     }

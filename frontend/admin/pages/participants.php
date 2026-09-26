@@ -1,7 +1,8 @@
 <?php
 /**
  * Participants View Page
- * View approved registrations only
+ * View paid registrations only — same criterion as Exam Dates seat counts
+ * (payment_status = 'paid', matching intake cap enforcement)
  */
 
 require_once __DIR__ . '/../auth/middleware.php';
@@ -15,8 +16,9 @@ $conn = getDbConnection();
 $examDate = $_GET['exam_date'] ?? '';
 $examLevel = $_GET['exam_level'] ?? '';
 
-// Build query
-$where = ['r.approved = 1'];
+// Build query — count on payment_status so this matches the Exam Dates
+// seat-fill numbers (both must mirror what intake cap enforcement counts).
+$where = ["r.payment_status = 'paid'"];
 $params = [];
 $types = '';
 
@@ -34,7 +36,7 @@ if (!empty($examLevel)) {
 
 $whereClause = implode(' AND ', $where);
 
-// Get approved registrations (paginated)
+// Get paid registrations (paginated)
 $query = "
     SELECT r.*
     FROM registrations r
@@ -62,7 +64,7 @@ $stmt = $conn->prepare("
     SELECT DISTINCT ed.exam_date
     FROM exam_dates ed
     INNER JOIN registrations r ON r.test_date = ed.exam_date
-    WHERE r.approved = 1
+    WHERE r.payment_status = 'paid'
     ORDER BY ed.exam_date ASC
 ");
 $stmt->execute();
@@ -77,7 +79,7 @@ require_once __DIR__ . '/../templates/header.php';
 
 <div class="page-header">
     <h1 class="page-title">Participants</h1>
-    <p class="page-subtitle">Approved registrations and admission tickets</p>
+    <p class="page-subtitle">Paid registrations — same count as Exam Dates seat fill</p>
 </div>
 
 <!-- Statistics -->
@@ -121,7 +123,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div style="display: flex; align-items: end; gap: 8px;">
             <button type="submit" class="btn btn-primary" style="flex: 1;">Apply Filters</button>
-            <a href="<?php echo BASE_URL; ?>/api/registrations/export.php?status=approved" class="btn btn-secondary">
+            <a href="<?php echo BASE_URL; ?>/api/registrations/export.php?status=paid" class="btn btn-secondary">
                 📥 Export
             </a>
         </div>
@@ -139,7 +141,7 @@ require_once __DIR__ . '/../templates/header.php';
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Mobile</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Level</th>
                     <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Test Date</th>
-                    <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Approved</th>
+                    <th style="padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: #4a5568;">Paid</th>
                 </tr>
             </thead>
             <tbody>
@@ -157,7 +159,7 @@ require_once __DIR__ . '/../templates/header.php';
                         <td style="padding: 12px 16px; font-size: 14px;"><?php echo e($participant['exam_level']); ?></td>
                         <td style="padding: 12px 16px; font-size: 14px;"><?php echo e(formatDate($participant['test_date'])); ?></td>
                         <td style="padding: 12px 16px; font-size: 14px; color: #718096;">
-                            <?php echo e(date('M j, Y', strtotime($participant['approved_at'] ?? $participant['submitted_at']))); ?>
+                            <?php echo e(date('M j, Y', strtotime($participant['payment_time'] ?? $participant['submitted_at']))); ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -183,7 +185,7 @@ require_once __DIR__ . '/../templates/header.php';
     <div style="background: white; border-radius: 12px; padding: 48px; text-align: center; border: 1px solid #e2e8f0;">
         <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
         <h3 style="font-size: 18px; font-weight: 600; color: #1a202c; margin-bottom: 8px;">No Participants Found</h3>
-        <p style="color: #718096; font-size: 14px;">No approved registrations match your filters.</p>
+        <p style="color: #718096; font-size: 14px;">No paid registrations match your filters.</p>
     </div>
 <?php endif; ?>
 
