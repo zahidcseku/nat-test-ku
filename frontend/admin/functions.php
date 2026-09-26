@@ -556,23 +556,26 @@ function renderPagination($currentPage, $totalPages, $totalRows, $perPage, $base
 }
 
 /**
- * Count PAID registrations per level for a given exam date.
+ * Count APPROVED registrations (examinees) per level for a given exam date.
  *
  * registrations.exam_level is a comma-separated string (e.g. '1Q/N1,2Q/N2'),
  * so we aggregate counts in PHP after exploding. Returns an associative
  * array keyed by level: ['1Q/N1' => 47, '2Q/N2' => 12, ...].
  *
+ * Note: the registration CAP itself is still enforced at intake against
+ * payment_status = 'paid' — approval cannot gate submit-time registration.
+ *
  * @param mysqli $conn
  * @param string $examDate  YYYY-MM-DD
  * @return array<string,int>
  */
-function countPaidByLevel($conn, $examDate) {
+function countApprovedByLevel($conn, $examDate) {
     if (!$conn || empty($examDate)) {
         return [];
     }
     $stmt = $conn->prepare(
         "SELECT exam_level FROM registrations
-          WHERE test_date = ? AND payment_status = 'paid'"
+          WHERE test_date = ? AND approved = 1"
     );
     if (!$stmt) {
         return [];

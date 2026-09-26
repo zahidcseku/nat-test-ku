@@ -165,8 +165,8 @@ $stmt->execute();
 $examDates = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // Parse the level:cap pairs into a [level => cap] map per exam, and
-// pre-fetch paid counts per (date) so the list view can render live
-// fill counts alongside each level.
+// pre-fetch approved examinee counts per (date) so the list view can render
+// live fill counts alongside each level.
 foreach ($examDates as &$examRow) {
     $levelCapMap = [];
     $levelList = [];
@@ -181,7 +181,7 @@ foreach ($examDates as &$examRow) {
     }
     $examRow['levels'] = $levelList;
     $examRow['level_caps'] = $levelCapMap;
-    $examRow['paid_by_level'] = countPaidByLevel($conn, $examRow['exam_date']);
+    $examRow['approved_by_level'] = countApprovedByLevel($conn, $examRow['exam_date']);
 }
 unset($examRow);
 
@@ -230,18 +230,18 @@ require_once __DIR__ . '/../templates/header.php';
                                 <?php
                                 $levels = $exam['levels'];
                                 $levelCaps = $exam['level_caps'];
-                                $paidByLevel = $exam['paid_by_level'];
+                                $approvedByLevel = $exam['approved_by_level'];
                                 foreach ($levels as $level):
                                     $cap = $levelCaps[$level] ?? null;
-                                    $paid = $paidByLevel[$level] ?? 0;
+                                    $approved = $approvedByLevel[$level] ?? 0;
                                     if ($cap === null) {
-                                        $label = e($level) . ' <span style="font-weight:400;color:#718096;">' . $paid . '/∞</span>';
+                                        $label = e($level) . ' <span style="font-weight:400;color:#718096;">' . $approved . '/∞</span>';
                                         $bg = '#edf2f7'; $color = '#2d3748';
-                                    } elseif ($paid >= $cap) {
-                                        $label = e($level) . ' <span style="font-weight:400;">' . $paid . '/' . $cap . ' (full)</span>';
+                                    } elseif ($approved >= $cap) {
+                                        $label = e($level) . ' <span style="font-weight:400;">' . $approved . '/' . $cap . ' (full)</span>';
                                         $bg = '#fed7d7'; $color = '#822727';
                                     } else {
-                                        $label = e($level) . ' <span style="font-weight:400;color:#718096;">' . $paid . '/' . $cap . '</span>';
+                                        $label = e($level) . ' <span style="font-weight:400;color:#718096;">' . $approved . '/' . $cap . '</span>';
                                         $bg = '#edf2f7'; $color = '#2d3748';
                                     }
                                 ?>
