@@ -5,6 +5,14 @@
  * Run this to initialize the admin panel database and create first admin user
  */
 
+// CLI-only (run as: php setup.php — see DEPLOYMENT.md). Over HTTP this
+// script connects with .env credentials and discloses admin accounts;
+// admin/.htaccess denies it as defense in depth.
+if (php_sapi_name() !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 echo "NAT-TEST Admin Panel Setup\n";
 echo "==========================\n\n";
 

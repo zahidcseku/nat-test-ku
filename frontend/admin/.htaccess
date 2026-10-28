@@ -11,6 +11,13 @@ Options -Indexes
     Require all denied
 </FilesMatch>
 
+# Deny test/diagnostic/setup scripts over HTTP (setup.php is CLI-only;
+# covers scripts/ subdirectory too). Mirrors the intake .htaccess but
+# allows hyphens/underscores/dots in filenames.
+<FilesMatch "(?i)^(test|debug|check|diagnose|setup|simple)[\w.-]*\.php$">
+    Require all denied
+</FilesMatch>
+
 # Restrict access to API endpoints (only allow same origin)
 <IfModule mod_rewrite.c>
     RewriteEngine On

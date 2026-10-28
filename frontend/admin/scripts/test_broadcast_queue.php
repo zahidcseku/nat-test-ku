@@ -16,6 +16,12 @@
  * override). Prints SKIP and exits 0 when no database is reachable.
  */
 
+// CLI-only guard — never run this over HTTP
+if (php_sapi_name() !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 $failures = 0;
 $checks = 0;
 
