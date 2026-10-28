@@ -628,11 +628,11 @@ document.addEventListener('DOMContentLoaded', updateCount);
 <?php
 /**
  * Convert an absolute PDF path stored in admission_tickets.file_path
- * into a web URL reachable from the admin panel.
+ * into a URL the admin panel can open.
  *
- * The upload stored under UPLOAD_PATH (e.g. /home/.../admin/uploads/).
- * The web root maps /admin/ to that directory, so /admin/uploads/...
- * is the public path.
+ * uploads/ itself is denied over HTTP (PII: examinee names, photos,
+ * reg numbers, results); viewing goes through the authenticated
+ * api/files/download.php endpoint instead.
  */
 function _ticketWebUrl(string $absPath): string {
     if ($absPath === '') return '';
@@ -641,8 +641,8 @@ function _ticketWebUrl(string $absPath): string {
     $realAbs    = str_replace('\\', '/', $absPath);
     $realUpload = str_replace('\\', '/', realpath($uploadsDir) ?: $uploadsDir);
     if (strpos($realAbs, $realUpload) === 0) {
-        $rel = substr($realAbs, strlen($realUpload));
-        return BASE_URL . '/uploads/' . ltrim($rel, '/');
+        $rel = ltrim(substr($realAbs, strlen($realUpload)), '/');
+        return BASE_URL . '/api/files/download.php?file=' . urlencode($rel);
     }
     // Fallback: opaque path — no link.
     return '';
