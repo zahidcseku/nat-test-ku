@@ -299,9 +299,23 @@ require_once __DIR__ . '/../templates/header.php';
                         <tr style="border-bottom: 1px solid #edf2f7;">
                             <td style="padding: 10px 16px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?php echo e($b['subject']); ?>"><?php echo e($b['subject']); ?></td>
                             <td style="padding: 10px 16px; white-space: nowrap;"><?php echo e(formatDate($b['exam_date'])); ?></td>
-                            <td style="padding: 10px 16px; white-space: nowrap;">
-                                <span style="color: #2f855a;"><?php echo (int) $b['sent_count']; ?> sent</span><?php if ($b['failed_count'] > 0): ?>, <span style="color: #c53030;"><?php echo (int) $b['failed_count']; ?> failed</span><?php endif; ?><?php if ($b['pending_count'] > 0): ?>, <span style="color: #b7791f;"><?php echo (int) $b['pending_count']; ?> pending</span><?php endif; ?>
-                                <span style="color: #a0aec0;">of <?php echo (int) $b['total_count']; ?></span>
+                            <td style="padding: 10px 16px; min-width: 180px;">
+                                <?php if ($b['total_count'] > 0): ?>
+                                    <?php
+                                        // Stacked bar: segment widths via flex-grow proportions,
+                                        // so they always sum to the full bar regardless of rounding.
+                                        $pct = round(($b['sent_count'] / $b['total_count']) * 100);
+                                    ?>
+                                    <div style="display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: #edf2f7; margin-bottom: 6px;" title="<?php echo $pct; ?>% delivered">
+                                        <div style="flex: <?php echo (int) $b['sent_count']; ?> 0 0; background: #48bb78;"></div>
+                                        <div style="flex: <?php echo (int) $b['failed_count']; ?> 0 0; background: #f56565;"></div>
+                                        <div style="flex: <?php echo (int) $b['pending_count']; ?> 0 0; background: #ed8936;"></div>
+                                    </div>
+                                <?php endif; ?>
+                                <div style="white-space: nowrap;">
+                                    <span style="color: #2f855a;"><?php echo (int) $b['sent_count']; ?> sent</span><?php if ($b['failed_count'] > 0): ?>, <span style="color: #c53030;"><?php echo (int) $b['failed_count']; ?> failed</span><?php endif; ?><?php if ($b['pending_count'] > 0): ?>, <span style="color: #b7791f;"><?php echo (int) $b['pending_count']; ?> pending</span><?php endif; ?>
+                                    <span style="color: #a0aec0;">of <?php echo (int) $b['total_count']; ?></span>
+                                </div>
                             </td>
                             <td style="padding: 10px 16px; white-space: nowrap; color: #718096;"><?php echo e(formatDate($b['created_at'], 'M j, Y g:i a')); ?></td>
                             <td style="padding: 10px 16px; white-space: nowrap;">

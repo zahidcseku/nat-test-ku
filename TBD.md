@@ -1,7 +1,23 @@
 # TBD (To Be Determined) Features
 
-This file tracks features and functionality that are planned for future implementation but are not currently active.
+- [ ] remove all email address except info@nat-test.ku.ac.bd
 
+- [ ] The total number of examinees in exam dates are incorrect. Need to fix this. 
+
+## Admin
+
+- [ ] update the template
+- [ ] only show information regarding the current exam
+- [ ] add a filter for selecting past exams
+- [ ] add invigilator management options
+- [ ] print room wise materials labels
+  - One for q + cd and unused questions
+  - One for used q
+  - One for answer sheet
+- [ ] view past admission tickets
+- [ ] correction of admission tickts
+- [ ] export photo ids of examines require corrections
+- 
 ---
 
 ## 🌐 Language Selector (COMPLETED: Removed from UI)
@@ -112,12 +128,3 @@ When re-enabling the language selector, verify:
 
 ---
 
-## Additional TBD Items
-
-*Add future TBD items below following the same format...*
--[] Add photo and passport upload option in the PDF form. 
----
-
-**Last Updated:** 2026-05-11
-**Maintained By:** Development Team
-**For Questions:** Refer to this file when commenting/uncommenting language-related code

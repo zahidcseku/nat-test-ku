@@ -66,7 +66,7 @@ define('CSRF_TOKEN_NAME', getenv('CSRF_TOKEN_NAME') ?: 'csrf_token');
 define('PASSWORD_MIN_LENGTH', (int)(getenv('PASSWORD_MIN_LENGTH') ?: 8));
 define('MAX_LOGIN_ATTEMPTS', (int)(getenv('MAX_LOGIN_ATTEMPTS') ?: 5));
 define('LOGIN_ATTEMPT_WINDOW', (int)(getenv('LOGIN_ATTEMPT_WINDOW') ?: 900));
-define('MAX_UPLOAD_SIZE', (int)(getenv('MAX_UPLOAD_SIZE') ?: 52428800));
+define('MAX_UPLOAD_SIZE', (int)(getenv('MAX_UPLOAD_SIZE') ?: 209715200));
 $uploadPath = getenv('UPLOAD_PATH');
 define('UPLOAD_PATH', __DIR__ . '/' . ($uploadPath ?: 'uploads/'));
 
