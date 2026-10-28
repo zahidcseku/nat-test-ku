@@ -1,22 +1,24 @@
-*.db
+# Environment / secrets
 .env
-frontend/media/
-# Ignore all files in frontend/data/ by default
-frontend/mockups/*
-tmp/
 
+# Databases
+*.db
+data/backups/
 
-.DS_Store/
-frontend/.DS_Store/
-admin/pages/__pycache__/
+# Local tooling
+.claude/
+.superpowers/
 dev_resources/
 node_modules/
-**/.DS_Store/
-TBD.md
 
-*.db
-.env
-frontend/media/
-# Ignore all files in frontend/data/ by default
-frontend/mockups/*
+# Build / scratch
 tmp/
+frontend/mockups/*
+frontend/media/
+
+# OS junk (files, not just directories)
+.DS_Store
+**/.DS_Store
+
+# Historical entry kept for reference; file is tracked, so this is inert
+TBD.md
