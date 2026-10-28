@@ -62,6 +62,25 @@ jobs:
           **/mockups/**
           **/tmp/**
           **/*.sh
+          # This workflow ships the whole frontend/ tree, so intake test/
+          # diagnostic code and env files must be excluded here too
+          # (mirrors upload_intake.yml)
+          **/intake/test/**
+          **/intake/test.php
+          **/intake/test_*.php
+          **/intake/debug*.php
+          **/intake/check*.php
+          **/intake/minimal.php
+          **/intake/simple*.php
+          **/intake/submit.php
+          **/intake/payment-test.php
+          **/intake/register_debug.php
+          **/intake/register_log.php
+          **/intake/.env*
+          **/intake/logs/**
+          **/intake/*.md
+          **/intake/*.sql
+          **/intake/*.bak
         local-dir: frontend/
         
 

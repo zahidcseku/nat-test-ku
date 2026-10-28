@@ -17,9 +17,10 @@ Options -Indexes
     </IfModule>
 </FilesMatch>
 
-# Deny test, debug and diagnostic scripts (these must also be excluded from
-# deployment; this is defense in depth)
-<FilesMatch "(?i)^(test|debug|check|minimal|simple_test|register_debug|register_log)[\w.]*\.php$">
+# Deny test, debug and diagnostic scripts and the retired legacy endpoints
+# submit.php / payment-test.php (these must also be excluded from
+# deployment; this is defense in depth for copies already on the server)
+<FilesMatch "(?i)^(test|debug|check|minimal|simple|submit|payment-test|register_debug|register_log)[\w.-]*\.php$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>

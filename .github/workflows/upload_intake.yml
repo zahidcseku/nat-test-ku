@@ -34,6 +34,23 @@ jobs:
           **/mockups/**
           **/tmp/**
           **/*.sh
+          # Never deploy test/diagnostic code, env files, docs or SQL to the server
+          **/test/**
+          **/test.php
+          **/test_*.php
+          **/debug*.php
+          **/check*.php
+          **/minimal.php
+          **/simple*.php
+          **/submit.php
+          **/payment-test.php
+          **/register_debug.php
+          **/register_log.php
+          **/.env*
+          **/logs/**
+          **/*.md
+          **/*.sql
+          **/*.bak
         local-dir: frontend/intake/
         
 
