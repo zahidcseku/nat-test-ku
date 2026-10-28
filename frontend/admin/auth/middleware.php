@@ -10,15 +10,12 @@ require_once __DIR__ . '/../config.php';
 // Then require functions
 require_once __DIR__ . '/../functions.php';
 
-// Check if user is authenticated
-if (!isLoggedIn()) {
-    // Only redirect if not already on login page to prevent loop
-    $currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    if (strpos($currentPath, '/index.php') === false && strpos($currentPath, '/admin/') !== false) {
-        header('Location: ' . BASE_URL . '/index.php');
-        exit;
-    }
-}
+// Require authentication unconditionally. The login page (index.php) includes
+// auth/login.php instead of this middleware, so no redirect loop is possible.
+// Never gate this on the request path: REQUEST_URI is attacker-controlled
+// (e.g. PATH_INFO like /dashboard.php/x/index.php) and requireAuth() also
+// enforces the session timeout.
+requireAuth();
 
-// Regenerate CSRF token for each request
+// Regenerate CSRF token for each request (authenticated sessions only)
 $csrfToken = generateCsrfToken();
