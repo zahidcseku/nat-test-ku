@@ -6,7 +6,8 @@ logs/
 *.log
 
 # Uploaded files (these should be pulled by admin service, not committed)
-uploads/
+uploads/*
+!uploads/.htaccess
 
 # Database dumps (except migrations)
 !migrations/*.sql

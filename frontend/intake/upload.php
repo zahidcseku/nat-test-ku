@@ -89,8 +89,22 @@ function processFileUpload($file, $category, $allowedTypes) {
         ];
     }
 
-    // Generate secure filename
-    $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+    // Generate secure filename — the extension is derived from the validated
+    // MIME type, never from the client-supplied filename, so a polyglot file
+    // named shell.php cannot keep an executable extension
+    $extensionsByMime = [
+        'image/jpeg'      => 'jpg',
+        'image/jpg'       => 'jpg',
+        'image/png'       => 'png',
+        'application/pdf' => 'pdf',
+    ];
+    $extension = $extensionsByMime[$validation['mime_type']] ?? null;
+    if ($extension === null) {
+        return [
+            'success' => false,
+            'error' => 'Unsupported file type'
+        ];
+    }
     $uuid = generateUuid();
     $secureFilename = $uuid . '.' . $extension;
 

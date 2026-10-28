@@ -1,0 +1,16 @@
+# Admission tickets, score reports and exam guides are served as static
+# PDFs only — never execute anything from this tree.
+<FilesMatch "(?i)\.(php\d?|phtml|phar|cgi|pl|py|sh)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Belt-and-braces: disable the PHP engine for this tree where supported
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>

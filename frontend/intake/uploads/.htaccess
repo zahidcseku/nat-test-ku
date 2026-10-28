@@ -1,0 +1,18 @@
+# Uploaded applicant files (photos, ID documents, receipts) are served as
+# static content only. Code paths above also force safe extensions derived
+# from the validated MIME type — this deny is defense in depth, and covers
+# any legacy files already on the server.
+<FilesMatch "(?i)\.(php\d?|phtml|phar|cgi|pl|py|sh)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Belt-and-braces: disable the PHP engine for this tree where supported
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>

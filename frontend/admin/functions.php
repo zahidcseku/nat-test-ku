@@ -728,7 +728,19 @@ function processApplicantFileUpload($file, $category, $allowedTypes) {
         return ['success' => false, 'error' => 'Upload directory is not writable'];
     }
 
-    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    // The stored extension is derived from the validated MIME type, never
+    // from the client-supplied filename, so a polyglot file named shell.php
+    // cannot keep an executable extension
+    $extensionsByMime = [
+        'image/jpeg'      => 'jpg',
+        'image/jpg'       => 'jpg',
+        'image/png'       => 'png',
+        'application/pdf' => 'pdf',
+    ];
+    $extension = $extensionsByMime[$mimeType] ?? null;
+    if ($extension === null) {
+        return ['success' => false, 'error' => 'Unsupported file type'];
+    }
     $filename = generateFileUuid() . '.' . $extension;
     $targetPath = $categoryDir . '/' . $filename;
 
