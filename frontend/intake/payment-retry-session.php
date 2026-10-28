@@ -5,6 +5,10 @@
  * Creates a fresh SSLCommerz payment session for an existing unpaid/failed
  * registration, identified by its payment retry token. Returns only the
  * gateway redirect URL — no registration data is exposed.
+ *
+ * POST-only (multipart) behind initSecurity(): rate limited, and capped
+ * at MAX_PAYMENT_RETRIES sessions per registration so a leaked token
+ * cannot endlessly rotate the payment transaction ID.
  */
 
 // Define service constant
@@ -12,15 +16,15 @@ define('INTAKE_SERVICE', true);
 
 // Load dependencies
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/payment-gateway.php';
 
-// Only allow POST requests
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    errorResponse('Method not allowed', 405);
-}
+initSecurity();
+
+const MAX_PAYMENT_RETRIES = 5;
 
 try {
-    $token = $_POST['token'] ?? '';
+    $token = is_string($_POST['token'] ?? null) ? $_POST['token'] : '';
 
     if (!preg_match('/^[a-f0-9]{32}$/', $token)) {
         errorResponse('Invalid retry token', 400);
@@ -33,7 +37,7 @@ try {
 
     $stmt = $conn->prepare("
         SELECT id, full_name, email, mobile, address, payment_status,
-               total_amount_paid, payment_retry_expires
+               total_amount_paid, payment_retry_expires, payment_retry_count
         FROM registrations
         WHERE payment_retry_token = ?
     ");
@@ -58,6 +62,11 @@ try {
 
     if (strtotime($registration['payment_retry_expires']) <= time()) {
         errorResponse('Retry link has expired. Please look up your registration to get a new one.', 410);
+    }
+
+    if ((int)$registration['payment_retry_count'] >= MAX_PAYMENT_RETRIES) {
+        logActivity("Retry session refused for registration {$registration['id']}: retry cap reached", 'warning');
+        errorResponse('This registration has reached the payment retry limit. Please contact the NAT-TEST office for assistance.', 429);
     }
 
     // Create a fresh gateway session with a new transaction ID

@@ -1,5 +1,10 @@
 /**
  * Payment Retry Page Logic
+ *
+ * All intake calls are POST multipart (initSecurity requirement) and the
+ * server never returns the raw retry token: the token comes either from
+ * the emailed retry link (?token=...) in the URL, or embedded in the
+ * retry_link returned to email+dob verified requesters.
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -8,35 +13,35 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultDiv = document.getElementById('result');
     const searchBtn = document.getElementById('search-btn');
     const emailInput = document.getElementById('email-input');
-    const registrationInput = document.getElementById('registration-input');
+    const dobInput = document.getElementById('dob-input');
     const errorDiv = document.getElementById('search-error');
     const errorMessage = document.getElementById('error-message');
 
-    // Check for token in URL (direct retry link)
+    // Check for token in URL (direct retry link from the applicant's email)
     const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
+    const urlToken = urlParams.get('token');
 
-    if (token) {
+    if (urlToken) {
         // Direct retry link - show loading and lookup
-        searchByToken(token);
+        searchByToken(urlToken);
     }
 
     // Search button click handler
     searchBtn.addEventListener('click', function() {
         const email = emailInput.value.trim();
-        const registrationId = registrationInput.value.trim();
+        const dob = dobInput.value.trim();
 
-        if (!email && !registrationId) {
-            showError('Please enter an email address or registration ID');
+        if (!email) {
+            showError('Please enter your email address');
             return;
         }
 
-        if (email && registrationId) {
-            showError('Please enter either email OR registration ID, not both');
+        if (!dob) {
+            showError('Please enter your date of birth');
             return;
         }
 
-        searchRegistration(email, registrationId);
+        searchRegistration(email, dob);
     });
 
     // Enter key handlers
@@ -46,38 +51,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    registrationInput.addEventListener('keypress', function(e) {
+    dobInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             searchBtn.click();
         }
     });
 
-    function searchRegistration(email, registrationId) {
+    function searchRegistration(email, dob) {
         hideError();
         showLoading();
 
-        let params = new URLSearchParams();
-        if (email) params.append('email', email);
-        if (registrationId) params.append('registration_id', registrationId);
+        const params = new FormData();
+        params.append('email', email);
+        params.append('dob', dob);
 
-        fetch('/intake/payment-retry.php?' + params.toString())
+        fetch('/intake/payment-retry.php', { method: 'POST', body: params })
             .then(response => response.json())
             .then(data => {
                 hideLoading();
                 searchForm.classList.add('hidden');
                 resultDiv.classList.remove('hidden');
 
-                if (!data.success) {
+                if (!data.success || !data.data || !data.data.found) {
                     showNotFound();
                     return;
                 }
 
-                if (!data.data || !data.data.found) {
-                    showNotFound();
-                    return;
-                }
-
-                showResult(data.data);
+                showResult(data.data, null);
             })
             .catch(error => {
                 hideLoading();
@@ -89,18 +89,22 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading();
         searchForm.classList.add('hidden');
 
-        fetch('/intake/payment-retry.php?token=' + encodeURIComponent(token))
+        const params = new FormData();
+        params.append('token', token);
+
+        fetch('/intake/payment-retry.php', { method: 'POST', body: params })
             .then(response => response.json())
             .then(data => {
-                hideLoading();
                 resultDiv.classList.remove('hidden');
 
                 if (!data.success || !data.data || !data.data.found) {
+                    hideLoading();
                     showNotFound();
                     return;
                 }
 
-                showResult(data.data);
+                hideLoading();
+                showResult(data.data, token);
             })
             .catch(error => {
                 hideLoading();
@@ -111,18 +115,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function startPayment(token, button) {
         if (!token) {
-            alert('Retry link not available. Please contact support.');
+            alert('Retry link not available. Please look up your registration with your email and date of birth, or contact support.');
             return;
         }
 
         button.disabled = true;
         button.textContent = 'Connecting to payment gateway...';
 
-        fetch('/intake/payment-retry-session.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'token=' + encodeURIComponent(token)
-        })
+        const params = new FormData();
+        params.append('token', token);
+
+        fetch('/intake/payment-retry-session.php', { method: 'POST', body: params })
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.data && data.data.redirect_url) {
@@ -140,7 +143,21 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
-    function showResult(registration) {
+    // The token is never in the response payload: it comes from the URL
+    // (emailed retry link) or from the retry_link of a verified lookup.
+    function tokenFromResult(registration, urlToken) {
+        if (urlToken) return urlToken;
+        if (registration.retry_link) {
+            try {
+                return new URL(registration.retry_link).searchParams.get('token');
+            } catch (e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    function showResult(registration, urlToken) {
         document.getElementById('not-found').classList.add('hidden');
         document.getElementById('found').classList.remove('hidden');
 
@@ -157,24 +174,38 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('status-paid').classList.remove('hidden');
         } else if (registration.payment_status === 'unpaid') {
             document.getElementById('status-unpaid').classList.remove('hidden');
-            if (registration.expires_at) {
-                const expiry = new Date(registration.expires_at);
-                document.getElementById('expiry-info').textContent =
-                    'Retry link expires: ' + expiry.toLocaleDateString();
-            }
-
-            // Add retry button handler — creates a fresh gateway session
-            document.getElementById('retry-btn').addEventListener('click', function() {
-                startPayment(registration.retry_token, this);
-            });
+            const retryBtn = document.getElementById('retry-btn');
+            wireRetryButton(registration, urlToken, retryBtn);
         } else if (registration.payment_status === 'failed') {
             document.getElementById('status-failed').classList.remove('hidden');
-
-            // Add retry button handler — creates a fresh gateway session
-            document.getElementById('retry-failed-btn').addEventListener('click', function() {
-                startPayment(registration.retry_token, this);
-            });
+            wireRetryButton(registration, urlToken, document.getElementById('retry-failed-btn'));
         }
+    }
+
+    function wireRetryButton(registration, urlToken, button) {
+        const token = tokenFromResult(registration, urlToken);
+
+        if (registration.link_expired || !token) {
+            button.disabled = true;
+            button.textContent = 'Retry link expired — reload and look up your registration to get a new one';
+            const expiryInfo = document.getElementById('expiry-info');
+            if (expiryInfo) {
+                expiryInfo.textContent = 'Enter your email address and date of birth to receive a fresh retry link.';
+            }
+            return;
+        }
+
+        if (registration.expires_at) {
+            const expiry = new Date(registration.expires_at);
+            const expiryInfo = document.getElementById('expiry-info');
+            if (expiryInfo) {
+                expiryInfo.textContent = 'Retry link expires: ' + expiry.toLocaleDateString();
+            }
+        }
+
+        button.addEventListener('click', function() {
+            startPayment(token, this);
+        });
     }
 
     function showNotFound() {

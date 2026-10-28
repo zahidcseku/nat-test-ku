@@ -14,13 +14,21 @@ Write:
 - `payment-return.php` — converts SSLCommerz's POST return into a GET
   redirect to the static success/fail pages (static .html can't accept POST)
 - `payment-retry.php`, `payment-retry-session.php` — retry links for
-  registrations whose gateway session failed (token expires in 7 days)
+  registrations whose gateway session failed (token expires in 7 days).
+  Both POST-only multipart behind `initSecurity()`. The session endpoint
+  caps at 5 retries per registration (`payment_retry_count`).
 
 Read (public, JSON, no PII — exam schedule data only):
 - `get_exam_dates.php`, `get_next_exam.php`, `get_schedule.php`
 
 Deliberate registration-read exceptions (documented, user-approved):
-- `payment-retry.php` — limited fields by email/registration id/retry token
+- `payment-retry.php` — display fields by emailed retry token (bearer by
+  possession, display only, never re-issued) or by email + DOB both
+  matching (mirrors application-lookup posture: POST-only multipart via
+  initSecurity, generic errors, rate limited, logged). Only the email+DOB
+  path can receive/renew a retry_link; the raw token is NEVER in any
+  response. The old email-only and registration-id lookups were removed
+  (sequential-ID/email enumeration + bearer-token minting).
 - `application-lookup.php` — full submitted data (never images/file paths),
   authenticated by full name + mobile + DOB all matching; POST-only
   (multipart, enforced by initSecurity), generic errors, rate limited,

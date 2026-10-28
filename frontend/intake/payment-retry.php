@@ -2,7 +2,19 @@
 /**
  * Payment Retry Lookup Endpoint
  *
- * Allows users and admin to check payment status and generate retry links
+ * Shows payment status for a registration and, for verified requesters, a
+ * retry link. Two access paths, both POST-only (multipart) behind
+ * initSecurity() — rate limited, generic errors, attempt logging:
+ *
+ *  - token: the retry token from the applicant's emailed retry link
+ *    (bearer by possession — display only; tokens are never minted or
+ *    re-issued through this path)
+ *  - email + dob: both must match the registration, mirroring the
+ *    application-lookup posture. This replaced the old email-only and
+ *    registration-id lookups, which let anyone enumerate applicants by
+ *    email or sequential ID and mint bearer retry tokens.
+ *
+ * The raw retry token is never included in any response.
  */
 
 // Define service constant
@@ -10,62 +22,52 @@ define('INTAKE_SERVICE', true);
 
 // Load dependencies
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/security.php';
 
-// Allow both GET and POST
-if ($_SERVER['REQUEST_METHOD'] !== 'GET' && $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    errorResponse('Method not allowed', 405);
-}
+// POST-only, multipart, rate limited (5/min, 20/day), security headers
+initSecurity();
 
 try {
-    // Get lookup parameters
-    $email = $_GET['email'] ?? $_POST['email'] ?? '';
-    $registrationId = $_GET['registration_id'] ?? $_POST['registration_id'] ?? '';
-    $token = $_GET['token'] ?? $_POST['token'] ?? '';
+    $email    = is_string($_POST['email'] ?? null) ? trim($_POST['email']) : '';
+    $dobInput = is_string($_POST['dob'] ?? null) ? trim($_POST['dob']) : '';
+    $token    = is_string($_POST['token'] ?? null) ? $_POST['token'] : '';
 
-    if (empty($email) && empty($registrationId) && empty($token)) {
-        errorResponse('Email, registration ID or retry token required', 400);
-    }
-
-    if (!empty($token) && !preg_match('/^[a-f0-9]{32}$/', $token)) {
-        errorResponse('Invalid retry token', 400);
-    }
-
-    // Get database connection
     $conn = getDbConnection();
     if (!$conn) {
-        errorResponse('Database connection failed', 500);
+        errorResponse('Service temporarily unavailable', 500);
     }
 
-    // Build query based on lookup parameter
-    if (!empty($token)) {
+    if ($token !== '') {
+        // Direct retry-link flow
+        if (!preg_match('/^[a-f0-9]{32}$/', $token)) {
+            errorResponse('Invalid or expired retry link', 404);
+        }
         $stmt = $conn->prepare("
             SELECT id, full_name, email, base_amount, transaction_fee, total_amount_paid,
-                   payment_status, payment_retry_token, payment_retry_expires,
-                   exam_level, test_date
+                   payment_status, payment_retry_token, payment_retry_expires
             FROM registrations
             WHERE payment_retry_token = ?
         ");
         $stmt->bind_param('s', $token);
-    } elseif (!empty($registrationId)) {
-        $stmt = $conn->prepare("
-            SELECT id, full_name, email, base_amount, transaction_fee, total_amount_paid,
-                   payment_status, payment_retry_token, payment_retry_expires,
-                   exam_level, test_date
-            FROM registrations
-            WHERE id = ?
-        ");
-        $stmt->bind_param('s', $registrationId);
     } else {
+        // Verified lookup flow: email + dob must both match
+        $dobOk = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $dobInput, $m)
+            && checkdate((int)$m[2], (int)$m[3], (int)$m[1]);
+
+        if ($email === '' || !$dobOk) {
+            logActivity('Payment retry lookup rejected: incomplete input from ' . hashIp(getClientIp()), 'info');
+            errorResponse('No registration found with those details', 404);
+        }
+
         $stmt = $conn->prepare("
             SELECT id, full_name, email, base_amount, transaction_fee, total_amount_paid,
-                   payment_status, payment_retry_token, payment_retry_expires,
-                   exam_level, test_date
+                   payment_status, payment_retry_token, payment_retry_expires
             FROM registrations
-            WHERE email = ?
+            WHERE LOWER(email) = LOWER(?) AND dob = ?
             ORDER BY created_at DESC
             LIMIT 1
         ");
-        $stmt->bind_param('s', $email);
+        $stmt->bind_param('ss', $email, $dobInput);
     }
 
     $stmt->execute();
@@ -73,72 +75,66 @@ try {
 
     if ($result->num_rows === 0) {
         $stmt->close();
-        $conn->close();
-        errorResponse('Registration not found', 404);
+        logActivity('Payment retry lookup: no match for ' . hashIp(getClientIp()), 'info');
+        errorResponse('No registration found with those details', 404);
     }
 
     $registration = $result->fetch_assoc();
     $stmt->close();
-    $conn->close();
 
-    // Check if retry is possible
-    $canRetry = false;
+    $canRetry = in_array($registration['payment_status'], ['unpaid', 'failed'], true);
     $retryLink = null;
-    $activeToken = null;
+    $linkExpired = false;
 
-    if ($registration['payment_status'] === 'unpaid' || $registration['payment_status'] === 'failed') {
-        $canRetry = true;
+    if ($canRetry) {
+        $hasToken  = !empty($registration['payment_retry_token']);
+        $tokenLive = $hasToken && strtotime($registration['payment_retry_expires']) > time();
 
-        // Check if retry token is expired
-        if (!empty($registration['payment_retry_token'])) {
-            $expiresAt = strtotime($registration['payment_retry_expires']);
-            $now = time();
-
-            if ($expiresAt > $now) {
-                // Generate retry link (will be used by SSLCommerz session creation)
-                $activeToken = $registration['payment_retry_token'];
-                $retryLink = SITE_URL . '/payment-retry.html?token=' . $activeToken;
-            } else {
-                // Generate new retry token
-                $newToken = generateRetryToken();
+        if ($token !== '') {
+            // Token flow: display only. If the link expired, tell the
+            // applicant to look up their registration with email + dob to
+            // get a fresh link — never mint one for an anonymous caller.
+            if (!$tokenLive) {
+                $linkExpired = true;
+            }
+        } elseif ($hasToken) {
+            // Verified email+dob requester may receive — or renew — the link
+            $activeToken = $registration['payment_retry_token'];
+            if (!$tokenLive) {
+                $activeToken = generateRetryToken();
                 $newExpiry = generateRetryExpiry();
-
-                $conn = getDbConnection();
                 $updateStmt = $conn->prepare("
                     UPDATE registrations
                     SET payment_retry_token = ?, payment_retry_expires = ?
                     WHERE id = ?
                 ");
-                $updateStmt->bind_param('sss', $newToken, $newExpiry, $registration['id']);
+                $updateStmt->bind_param('sss', $activeToken, $newExpiry, $registration['id']);
                 $updateStmt->execute();
                 $updateStmt->close();
-                $conn->close();
-
-                $activeToken = $newToken;
-                $retryLink = SITE_URL . '/payment-retry.html?token=' . $newToken;
             }
+            $retryLink = SITE_URL . '/payment-retry.html?token=' . $activeToken;
         }
     }
+    $conn->close();
 
-    // Return registration details
-    $responseData = [
-        'found' => true,
+    successResponse([
+        'found'           => true,
         'registration_id' => $registration['id'],
-        'full_name' => $registration['full_name'],
-        'email' => $registration['email'],
-        'base_amount' => (float)$registration['base_amount'],
+        // Stored text is HTML-encoded by registration sanitization; decode
+        // for display — the client renders with textContent only
+        'full_name'       => html_entity_decode($registration['full_name'], ENT_QUOTES, 'UTF-8'),
+        'email'           => $registration['email'],
+        'base_amount'     => (float)$registration['base_amount'],
         'transaction_fee' => (float)$registration['transaction_fee'],
-        'total_amount' => (float)$registration['total_amount_paid'],
-        'payment_status' => $registration['payment_status'],
-        'can_retry' => $canRetry,
-        'retry_link' => $retryLink,
-        'retry_token' => $activeToken,
-        'expires_at' => $registration['payment_retry_expires']
-    ];
+        'total_amount'    => (float)$registration['total_amount_paid'],
+        'payment_status'  => $registration['payment_status'],
+        'can_retry'       => $canRetry,
+        'retry_link'      => $retryLink,
+        'link_expired'    => $linkExpired,
+        'expires_at'      => $registration['payment_retry_expires'],
+    ], 'Registration found');
 
-    successResponse($responseData, 'Registration found');
-
-} catch (Exception $e) {
-    logActivity("Retry lookup exception: " . $e->getMessage(), 'error');
-    errorResponse('Server error', 500);
+} catch (Throwable $e) {
+    logActivity('Payment retry lookup exception: ' . $e->getMessage(), 'error');
+    errorResponse('Service temporarily unavailable', 500);
 }
